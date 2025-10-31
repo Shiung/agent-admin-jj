@@ -1,4 +1,6 @@
 import { fileURLToPath, URL } from 'node:url'
+import fs from 'fs'
+import path from 'path'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -26,6 +28,23 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  server: {
+    host: '0.0.0.0', // 允許外部設備訪問
+    port: 5173,
+    https: {
+      key: fs.readFileSync(path.resolve(__dirname, 'certs/localhost-key.pem')),
+      cert: fs.readFileSync(path.resolve(__dirname, 'certs/localhost.pem')),
+    },
+    proxy: {
+      '/cloud': {
+        target: 'https://nc-73.ljbdev.site',
+        changeOrigin: true,
+      },
+    },
+    fs: {
+      allow: ['..'],
     },
   },
 })
