@@ -16,6 +16,32 @@ const router = createRouter({
         showTabBar: true,
       },
     },
+    {
+      path: '/promote',
+      name: 'promote',
+      components: {
+        default: () => import('@/pages/promote/index.vue'),
+      },
+      children: [
+        {
+          path: '',
+          name: 'promoteHome',
+          components: {
+            default: () => import('@/pages/promote/nest/product.vue'),
+          },
+          meta: {
+            showTabBar: true,
+          },
+        },
+        {
+          path: 'child',
+          name: 'promoteDetail',
+          components: {
+            default: () => import('@/pages/promote/nest/child.vue'),
+          },
+        }
+      ]
+    }
     // {
     //   path: '/commission-detail/:id',
     //   name: 'commission-detail',
