@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useGlobalStore } from '@/stores/global'
 
 const router = useRouter()
 const route = useRoute()
+const globalStore = useGlobalStore()
 
 interface TabItem {
   key: string
@@ -53,6 +55,8 @@ const tabs: TabItem[] = [
 
 const activeKey = ref('home')
 
+const tabbarContainer = ref<HTMLDivElement | null>(null)
+
 // 根據當前路由更新 activeKey
 watch(
   () => route.path,
@@ -71,11 +75,16 @@ const handleTabChange = (key: string) => {
     router.push(tab.path)
   }
 }
+
+onMounted(() => {
+  globalStore.tabbarHeight = tabbarContainer.value?.clientHeight || 0
+})
 </script>
 
 <template>
-  <div class="tabbar-container">
-    <van-tabbar v-model="activeKey" active-color="#007AFF" @change="handleTabChange">
+  <div :style="{ height: globalStore.tabbarHeight + 'px' }" />
+  <div class="tabbar-container" ref="tabbarContainer">
+    <van-tabbar v-model="activeKey" active-color="#007AFF" @change="handleTabChange" :fixed="false">
       <van-tabbar-item v-for="tab in tabs" :key="tab.key" :name="tab.key" :icon="tab.icon">
         {{ tab.label }}
       </van-tabbar-item>
