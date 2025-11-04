@@ -1,1 +1,28 @@
 @import 'tailwindcss';
+
+/* base color */
+@theme {
+  --color-primary-normal: #007AFF;
+  --color-primary-5: rgba(0, 122, 255, 0.05);
+  --color-primary-10: rgba(0, 122, 255, 0.1);
+
+  --color-error-normal: #F22A2A;
+  --color-success-normal: #72C240;
+
+  --color-neutral-basic: rgba(29, 39, 86, 0.9);
+  --color-neutral-secondary: rgba(0, 0, 0, 0.7);
+
+  --color-neutral2-basic: rgba(29, 39, 86, 0.9);
+  --color-neutral2-secondary: rgba(29, 39, 86, 0.7);
+  --color-neutral2-seventh: rgba(29, 39, 86, 0.07);
+
+  --color-bg-floor-1-2: rgba(248, 250, 253, 1);
+}
+
+/* vant color */
+/* https://vant-ui.github.io/vant/#/zh-CN/config-provider#tong-guo-css-fu-gai */
+:root:root {
+  --van-primary-color: var(--color-primary-normal);
+  --van-danger-color: var(--color-error-normal);
+  --van-success-color: var(--color-success-normal);
+}
