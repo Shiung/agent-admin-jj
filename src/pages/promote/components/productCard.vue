@@ -8,13 +8,13 @@ defineProps<{
   <div class="bg-white rounded-2xl shadow mb-4">
     <div class="p-4">
       <div class="flex items-center mb-3 space-x-3">
-        <div class="aspect-square w-14 rounded-xl bg-[#ccc]"></div>
+        <div class="aspect-square w-16 rounded-xl bg-[#ccc]"></div>
         <div class="flex-1">
           <div class="font-semibold text-gray-800">{{ product.name }}</div>
           <div class="text-sm text-gray-500">{{ product.desc }}</div>
           <div class="text-xs text-gray-400">版本 {{ product.version }}</div>
         </div>
-        <div class="text-center bg-slate-50 p-2">
+        <div class="text-center bg-slate-50 p-2 w-16 aspect-square rounded-xl flex flex-col justify-center">
           <div class="text-xs text-gray-500">邀请码</div>
           <div class="font-semibold text-blue-500">{{ product.inviteCode }}</div>
         </div>

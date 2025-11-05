@@ -27,7 +27,7 @@ const router = createRouter({
           path: '',
           name: 'promoteHome',
           components: {
-            default: () => import('@/pages/promote/nest/product.vue'),
+            default: () => import('@/pages/promote/promoteHome.vue'),
           },
           meta: {
             showTabBar: true,
