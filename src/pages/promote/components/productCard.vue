@@ -5,7 +5,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl shadow mb-4">
+  <div class="bg-white rounded-2xl shadow">
     <div class="p-4">
       <div class="flex items-center mb-3 space-x-3">
         <div class="aspect-square w-16 rounded-xl bg-[#ccc]"></div>
