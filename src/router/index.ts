@@ -16,11 +16,11 @@ const router = createRouter({
         showTabBar: true,
       },
     },
-    // {
-    //   path: '/commission-detail/:id',
-    //   name: 'commission-detail',
-    //   component: () => import('@/pages/commission-detail/index.vue'),
-    // },
+    {
+      path: '/commission-detail/:id',
+      name: 'commission-detail',
+      component: () => import('@/pages/commission-detail/index.vue'),
+    },
   ],
 })
 
