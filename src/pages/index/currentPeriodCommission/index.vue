@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import InfoDialog from '@/components/InfoDialog/index.vue'
 import dayjs from 'dayjs'
 import Big from 'big.js'
+import API from '@/apis'
+import InfoDialog from '@/components/InfoDialog/index.vue'
 
 const router = useRouter()
 
@@ -17,43 +18,50 @@ const showInfo = ref(false)
 const currentMonth = computed(() => dayjs().format('YYYY-MM'))
 
 // 格式化数字（大于等于10000显示K，保留2位小数）
-const formatNumber = (value: number): string => {
-  if (Math.abs(value) >= 10000) {
-    return new Big(value).div(1000).toFixed(2) + 'K'
-  }
+const formatNumber = (value: string): string => {
+  if (new Big(value).abs().gte(10000)) return new Big(value).div(1000).toFixed(2) + 'K'
   return new Big(value).toFixed(2)
 }
 
 // 格式化带符号的数字
-const formatSignedNumber = (value: number): { text: string; color: string } => {
+const formatSignedNumber = (value: string): { text: string; color: string } => {
   const formatted = formatNumber(value)
-  if (value > 0) {
+  // 大于0为红色，小于0为绿色，等于0为黑色
+  if (new Big(value).gt(0)) {
     return { text: '+' + formatted, color: 'text-error-normal' }
-  } else if (value < 0) {
+  } else if (new Big(value).lt(0)) {
     return { text: formatted, color: 'text-success-normal' }
   } else {
     return { text: formatted, color: 'text-neutral-basic' }
   }
 }
 
-// 模拟数据 - 后续替换为 API
+const fetchCompareCommission = async () => {
+  const res = await API.admin.getCompareCommission()
+  if (res.data.Code !== 200) return
+
+  commissionData.value.commissionRate = new Big(res.data.Data.CurrentMonth.CommissionRate).div(100).toFixed(2)
+
+  commissionData.value.totalProfit.current = new Big(res.data.Data.CurrentMonth.BetWinTotal).div(100).toFixed(2)
+  commissionData.value.estimatedMemberCommission.current = new Big(res.data.Data.CurrentMonth.CommissionTotal).div(100).toFixed(2)
+  commissionData.value.estimatedSubordinateContribution.current = new Big(res.data.Data.CurrentMonth.CommissionChildTotal).div(100).toFixed(2)
+  commissionData.value.estimatedDepositRebate.current = new Big(res.data.Data.CurrentMonth.AdminChargeMoneyFee).div(100).toFixed(2)
+
+  commissionData.value.totalProfit.last = new Big(res.data.Data.LastMonth.BetWinTotal).div(100).toFixed(2)
+  commissionData.value.estimatedMemberCommission.last = new Big(res.data.Data.LastMonth.CommissionTotal).div(100).toFixed(2)
+  commissionData.value.estimatedSubordinateContribution.last = new Big(res.data.Data.LastMonth.CommissionChildTotal).div(100).toFixed(2)
+  commissionData.value.estimatedDepositRebate.last = new Big(res.data.Data.LastMonth.AdminChargeMoneyFee).div(100).toFixed(2)
+}
+
+fetchCompareCommission()
+
+// 佣金数据
 const commissionData = ref({
-  totalProfit: {
-    current: 125888.50,
-    last: 98600.20,
-  },
-  estimatedMemberCommission: {
-    current: 15680.30,
-    last: 12450.80,
-  },
-  estimatedSubordinateContribution: {
-    current: 8900.50,
-    last: 7200.30,
-  },
-  estimatedDepositRebate: {
-    current: 2300.00,
-    last: 1800.00,
-  },
+  commissionRate: '0',
+  totalProfit: { current: '0', last: '0' },
+  estimatedMemberCommission: { current: '0', last: '0' },
+  estimatedSubordinateContribution: { current: '0', last: '0' },
+  estimatedDepositRebate: { current: '0', last: '0' },
 })
 
 // 指标列表
@@ -94,9 +102,7 @@ const indicators = computed(() => {
 })
 
 // 跳转到佣金详情页面
-const handleViewMore = () => {
-  router.push({ name: 'commission-detail', params: { id: '123' } })
-}
+const handleViewMore = () => router.push({ name: 'commission-detail' })
 </script>
 
 <template>
@@ -114,7 +120,7 @@ const handleViewMore = () => {
       <div class="w-[7.5rem] text-primary-normal text-sm font-semibold">佣金比例</div>
       <van-divider vertical :style="{ height: '1.25rem', color: 'var(--color-primary-10)' }" />
       <div class="flex items-center justify-center flex-1 bg-primary-5 text-primary-normal rounded-2xl p-1">
-        <div class="text-2xl font-semibold">10</div>
+        <div class="text-2xl font-semibold">{{ commissionData.commissionRate }}</div>
         <div class="text-lg self-end font-semibold">%</div>
       </div>
     </div>
@@ -133,7 +139,7 @@ const handleViewMore = () => {
         <div class="flex-1">
           <!-- 本月 -->
           <div class="flex items-baseline justify-between mb-1">
-            <div class="text-sm text-neutral2-basic font-semibold">本月</div>
+            <div class="text-xs text-neutral2-basic font-semibold">本月</div>
             <div
               class="text-base font-semibold"
               :class="item.isSigned ? formatSignedNumber(item.current).color : 'text-neutral2-basic'"
@@ -147,14 +153,9 @@ const handleViewMore = () => {
             <div class="text-xs text-neutral2-basic">上月</div>
             <div
               class="text-sm"
-              :class="[
-                !item.isSigned ? 'text-neutral2-basic' :
-                item.current > item.last ? 'text-success-normal' : 
-                item.current < item.last ? 'text-error-normal' : 
-                'text-neutral2-basic'
-              ]"
+              :class="item.isSigned ? formatSignedNumber(item.last).color : 'text-neutral2-basic'"
             >
-              {{ formatNumber(item.last) }}
+              {{ item.isSigned ? formatSignedNumber(item.last).text : formatNumber(item.last) }}
             </div>
           </div>
         </div>

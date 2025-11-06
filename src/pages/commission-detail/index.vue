@@ -2,17 +2,13 @@
 import { ref, computed } from 'vue'
 import dayjs from 'dayjs'
 import Big from 'big.js'
+import API from '@/apis'
+import type { CompareCommissionResponseData, CompareCommissionData, CommissionChildList } from '@/apis/codegen/data-contracts'
 import NavBar from '@/components/NavBar/index.vue'
 import InfoDialog from '@/components/InfoDialog/index.vue'
 
-// 獲取路由參數 ID (後續可用於 API 調用)
-// import { useRoute } from 'vue-router'
-// const route = useRoute()
-// const commissionId = computed(() => route.params.id)
-
 // 是否为多层代理
 const isMultiLevelAgent = ref(true)
-const agentLevel = ref(3) // 代理层级数
 
 // 显示说明弹窗
 const showInfo = ref(false)
@@ -21,84 +17,95 @@ const showInfo = ref(false)
 const currentMonth = computed(() => dayjs().format('YYYY-MM'))
 
 // 格式化数字（大于等于10000显示K，保留2位小数）
-const formatNumber = (value: number): string => {
-  if (Math.abs(value) >= 10000) {
+const formatNumber = (value: string | number): string => {
+  if (!value) return '0.00'
+
+  if (new Big(value).abs().gte(10000)) {
     return new Big(value).div(1000).toFixed(2) + 'K'
   }
-  return value.toFixed(2)
+  return new Big(value).toFixed(2)
 }
 
 // 格式化带符号的数字
-const formatSignedNumber = (value: number): { text: string; color: string } => {
+const formatSignedNumber = (value: string | number): { text: string; color: string } => {
   const formatted = formatNumber(value)
-  if (value > 0) {
+  if (new Big(value ?? 0).gt(0)) {
     return { text: '+' + formatted, color: 'text-error-normal' }
-  } else if (value < 0) {
+  } else if (new Big(value ?? 0).lt(0)) {
     return { text: formatted, color: 'text-success-normal' }
   } else {
     return { text: formatted, color: 'text-neutral2-basic' }
   }
 }
 
-// 模拟数据 - 预计会员佣金
-const memberCommissionData = ref({
-  memberCommission: { current: 15680.30, last: 12450.80 },
-  netProfit: { current: 98500.20, last: 85600.10 },
-  totalProfit: { current: 125800.50, last: 98600.20 },
-  winLossAdjustment: { current: -2300.00, last: -1800.00 },
-  platformFee: { current: 8900.50, last: 7200.30 },
-  depositWithdrawalFee: { current: 1200.80, last: 950.60 },
-  rebate: { current: 12500.00, last: 10200.00 },
-  bonus: { current: 2400.00, last: 1850.00 },
-  previousBalance: { current: 500.00, last: -300.00 },
-  commissionRate: 12.5, // 佣金比例%
-  depositRebate: { current: 2300.00, last: 1800.00 },
-  rebateRate: { current: 2.5, last: 12.03 }, // 回馈比例%
-})
+const fetchCompareCommission = async () => {
+  const res = await API.admin.getCompareCommission()
+  if (res.data.Code !== 200) return
 
-// 模拟数据 - 预计下级贡献
-const subordinateContributionData = ref({
-  total: { current: 89000.50, last: 7200.30 },
-  level1: { current: 5200.30, last: 4100.20 },
-  level2: { current: 2500.10, last: 2000.05 },
-  level3: { current: 1200.10, last: 1100.05 },
+  const data: CompareCommissionResponseData = res.data.Data
+  Object.keys(data).forEach((monthKey) => {
+    const monthData: CompareCommissionData = data[monthKey as keyof CompareCommissionResponseData]
+    Object.keys(monthData).forEach((key) => {
+      const typedKey = key as keyof CompareCommissionData
+      switch (typeof monthData[typedKey]) {
+        // number 类型需要除以100并保留2位小数
+        case 'number':
+          ;(monthData as any)[typedKey] = new Big(monthData[typedKey]).div(100).toFixed(2)
+          break
+        default: break
+      }
+    })
+  })
+
+  detailData.value = data
+}
+
+fetchCompareCommission()
+
+const detailData = ref<CompareCommissionResponseData>({
+  CurrentMonth: {} as CompareCommissionData,
+  LastMonth: {} as CompareCommissionData,
 })
 
 // 预计会员佣金列表
 const memberCommissionList = computed(() => [
-  { label: '会员佣金', value: memberCommissionData.value.memberCommission, isSigned: false },
-  { label: '净盈利', value: memberCommissionData.value.netProfit, isSigned: true },
-  { label: '总盈利', value: memberCommissionData.value.totalProfit, isSigned: true },
-  { label: '输赢调整', value: memberCommissionData.value.winLossAdjustment, isSigned: false },
-  { label: '平台费', value: memberCommissionData.value.platformFee, isSigned: false },
-  { label: '存提手续费', value: memberCommissionData.value.depositWithdrawalFee, isSigned: false },
-  { label: '红利', value: memberCommissionData.value.bonus, isSigned: false },
-  { label: '返水', value: memberCommissionData.value.rebate, isSigned: false },
-  { label: '上期结余', value: memberCommissionData.value.previousBalance, isSigned: true },
-  { label: '代存回馈', value: memberCommissionData.value.depositRebate, isSigned: false },
-  { label: '回馈比例', value: memberCommissionData.value.rebateRate, isSigned: false, suffix: '%' },
+  { label: '会员佣金',value: { current: detailData.value.CurrentMonth.CommissionChildTotal, last: detailData.value.LastMonth.CommissionChildTotal }, isSigned: false },
+  { label: '净盈利', value: { current: detailData.value.CurrentMonth.CleanBetWinTotal, last: detailData.value.LastMonth.CleanBetWinTotal }, isSigned: true },
+  { label: '总盈利', value: { current: detailData.value.CurrentMonth.BetWinTotal, last: detailData.value.LastMonth.BetWinTotal }, isSigned: true },
+  { label: '输赢调整', value: { current: detailData.value.CurrentMonth.MoneyChangeFee, last: detailData.value.LastMonth.MoneyChangeFee }, isSigned: false },
+  { label: '平台费', value: { current: detailData.value.CurrentMonth.ApiFeeTotalFee, last: detailData.value.LastMonth.ApiFeeTotalFee }, isSigned: false },
+  { label: '存提手续费',
+    value: { current: new Big(detailData.value.CurrentMonth?.PayMoneyFee ?? 0).plus(detailData.value.CurrentMonth.WithdrawMoneyFee ?? 0).toFixed(2), last: new Big(detailData.value.LastMonth?.PayMoneyFee ?? 0).plus(detailData.value.LastMonth?.WithdrawMoneyFee ?? 0).toFixed(2) },
+    isSigned: false
+  },
+  { label: '红利', value: { current: detailData.value.CurrentMonth.RedGoldFee, last: detailData.value.LastMonth.RedGoldFee }, isSigned: false },
+  { label: '返水', value: { current: detailData.value.CurrentMonth.BackWaterGoldFee, last: detailData.value.LastMonth.BackWaterGoldFee }, isSigned: false },
+  { label: '上期结余', value: { current: detailData.value.CurrentMonth.LastMonthCleanBetWinTotal, last: detailData.value.LastMonth.LastMonthCleanBetWinTotal }, isSigned: true },
+  { label: '代存回馈', value: { current: detailData.value.CurrentMonth.AdminChargeMoneyFee, last: detailData.value.LastMonth.AdminChargeMoneyFee }, isSigned: false },
+  { label: '回馈比例', value: { current: detailData.value.CurrentMonth.CommissionRate, last: detailData.value.LastMonth.CommissionRate }, isSigned: false, suffix: '%' },
 ])
 
 // 预计下级贡献列表
 const subordinateContributionList = computed(() => {
-  const list = [
-    { label: '代理佣金', value: subordinateContributionData.value.total },
-  ]
+  const result: { label: string, value: { current: string, last: string } }[] = []
 
-  // 根据代理层级添加对应的贡献项
-  if (isMultiLevelAgent.value) {
-    if (agentLevel.value >= 1) {
-      list.push({ label: '一级代理佣金', value: subordinateContributionData.value.level1 })
-    }
-    if (agentLevel.value >= 2) {
-      list.push({ label: '二级代理佣金', value: subordinateContributionData.value.level2 })
-    }
-    if (agentLevel.value >= 3) {
-      list.push({ label: '三级代理佣金', value: subordinateContributionData.value.level3 })
-    }
+  const levelMap: Record<number, string> = {
+    1: '一级代理佣金',
+    2: '二级代理佣金',
+    3: '三级代理佣金',
+    4: '四级代理佣金',
+    5: '五级代理佣金',
   }
 
-  return list
+  detailData.value.CurrentMonth?.CommissionChildList?.forEach((item: CommissionChildList) => {
+    const label = item.CurrentAdmin ? '代理佣金' : levelMap[item.Level] ?? ''
+    result.push({ label, value: { current: new Big(item.CommissionTotal ?? 0).div(100).toFixed(2), last: new Big(detailData.value.LastMonth.CommissionChildList.find((lastItem: CommissionChildList) => lastItem.Level === item.Level)?.CommissionTotal ?? 0).div(100).toFixed(2) } })
+  })
+  
+  return [
+    // { label: '代理佣金', value: { current: detailData.value.CurrentMonth.CommissionTotal, last: detailData.value.LastMonth.CommissionTotal } },
+    ...result,
+  ]
 })
 </script>
 

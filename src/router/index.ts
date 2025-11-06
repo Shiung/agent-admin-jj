@@ -17,7 +17,7 @@ const router = createRouter({
       },
     },
     {
-      path: '/commission-detail/:id',
+      path: '/commission-detail',
       name: 'commission-detail',
       component: () => import('@/pages/commission-detail/index.vue'),
     },
