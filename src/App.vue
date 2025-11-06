@@ -12,7 +12,6 @@ const userStore = useUserStore()
 
 const fetchIsLogin = async () => {
   const res = await API.system.isLogin()
-  console.log('res', res)
   if (res.data.Code !== 200) return router.push('/login')
 
   userStore.userInfo = res.data.Data

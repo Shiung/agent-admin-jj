@@ -2,7 +2,9 @@
 
 import { apiClient } from './api-client'
 import { System } from './codegen/System'
+import { Admin } from './codegen/Admin'
 
 export default {
   system: new System(apiClient),
+  admin: new Admin(apiClient),
 }
