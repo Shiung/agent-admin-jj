@@ -4,7 +4,7 @@ import promoteSwitchBtn from './components/promoteSwitchBtn.vue'
 import productSwitchBtn from './components/productSwitchBtn.vue'
 
 const promoteTabs: Array<{ id: number, title: string, comp: Component }> = [
-  { id: 0, title: '產品', comp: defineAsyncComponent(() => import('./components/productList.vue')) },
+  { id: 0, title: '产品', comp: defineAsyncComponent(() => import('./components/productList.vue')) },
   { id: 1, title: '素材', comp: defineAsyncComponent(() => import('./components/materialList.vue')) }
 ]
 const promoteActiveTab = ref<number>(promoteTabs[0]?.id ?? 0)

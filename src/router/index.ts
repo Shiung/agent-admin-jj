@@ -33,13 +33,13 @@ const router = createRouter({
             showTabBar: true,
           },
         },
-        {
-          path: 'child',
-          name: 'promoteDetail',
-          components: {
-            default: () => import('@/pages/promote/nest/child.vue'),
-          },
-        }
+        // {
+        //   path: 'child',
+        //   name: 'promoteDetail',
+        //   components: {
+        //     default: () => import('@/pages/promote/nest/child.vue'),
+        //   },
+        // }
       ]
     }
     // {
