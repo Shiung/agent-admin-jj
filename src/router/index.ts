@@ -33,13 +33,20 @@ const router = createRouter({
             showTabBar: true,
           },
         },
-        // {
-        //   path: 'child',
-        //   name: 'promoteDetail',
-        //   components: {
-        //     default: () => import('@/pages/promote/nest/child.vue'),
-        //   },
-        // }
+        {
+          path: 'material/:productId',
+          name: 'materialPort',
+          components: {
+            default: () => import('@/pages/promote/materialPort.vue'),
+          }
+        },
+        {
+          path: 'material/:productId/edit',
+          name: 'materialEdit',
+          components: {
+            default: () => import('@/pages/promote/marerialEdit.vue'),
+          }
+        }
       ]
     }
     // {

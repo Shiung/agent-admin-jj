@@ -1,11 +1,18 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router';
 defineProps<{
   product: any
 }>()
+
+const router = useRouter()
+
+const clickHandler = () => {
+  router.push({ name: 'materialPort', params: { productId: 2108 } })
+}
 </script>
 
 <template>
-  <div class="bg-white rounded-2xl shadow">
+  <div class="bg-white rounded-2xl shadow" @click="clickHandler">
     <div class="p-4">
       <div class="flex items-center mb-3 space-x-3">
         <div class="aspect-square w-16 rounded-xl bg-[#ccc]"></div>

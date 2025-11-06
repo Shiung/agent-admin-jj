@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from 'vue';
+import { computed, onMounted, ref, watchEffect } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+
 import { fakeMaterial } from '../fake'
 
-const { isProduct = false } = defineProps<{ isProduct?: boolean }>()
+const route = useRoute()
+const router = useRouter()
+const pId = route.params?.productId
+const isProduct = !!pId
 
 const data = ref<Array<any>>(fakeMaterial)
 
@@ -59,6 +64,11 @@ const dataGroupBy = computed<{
     const hasProductLs = sum?.[productId]
     const hasExistThemeLs = sum?.[productId]?.group?.[themeId]
 
+    /** 產品id 存在狀態 */
+    if (pId && pId.toString() !== productId.toString()) {
+      return sum
+    }
+
     if (!hasProductLs) {
       return {
         ...sum,
@@ -106,13 +116,16 @@ const dataGroupBy = computed<{
   }, {})
 })
 
+const clickHandler = (pId: string ) => {
+  router.push({ name: 'materialEdit', params: { productId: pId }})
+}
 
 watchEffect(() => {
   console.log('ls', dataGroupBy.value)
 })
 
 onMounted(() => {
-  console.log('isProduct', isProduct)
+  console.log('isProduct', isProduct, pId)
 })
 </script>
 
@@ -121,7 +134,7 @@ onMounted(() => {
     <!-- 素材
     <div>drop down zone</div> -->
 
-    <div class="space-y-4 -mx-2">
+    <div :class="['space-y-4', !isProduct && '-mx-2']"> 
       <div v-for="(val, key) in dataGroupBy" :key="key" >
         <div v-for="(tVal, tKey) in val.group" :key="tKey">
           <div class="flex justify-between items-center p-2">
@@ -133,7 +146,7 @@ onMounted(() => {
           </div>
   
           <div class="grid grid-cols-3 gap-1">
-            <div v-for="(dVal, dKey) in tVal.group" :key="dKey" class="rounded-sm aspect-[121/156] shadow-sm flex justify-center items-center overflow-hidden relative">
+            <div v-for="(dVal, dKey) in tVal.group" :key="dKey" class="rounded-sm aspect-[121/156] shadow-sm flex justify-center items-center overflow-hidden relative" @click="clickHandler(dVal?.PackageId?.toString())">
               <!-- {{ dVal.Id }} -->
               <!-- <img :src="dVal.ImagePath" class="" /> -->
               <van-image use-error-slot use-loading-slot fit="cover" :src="dVal.ImagePath" class="w-full h-full"></van-image>

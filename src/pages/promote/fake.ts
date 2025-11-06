@@ -7,10 +7,12 @@ const fakeImg = [
   "https://picsum.photos/400/200?image=4",
 ]
 
+const getImg = () => fakeImg[Math.floor(Math.random() * 6)]
+
 export const fakeMaterial = [
   {
     "Id": 101,
-    "ImagePath": fakeImg[0],
+    "ImagePath": getImg(),
     "LangGroupId": 299,
     "PackageId": 2108,
     "PackageName": "mia_CQA",
@@ -22,7 +24,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 102,
-    "ImagePath": fakeImg[1],
+    "ImagePath": getImg(),
     "LangGroupId": 300,
     "PackageId": 2109,
     "PackageName": "mia_CQA_food",
@@ -34,7 +36,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 103,
-    "ImagePath": fakeImg[2],
+    "ImagePath": getImg(),
     "LangGroupId": 299,
     "PackageId": 2110,
     "PackageName": "mia_CQA_nature",
@@ -46,7 +48,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 104,
-    "ImagePath": fakeImg[3],
+    "ImagePath": getImg(),
     "LangGroupId": 301,
     "PackageId": 2111,
     "PackageName": "mia_CQA_tech",
@@ -58,7 +60,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 105,
-    "ImagePath": fakeImg[4],
+    "ImagePath": getImg(),
     "LangGroupId": 299,
     "PackageId": 2108, // PackageId 相同
     "PackageName": "mia_CQA",
@@ -70,7 +72,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 106,
-    "ImagePath": fakeImg[5],
+    "ImagePath": getImg(),
     "LangGroupId": 302,
     "PackageId": 2112,
     "PackageName": "mia_CQA_city",
@@ -82,7 +84,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 107,
-    "ImagePath": fakeImg[0],
+    "ImagePath": getImg(),
     "LangGroupId": 300,
     "PackageId": 2113,
     "PackageName": "mia_CQA_animals",
@@ -94,7 +96,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 108,
-    "ImagePath": fakeImg[0],
+    "ImagePath": getImg(),
     "LangGroupId": 303,
     "PackageId": 2114,
     "PackageName": "mia_CQA_abstract",
@@ -106,7 +108,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 109,
-    "ImagePath": fakeImg[0],
+    "ImagePath": getImg(),
     "LangGroupId": 300,
     "PackageId": 2109, // PackageId 相同
     "PackageName": "mia_CQA_food",
@@ -118,7 +120,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 110,
-    "ImagePath": fakeImg[0],
+    "ImagePath": getImg(),
     "LangGroupId": 304,
     "PackageId": 2115,
     "PackageName": "mia_CQA_travel",
@@ -130,7 +132,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 111,
-    "ImagePath": fakeImg[0],
+    "ImagePath": getImg(),
     "LangGroupId": 299,
     "PackageId": 2108, // PackageId 相同
     "PackageName": "mia_CQA",
@@ -142,7 +144,7 @@ export const fakeMaterial = [
   },
   {
     "Id": 112,
-    "ImagePath": fakeImg[0],
+    "ImagePath": getImg(),
     "LangGroupId": 299,
     "PackageId": 2108, // PackageId 相同
     "PackageName": "mia_CQA",
