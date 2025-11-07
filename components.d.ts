@@ -8,6 +8,9 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    Carousel: typeof import('./src/components/carousel/Carousel.vue')['default']
+    CarouselContent: typeof import('./src/components/carousel/CarouselContent.vue')['default']
+    CarouselItem: typeof import('./src/components/carousel/CarouselItem.vue')['default']
     InfoDialog: typeof import('./src/components/InfoDialog/index.vue')['default']
     NavBar: typeof import('./src/components/NavBar/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
