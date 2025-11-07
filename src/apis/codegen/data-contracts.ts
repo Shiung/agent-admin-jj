@@ -161,3 +161,36 @@ export interface NetcashdashboardInfoV2Data {
   LastMonthTotal: NetcashdashboardInfoV2MonthTotal // 上月加總
   MonthTotal: NetcashdashboardInfoV2MonthTotal // 本月加總
 }
+
+export interface CompareGameDataQuery {
+  ReportType: number // 報表類型，1:日報，2:月報
+}
+
+export interface CompareGameDataResponse {
+  Code: number
+  Data: CompareGameDataData
+  Msg: string
+  Id: string
+}
+
+export interface CompareGameDataData {
+  GameData: GameDataItem[] // 當前週期遊戲數據
+  LastPeriodGameData: GameDataItem[] // 之前週期遊戲數據
+}
+
+export interface GameDataItem {
+  GameType: string // 遊戲代號(請前端mapping到遊戲名稱)
+  SumValidWater: number // 有效投注，單位:分
+  SumWinLose: number // 總盈利(公司輸贏)，單位:分
+}
+
+export interface SolidConfigResponse {
+  Code: number
+  Data: SolidConfigData
+  Msg: string
+  Id: string
+}
+
+export interface SolidConfigData {
+  GameSetting: Record<string, any>[]
+}
