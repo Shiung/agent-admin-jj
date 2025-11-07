@@ -4,6 +4,7 @@ import dayjs from 'dayjs'
 import Big from 'big.js'
 import API from '@/apis'
 import type { CompareCommissionResponseData, CompareCommissionData, CommissionChildList } from '@/apis/codegen/data-contracts'
+import { formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
 import NavBar from '@/components/NavBar/index.vue'
 import InfoDialog from '@/components/InfoDialog/index.vue'
 
@@ -16,48 +17,11 @@ const showInfo = ref(false)
 // 当前月份
 const currentMonth = computed(() => dayjs().format('YYYY-MM'))
 
-// 格式化数字（大于等于10000显示K，保留2位小数）
-const formatNumber = (value: string | number): string => {
-  if (!value) return '0.00'
-
-  if (new Big(value).abs().gte(10000)) {
-    return new Big(value).div(1000).toFixed(2) + 'K'
-  }
-  return new Big(value).toFixed(2)
-}
-
-// 格式化带符号的数字
-const formatSignedNumber = (value: string | number): { text: string; color: string } => {
-  const formatted = formatNumber(value)
-  if (new Big(value ?? 0).gt(0)) {
-    return { text: '+' + formatted, color: 'text-error-normal' }
-  } else if (new Big(value ?? 0).lt(0)) {
-    return { text: formatted, color: 'text-success-normal' }
-  } else {
-    return { text: formatted, color: 'text-neutral2-basic' }
-  }
-}
-
 const fetchCompareCommission = async () => {
   const res = await API.admin.getCompareCommission()
   if (res.data.Code !== 200) return
 
-  const data: CompareCommissionResponseData = res.data.Data
-  Object.keys(data).forEach((monthKey) => {
-    const monthData: CompareCommissionData = data[monthKey as keyof CompareCommissionResponseData]
-    Object.keys(monthData).forEach((key) => {
-      const typedKey = key as keyof CompareCommissionData
-      switch (typeof monthData[typedKey]) {
-        // number 类型需要除以100并保留2位小数
-        case 'number':
-          ;(monthData as any)[typedKey] = new Big(monthData[typedKey]).div(100).toFixed(2)
-          break
-        default: break
-      }
-    })
-  })
-
-  detailData.value = data
+  detailData.value = res.data.Data
 }
 
 fetchCompareCommission()
@@ -99,7 +63,7 @@ const subordinateContributionList = computed(() => {
 
   detailData.value.CurrentMonth?.CommissionChildList?.forEach((item: CommissionChildList) => {
     const label = item.CurrentAdmin ? '代理佣金' : levelMap[item.Level] ?? ''
-    result.push({ label, value: { current: new Big(item.CommissionTotal ?? 0).div(100).toFixed(2), last: new Big(detailData.value.LastMonth.CommissionChildList.find((lastItem: CommissionChildList) => lastItem.Level === item.Level)?.CommissionTotal ?? 0).div(100).toFixed(2) } })
+    result.push({ label, value: { current: formatMoneyToK(item.CommissionTotal), last: formatMoneyToK(detailData.value.LastMonth.CommissionChildList.find((lastItem: CommissionChildList) => lastItem.Level === item.Level)?.CommissionTotal ?? 0) } })
   })
   
   return [
@@ -151,18 +115,18 @@ const subordinateContributionList = computed(() => {
           <div
             class="flex-1 flex items-center justify-end text-sm"
             :class="[
-              item.isSigned ? formatSignedNumber(item.value.last).color : 'text-neutral2-basic'
+              item.isSigned ? formatSignedMoney(item.value.last).color : 'text-neutral2-basic'
             ]"
           >
-            {{ item.isSigned ? formatSignedNumber(item.value.last).text : formatNumber(item.value.last) }}{{ item.suffix }}
+            {{ item.isSigned ? formatSignedMoney(item.value.last).text : formatMoneyToK(item.value.last) }}{{ item.suffix }}
           </div>
           <div
             class="flex-1 flex items-center justify-end text-sm font-semibold"
             :class="[
-              item.isSigned ? formatSignedNumber(item.value.current).color : 'text-neutral2-basic'
+              item.isSigned ? formatSignedMoney(item.value.current).color : 'text-neutral2-basic'
             ]"
           >
-            {{ item.isSigned ? formatSignedNumber(item.value.current).text : formatNumber(item.value.current) }}{{ item.suffix }}
+            {{ item.isSigned ? formatSignedMoney(item.value.current).text : formatMoneyToK(item.value.current) }}{{ item.suffix }}
           </div>
         </div>
       </div>
@@ -183,10 +147,10 @@ const subordinateContributionList = computed(() => {
         >
           <div class="flex-1 flex items-center justify-start text-sm text-neutral2-basic">{{ item.label }}</div>
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic">
-            {{ formatNumber(item.value.last) }}
+            {{ formatMoneyToK(item.value.last) }}
           </div>
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic font-semibold">
-            {{ formatNumber(item.value.current) }}
+            {{ formatMoneyToK(item.value.current) }}
           </div>
         </div>
       </div>
