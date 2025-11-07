@@ -12,7 +12,7 @@ console.log('isDevelopMode', isDevelopMode)
 
 // 初始化全局的 HttpClient 实例
 export const apiClient = new HttpClient<SecurityDataType>({
-  baseURL: '/cloud',
+  baseURL: import.meta.env.VITE_PROXY_PREFIX || '/cloud',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

@@ -48,12 +48,12 @@ const router = createRouter({
           }
         }
       ]
-    }
-    // {
-    //   path: '/commission-detail/:id',
-    //   name: 'commission-detail',
-    //   component: () => import('@/pages/commission-detail/index.vue'),
-    // },
+    },
+    {
+      path: '/commission-detail',
+      name: 'commission-detail',
+      component: () => import('@/pages/commission-detail/index.vue'),
+    },
   ],
 })
 

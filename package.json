@@ -1,5 +1,5 @@
 {
-  "name": "agent-admin-v2",
+  "name": "agent-admin",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,8 +7,13 @@
     "node": "^20.19.0 || >=22.12.0"
   },
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --mode dev",
+    "dev:cqa": "vite --mode cqa",
+    "dev:prod": "vite --mode prod",
     "build": "run-p type-check \"build-only {@}\" --",
+    "build:dev": "pnpm build -- --mode dev",
+    "build:cqa": "pnpm build -- --mode cqa",
+    "build:prod": "pnpm build -- --mode prod",
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --build",
