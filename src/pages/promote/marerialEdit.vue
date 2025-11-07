@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { watchOnce, useResizeObserver } from '@vueuse/core'
+import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type { CarouselApi } from '@/components/carousel'
+
+import photo from './components/photo.vue'
 
 import { fakeMaterial } from './fake'
 
@@ -11,6 +14,8 @@ const selectedIndex = ref<number>(0)
 const tabsEl = ref<HTMLDivElement>()
 const prevCardW = '56px'
 const blockW = ref<String>('0px')
+
+const qrcodeURL = ref('https://wini-mango.ljbdev.site/')
 
 const data = ref(fakeMaterial)
 
@@ -36,6 +41,12 @@ useResizeObserver(tabsEl, () => {
   calcuSize()
 })
 
+const qrcode = useQRCode(qrcodeURL, {
+  errorCorrectionLevel: 'L',
+  margin: 1,
+  width: 52
+})
+
 const calcuSize = () => {
   const boxW = emblaThumbnailApiForTab.value?.rootNode().getBoundingClientRect()?.width ?? 0
   const helf = boxW / 2
@@ -46,7 +57,6 @@ onMounted(() => {
   // const findIndex = level.value.findIndex(({ current }) => current) || 0
   onThumbClick(0)
 })
-
 </script>
 
 <template>
@@ -55,10 +65,7 @@ onMounted(() => {
       <Carousel @init-api="(val) => (emblaMainApi = val)">
         <CarouselContent class="ml-0 px-2 space-x-1">
           <CarouselItem v-for="(l, idx) in data" :key="idx" class="!pl-0 space-y-3">
-            <div class="w-full aspect-square flex items-center justify-center">
-              <van-image use-error-slot use-loading-slot :src="l.ImagePath" class="w-full" />
-            </div>
-
+            <photo :imag-src="l.ImagePath ?? ''" :qrcode-src="qrcode" />
             <div class="flex justify-center items-center space-x-2">
               <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.ThemeName }}</div>
               <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.SizeName }}</div>
