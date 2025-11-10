@@ -8,16 +8,22 @@
 
   --color-error-normal: #F22A2A;
   --color-success-normal: #72C240;
+  --color-warning-normal: #FFB341;
 
   --color-neutral-basic: rgba(29, 39, 86, 0.9);
   --color-neutral-secondary: rgba(0, 0, 0, 0.7);
 
   --color-neutral2-basic: rgba(29, 39, 86, 0.9);
   --color-neutral2-secondary: rgba(29, 39, 86, 0.7);
+  --color-neutral2-tertiary: rgba(29, 39, 86, 0.5);
   --color-neutral2-sixth: rgba(29, 39, 86, 0.1);
   --color-neutral2-seventh: rgba(29, 39, 86, 0.07);
 
   --color-bg-floor-1-2: rgba(248, 250, 253, 1);
+
+  --color-fixed-lightBlue: #5DD4FA;
+  --color-fixed-purple: #7F61D2; /* figma沒定義名字，只好自己定義 */
+  --color-fixed-pink: #FF9999;
 }
 
 /* vant color */

@@ -2,8 +2,8 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
-import Big from 'big.js'
 import API from '@/apis'
+import { formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
 import InfoDialog from '@/components/InfoDialog/index.vue'
 
 const router = useRouter()
@@ -17,51 +17,32 @@ const showInfo = ref(false)
 // 当前月份
 const currentMonth = computed(() => dayjs().format('YYYY-MM'))
 
-// 格式化数字（大于等于10000显示K，保留2位小数）
-const formatNumber = (value: string): string => {
-  if (new Big(value).abs().gte(10000)) return new Big(value).div(1000).toFixed(2) + 'K'
-  return new Big(value).toFixed(2)
-}
-
-// 格式化带符号的数字
-const formatSignedNumber = (value: string): { text: string; color: string } => {
-  const formatted = formatNumber(value)
-  // 大于0为红色，小于0为绿色，等于0为黑色
-  if (new Big(value).gt(0)) {
-    return { text: '+' + formatted, color: 'text-error-normal' }
-  } else if (new Big(value).lt(0)) {
-    return { text: formatted, color: 'text-success-normal' }
-  } else {
-    return { text: formatted, color: 'text-neutral-basic' }
-  }
-}
-
 const fetchCompareCommission = async () => {
   const res = await API.admin.getCompareCommission()
   if (res.data.Code !== 200) return
 
-  commissionData.value.commissionRate = new Big(res.data.Data.CurrentMonth.CommissionRate).div(100).toFixed(2)
+  commissionData.value.commissionRate = res.data.Data.CurrentMonth.CommissionRate
 
-  commissionData.value.totalProfit.current = new Big(res.data.Data.CurrentMonth.BetWinTotal).div(100).toFixed(2)
-  commissionData.value.estimatedMemberCommission.current = new Big(res.data.Data.CurrentMonth.CommissionTotal).div(100).toFixed(2)
-  commissionData.value.estimatedSubordinateContribution.current = new Big(res.data.Data.CurrentMonth.CommissionChildTotal).div(100).toFixed(2)
-  commissionData.value.estimatedDepositRebate.current = new Big(res.data.Data.CurrentMonth.AdminChargeMoneyFee).div(100).toFixed(2)
+  commissionData.value.totalProfit.current = res.data.Data.CurrentMonth.BetWinTotal
+  commissionData.value.estimatedMemberCommission.current = res.data.Data.CurrentMonth.CommissionTotal
+  commissionData.value.estimatedSubordinateContribution.current = res.data.Data.CurrentMonth.CommissionChildTotal
+  commissionData.value.estimatedDepositRebate.current = res.data.Data.CurrentMonth.AdminChargeMoneyFee
 
-  commissionData.value.totalProfit.last = new Big(res.data.Data.LastMonth.BetWinTotal).div(100).toFixed(2)
-  commissionData.value.estimatedMemberCommission.last = new Big(res.data.Data.LastMonth.CommissionTotal).div(100).toFixed(2)
-  commissionData.value.estimatedSubordinateContribution.last = new Big(res.data.Data.LastMonth.CommissionChildTotal).div(100).toFixed(2)
-  commissionData.value.estimatedDepositRebate.last = new Big(res.data.Data.LastMonth.AdminChargeMoneyFee).div(100).toFixed(2)
+  commissionData.value.totalProfit.last = res.data.Data.LastMonth.BetWinTotal
+  commissionData.value.estimatedMemberCommission.last = res.data.Data.LastMonth.CommissionTotal
+  commissionData.value.estimatedSubordinateContribution.last = res.data.Data.LastMonth.CommissionChildTotal
+  commissionData.value.estimatedDepositRebate.last = res.data.Data.LastMonth.AdminChargeMoneyFee
 }
 
 fetchCompareCommission()
 
 // 佣金数据
 const commissionData = ref({
-  commissionRate: '0',
-  totalProfit: { current: '0', last: '0' },
-  estimatedMemberCommission: { current: '0', last: '0' },
-  estimatedSubordinateContribution: { current: '0', last: '0' },
-  estimatedDepositRebate: { current: '0', last: '0' },
+  commissionRate: 0,
+  totalProfit: { current: 0, last: 0 },
+  estimatedMemberCommission: { current: 0, last: 0 },
+  estimatedSubordinateContribution: { current: 0, last: 0 },
+  estimatedDepositRebate: { current: 0, last: 0 },
 })
 
 // 指标列表
@@ -142,9 +123,9 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
             <div class="text-xs text-neutral2-basic font-semibold">本月</div>
             <div
               class="text-base font-semibold"
-              :class="item.isSigned ? formatSignedNumber(item.current).color : 'text-neutral2-basic'"
+              :class="item.isSigned ? formatSignedMoney(item.current).color : 'text-neutral2-basic'"
             >
-              {{ item.isSigned ? formatSignedNumber(item.current).text : formatNumber(item.current) }}
+              {{ item.isSigned ? formatSignedMoney(item.current).text : formatMoneyToK(item.current) }}
             </div>
           </div>
 
@@ -153,9 +134,9 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
             <div class="text-xs text-neutral2-basic">上月</div>
             <div
               class="text-sm"
-              :class="item.isSigned ? formatSignedNumber(item.last).color : 'text-neutral2-basic'"
+              :class="item.isSigned ? formatSignedMoney(item.last).color : 'text-neutral2-basic'"
             >
-              {{ item.isSigned ? formatSignedNumber(item.last).text : formatNumber(item.last) }}
+              {{ item.isSigned ? formatSignedMoney(item.last).text : formatMoneyToK(item.last) }}
             </div>
           </div>
         </div>
