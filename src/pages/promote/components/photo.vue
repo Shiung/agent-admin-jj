@@ -82,7 +82,7 @@ watchEffect(() => {
   
       <template v-else>
         <van-image use-error-slot use-loading-slot :src="imagSrc" class="w-full" />
-        <div class="absolute right-1 bottom-1">
+        <div v-if="qrcodeSrc" class="absolute right-1 bottom-1">
           <van-image use-error-slot use-loading-slot :src="qrcodeSrc" alt="qrcode"  />
         </div>
       </template>

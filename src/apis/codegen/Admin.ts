@@ -1,5 +1,11 @@
 import type {
-  CompareCommissionResponse
+  CompareCommissionResponse,
+  PromotionlinkListV2Request,
+  PromotionlinkListV2Response,
+  PromotionconfListallRequest,
+  PromotionconfListallResponse,
+  PromotionmaterialsListallRequest,
+  PromotionmaterialsListallResponse
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 // import { ContentType } from './http-client'
@@ -30,4 +36,47 @@ export class Admin<SecurityDataType = unknown> {
       ...params,
     });
 
+  /**
+   * 推廣-取得推廣鏈結V2
+   */
+  getPromoteListV2 = (
+    query: PromotionlinkListV2Request,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PromotionlinkListV2Response, any>({
+      path: '/admin/promotionlink/listv2',
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: "json",
+      ...params
+    })
+
+  /** 推廣素材元素列表 */
+  getPromotionconfListall = (
+    query: PromotionconfListallRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PromotionconfListallResponse, any>({
+      path: '/admin/promotionconf/listall',
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: "json",
+      ...params
+    })
+
+  /** 全部推廣素材 */
+  getPromotionmaterialsListall = (
+    query: PromotionmaterialsListallRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PromotionmaterialsListallResponse, any>({
+      path: '/admin/promotionmaterials/listall',
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: "json",
+      ...params
+    })
 }

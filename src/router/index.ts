@@ -38,6 +38,9 @@ const router = createRouter({
           name: 'materialPort',
           components: {
             default: () => import('@/pages/promote/materialPort.vue'),
+          },
+          meta: {
+            showTabBar: true,
           }
         },
         {

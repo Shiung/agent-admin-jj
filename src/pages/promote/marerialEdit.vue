@@ -1,12 +1,20 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, inject, computed, watchEffect, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { watchOnce, useResizeObserver } from '@vueuse/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type { CarouselApi } from '@/components/carousel'
+import { PromoteStateSymbol, PromoteComputeSymbol, PromoteActionSymbol } from './composables/provideStore'
+import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
 
 import photo from './components/photo.vue'
+// import { fakeMaterial } from './fake'
 
-import { fakeMaterial } from './fake'
+const route = useRoute()
+const pId = route.params?.productId
+const state = inject(PromoteStateSymbol)!
+const { packageIdGroupByLs, materialLsSelectByPid } = inject(PromoteComputeSymbol)!
+const { fetchMaterialLs } = inject(PromoteActionSymbol)!
 
 const emblaThumbnailApiForTab = ref<CarouselApi>()
 const emblaMainApi = ref<CarouselApi>()
@@ -15,9 +23,94 @@ const tabsEl = ref<HTMLDivElement>()
 const prevCardW = '56px'
 const blockW = ref<String>('0px')
 
-const qrcodeURL = ref('https://wini-mango.ljbdev.site/')
+const qrcodeURL = ref<string>('')
 
-const data = ref(fakeMaterial)
+// const data = ref(fakeMaterial)
+const data = computed(() => materialLsSelectByPid.value(Number(pId)) ?? [])
+
+const dataBind = computed(() => packageIdGroupByLs.value(Number(pId)) ?? [])
+
+const selectChannelId = ref<number | string>('')
+const selectDevice = ref<number | string>('')
+const selectTheme = ref<number | string>('')
+const selectSize = ref<number | string>('')
+const channelOptions = computed(() => dataBind.value.map((d) => ({ label: d.ChannelId, value: d.ChannelId })))
+
+const deviceOptions = computed<Array<{ label: string, value: string }>>(() => {
+  const hasExistChannel = dataBind.value.find((bind) => bind.ChannelId === selectChannelId.value)
+  if (!hasExistChannel) return []
+  const ls = new Map()
+  const { AppDomains = [], H5Domains = []} = hasExistChannel
+  const AppLsMulti = AppDomains.length > 1
+  const H5DomainsMulti = H5Domains.length > 1
+  AppDomains.forEach((d, idx) => {
+    const key = AppLsMulti ? `APP_${idx + 1}` : 'APP'
+    if (!ls.has(key)) {
+      const prefixName = d.NetCashDomainType === 0 ? '代理' : '专属'
+      ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain })
+    }
+  })
+
+  H5Domains.forEach((d, idx) => {
+    const key = H5DomainsMulti ? `PC/H5_${idx + 1}` : 'APP'
+    if (!ls.has(key)) {
+      const prefixName = d.NetCashDomainType === 0 ? '代理' : '专属'
+      ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain })
+    }
+  })
+  return [...ls.values()]
+})
+
+const themeOptions = computed(() => {
+  const ls = new Map()
+  data.value.forEach((d) => {
+    if (!ls.has(d.ThemeId)) {
+      ls.set(d.ThemeId, { label: d.ThemeName, value: d.ThemeId })
+    }
+  })
+  return [...ls.values()]
+})
+
+const sizeOptions = computed(() => {
+  const ls = new Map()
+  data.value.forEach((d) => {
+    if (!ls.has(d.SizeId)) {
+      ls.set(d.SizeId, { label: d.SizeName, value: d.SizeId })
+    }
+  })
+
+  return [...ls.values()]
+})
+
+const renderData = computed(() => {
+  const hasSelectTheme = selectTheme.value
+  const hasSelectSize = selectSize.value
+  return data.value.filter((d) => {
+    if (hasSelectTheme) {
+      return d.ThemeId === hasSelectTheme
+    }
+    if (hasSelectSize) {
+      return d.SizeId === hasSelectSize
+    }
+    return d
+  })
+})
+
+watch(
+  () => deviceOptions.value,
+  (options) => { 
+    if (options.length > 0) {
+      if (options[0]?.value) selectDevice.value = options[0]?.value
+    } 
+  }
+)
+
+watch(
+  () => selectDevice.value,
+  (selectD) => {
+    qrcodeURL.value = selectD ? selectD.toString() : ''
+  }
+)
 
 const onThumbClick = (index: number) => {
   if (!emblaMainApi.value || !emblaThumbnailApiForTab.value) return
@@ -41,6 +134,12 @@ useResizeObserver(tabsEl, () => {
   calcuSize()
 })
 
+watchEffect(() => {
+  if (state.materialLs.length === 0) {
+    fetchMaterialLs({})
+  }
+})
+
 const qrcode = useQRCode(qrcodeURL, {
   errorCorrectionLevel: 'L',
   margin: 1,
@@ -61,11 +160,19 @@ onMounted(() => {
 
 <template>
   <div>
+    <NavBar title="素材设置" />
+    <div class="">
+      <Dropdown v-model="selectChannelId" :options="channelOptions" placeholder="渠道号" />
+      <Dropdown v-model="selectDevice" :options="deviceOptions" placeholder="装置" />
+      <Dropdown v-model="selectTheme" :options="themeOptions" placeholder="全部主题" />
+      <Dropdown v-model="selectSize" :options="sizeOptions" placeholder="全部尺寸" />
+    </div>
+
     <div class="mb-4">
       <Carousel @init-api="(val) => (emblaMainApi = val)">
         <CarouselContent class="ml-0 px-2 space-x-1">
-          <CarouselItem v-for="(l, idx) in data" :key="idx" class="!pl-0 space-y-3">
-            <photo :imag-src="l.ImagePath ?? ''" :qrcode-src="qrcode" />
+          <CarouselItem v-for="(l, idx) in renderData" :key="idx" class="!pl-0 space-y-3">
+            <photo :imag-src="getRemoteSourcePath(l.ImagePath ?? '')" :qrcode-src="qrcode" />
             <div class="flex justify-center items-center space-x-2">
               <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.ThemeName }}</div>
               <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.SizeName }}</div>
@@ -83,10 +190,10 @@ onMounted(() => {
           <div>
             <div class="preCard_block" />
           </div>
-          <div v-for="(i, idx) in data" :key="idx" :data-id="idx" class="preCard shrink-0" :class="selectedIndex === idx && 'active'">
+          <div v-for="(i, idx) in renderData" :key="idx" :data-id="idx" class="preCard shrink-0" :class="selectedIndex === idx && 'active'">
             <CarouselItem class="unit !pl-0 text-xs text-neutral_d01 font-semibold" @click="onThumbClick(idx)">
               <div class="aspect-[36/40]">
-                <van-image use-error-slot use-loading-slot fit="cover" :src="i.ImagePath" class="w-full h-full" />
+                <van-image use-error-slot use-loading-slot fit="cover" :src="getRemoteSourcePath(i.ImagePath)" class="w-full h-full" />
               </div>
             </CarouselItem>
           </div>

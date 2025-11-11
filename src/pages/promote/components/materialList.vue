@@ -1,54 +1,41 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from 'vue'
+import { computed, onMounted, ref, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
 
-import { fakeMaterial } from '../fake'
+import { PromoteStateSymbol, PromoteActionSymbol } from '../composables/provideStore'
 
 const route = useRoute()
 const router = useRouter()
 const pId = route.params?.productId
 const isProduct = !!pId
 
-const data = ref<Array<any>>(fakeMaterial)
+const state = inject(PromoteStateSymbol)!
+const { fetchMaterialLs } = inject(PromoteActionSymbol)!
 
-// const dataGroupBy = computed<{ [key in number]: { [key in number]: Array<any> } }>(() => {
-//   return data.value.reduce((sum, cur) => {
-//     const productId = cur.PackageId
-//     const themeId = cur.ThemeId
-//     const hasProductLs = sum?.[productId]
-//     const hasExistThemeLs = sum?.[productId]?.[themeId]
+const selectProd = ref<number | string>('')
+const selectTheme = ref<number | string>('')
+const selectSize = ref<number | string>('')
 
-//     if (!hasProductLs) {
-//       return {
-//         ...sum,
-//         [productId]: {
-//           [themeId]: [].concat(cur)
-//         }
-//       }
-//     }
+const themeOptions = computed(() => (state?.confList?.theme ?? []).map((t) => ({ label: t.Value, value: t.Id })))
 
-//     if (!hasExistThemeLs) {
-//       return {
-//         ...sum,
-//         [productId]: {
-//           ...hasProductLs,
-//           [themeId]: [].concat(cur)
-//         }
-//       }
-//     }
+const sizeOptions = computed(() => (state?.confList?.size ?? []).map((t) => ({ label: t.Value, value: t.Id })))
 
-//     return {
-//       ...sum,
-//       [productId]: {
-//         ...hasProductLs,
-//         [themeId]: hasExistThemeLs.concat(cur)
-//       }
-//     }
-//   }, {})
-// })
+const prodOptions = computed(() => {
+  const ls = new Map()
+  state.materialLs.forEach((m) => {
+    if (!ls.has(m.PackageId)) {
+      ls.set(m.PackageId, { label: m.PackageName, value: m.PackageId })
+    }
+  })
+  return [...ls.values()]
+})
 
-const dataGroupBy = computed<{
-  [key in number]: {
+
+const dataGroupBy = computed(() => {
+  const data = state.materialLs
+  return data.reduce<{
+    [key in number]: {
     title: string,
     group: {
       [key in number]: {
@@ -57,10 +44,10 @@ const dataGroupBy = computed<{
       }
     }
     }
-}>(() => {
-  return data.value.reduce((sum, cur) => {
+  }>((sum, cur) => {
     const productId = cur.PackageId
     const themeId = cur.ThemeId
+    const sizeId = cur.SizeId
     const hasProductLs = sum?.[productId]
     const hasExistThemeLs = sum?.[productId]?.group?.[themeId]
 
@@ -68,6 +55,13 @@ const dataGroupBy = computed<{
     if (pId && pId.toString() !== productId.toString()) {
       return sum
     }
+
+    /** 下拉選單選擇prod */
+    if (selectProd.value !== '' && selectProd.value !== productId) return sum
+    /** 下拉選單選擇theme */
+    if (selectTheme.value !== '' && selectTheme.value !== themeId) return sum
+    /** 下拉選單選擇size */
+    if (selectSize.value !== '' && selectSize.value !== sizeId) return sum
 
     if (!hasProductLs) {
       return {
@@ -77,7 +71,7 @@ const dataGroupBy = computed<{
           group: {
             [themeId]: {
               title: cur.ThemeName,
-              group: [].concat(cur)
+              group: [].concat(cur as any)
             }
           }
         }
@@ -93,7 +87,7 @@ const dataGroupBy = computed<{
             ...hasProductLs.group,
             [themeId]: {
               title: cur.ThemeName,
-              group: [].concat(cur)
+              group: [].concat(cur as any)
             }
           }
         }
@@ -120,19 +114,20 @@ const clickHandler = (pId: string ) => {
   router.push({ name: 'materialEdit', params: { productId: pId }})
 }
 
-watchEffect(() => {
-  console.log('ls', dataGroupBy.value)
-})
-
 onMounted(() => {
-  console.log('isProduct', isProduct, pId)
+  if (typeof fetchMaterialLs === 'function') {
+    fetchMaterialLs({})
+  }
 })
 </script>
 
 <template>
   <div>
-    <!-- 素材
-    <div>drop down zone</div> -->
+    <div>
+      <Dropdown v-if="!isProduct" v-model="selectProd" :options="prodOptions" placeholder="全部产品" />
+      <Dropdown v-model="selectTheme" :options="themeOptions" placeholder="全部主题" />
+      <Dropdown v-model="selectSize" :options="sizeOptions" placeholder="全部尺寸" />
+    </div>
 
     <div :class="['space-y-4', !isProduct && '-mx-2']"> 
       <div v-for="(val, key) in dataGroupBy" :key="key" >
@@ -147,9 +142,7 @@ onMounted(() => {
   
           <div class="grid grid-cols-3 gap-1">
             <div v-for="(dVal, dKey) in tVal.group" :key="dKey" class="rounded-sm aspect-[121/156] shadow-sm flex justify-center items-center overflow-hidden relative" @click="clickHandler(dVal?.PackageId?.toString())">
-              <!-- {{ dVal.Id }} -->
-              <!-- <img :src="dVal.ImagePath" class="" /> -->
-              <van-image use-error-slot use-loading-slot fit="cover" :src="dVal.ImagePath" class="w-full h-full"></van-image>
+              <van-image use-error-slot use-loading-slot fit="cover" :src="getRemoteSourcePath(dVal.ImagePath)" class="w-full h-full"></van-image>
               <div class="absolute px-1 right-2 top-2 bg-black/50 rounded">
                 <van-icon name="arrow" size="1rem" color="white" />
               </div>

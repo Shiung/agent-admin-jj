@@ -4,6 +4,7 @@ import materialList from './components/materialList.vue'
 
 <template>
   <div class="px-1">
+    <NavBar title="素材设置" />
     <material-list />
   </div>
 </template>
