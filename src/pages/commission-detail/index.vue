@@ -147,10 +147,10 @@ const subordinateContributionList = computed(() => {
         >
           <div class="flex-1 flex items-center justify-start text-sm text-neutral2-basic">{{ item.label }}</div>
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic">
-            {{ formatMoneyToK(item.value.last) }}
+            {{ item.value.last }}
           </div>
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic font-semibold">
-            {{ formatMoneyToK(item.value.current) }}
+            {{ item.value.current }}
           </div>
         </div>
       </div>

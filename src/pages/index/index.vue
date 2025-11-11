@@ -46,7 +46,7 @@ const handleNotificationClick = () => {
 </script>
 
 <template>
-  <div class="bg-white min-h-screen pb-[60px]">
+  <div class="bg-white min-h-screen">
     <!-- 头像与功能按钮行 -->
     <div class="flex items-center justify-between h-11 px-3 py-2 bg-white">
       <!-- 左侧：头像与欢迎语 -->
