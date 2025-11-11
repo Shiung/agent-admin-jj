@@ -53,7 +53,7 @@ const genImg = async (img?: string) => {
     }
     const ratio = width / height
     const isHorizontal = ratio >= 1
-    const resizeW = isHorizontal ? boxW : boxH / ratio
+    const resizeW = isHorizontal ? boxW : boxH * ratio
     const resizeH = !isHorizontal ? boxH : boxW / ratio
 
     const resolveImg = _resoveImgSize(imgIns, resizeW, resizeH)
