@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, useAttrs } from 'vue'
+
+const attrs = useAttrs()
 
 interface DropdownOption {
   label: string
@@ -8,7 +10,7 @@ interface DropdownOption {
 
 interface Props {
   modelValue?: string | number
-  class?: string
+  // class?: string
   height?: string
   options: DropdownOption[]
   placeholder?: string
@@ -20,7 +22,7 @@ const model = defineModel<string | number>('modelValue', { required: true })
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '請選擇',
   disabled: false,
-  class: '',
+  // class: '',
   height: '2.5rem',
 })
 
@@ -57,7 +59,7 @@ const handleClickOutside = () => {
 </script>
 
 <template>
-  <div :class="['dropdown-container', props.class]" v-click-outside="handleClickOutside">
+  <div class="dropdown-container" :class="attrs.class" v-click-outside="handleClickOutside">
     <!-- 下拉選單按鈕 -->
     <button
       type="button"

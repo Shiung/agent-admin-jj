@@ -75,9 +75,9 @@ export interface CompareCommissionResponseData {
   LastMonth: CompareCommissionData
 }
 
-export interface CompareCommissionData {  
+export interface CompareCommissionData {
   ReportMonth: string // 佣金月份
-  CommissionTotal: number // 预计佣金 
+  CommissionTotal: number // 预计佣金
   CommissionRate: number // 佣金比例
   BetWinTotal: number // 公司输赢，單位:分
   MoneyChangeFee: number // 輸贏調整承擔費用，單位:分
@@ -97,6 +97,137 @@ export interface CommissionChildList {
   Level: number // 代理层级
   CurrentAdmin: boolean // 是否为登入者层级
   CommissionTotal: number // 佣金总计，单位:分
+}
+
+/** `0` 代理域名 `1` 專屬域名 */
+export type DomainType = 0 | 1
+
+interface Domain {
+  /** 域名類型 */
+  NetCashDomainType: DomainType
+  /** 域名 */
+  Domain: string
+}
+
+export interface PromotionlinkListV2Request {
+  NetCashDomainType: DomainType
+}
+
+export interface PromotionlinkListV2ResponseData {
+  /** 管理員 ID */
+  AdminId: number
+  /** 代理 ID */
+  AgentId: number
+  /** 渠道 ID */
+  ChannelId: string
+  /** 克隆渠道 ID */
+  CloneChannelId: string
+  /** 產品 ID */
+  PackageId: number
+  /** 產品名稱 */
+  PackageName: string
+  /** 邀請碼 */
+  InvitationCode: string
+  /** 建渠道的安卓母包版本 */
+  AndroidPackVersion: string
+  /** 建渠道的IOS母包版本 */
+  IosPackVersion: string
+  /** 推廣類型
+   * `0` 游戏-首页
+   * `1` 游戏-直播页
+   * `2` 纯直播
+   * `3` 首页（无直播）
+   * `4` 纯直播（登录后游戏-直播页）
+   * `5` 游戏-杯赛页
+   */
+  PushType: 0 | 1 | 2 | 3 | 4 | 5
+  /** 產品圖標 */
+  Icon: string
+  /** APP 域名連結 */
+  AppDomains: Array<Domain>
+  /** PC/H5 域名連結 */
+  H5Domains: Array<Domain>
+  /** 創建時間 */
+  CreateTime: number
+}
+
+export interface PromotionlinkListV2Response {
+  Code: number
+  Data: { Items: Array<PromotionlinkListV2ResponseData> }
+  Msg: string
+  Id: string
+}
+
+export interface PromotionconfListallResponseData {
+  /** 素材 ID */
+  Id: number
+  /** 代理 ID */
+  AdminId: number
+  /** 元素類型 */
+  Type: PromotionconfListallRequest['Type']
+  /** 內容 */
+  Value: string
+  /** 是否刪除 */
+  Deleted: number
+  /** 建立素材的管理員 ID */
+  CreateAdminId: number
+  /** 創建時間 */
+  CreateTime: number
+  /** 更新時間 */
+  UpdateTime: number
+}
+
+export interface PromotionconfListallRequest {
+  /** 元素類型
+   * `1` 尺寸
+   * `2` 主題
+   */
+  Type: 1 | 2
+}
+
+export interface PromotionconfListallResponse {
+  Code: number
+  Data: { Items: Array<PromotionconfListallResponseData> }
+  Msg: string
+  Id: string
+}
+
+export interface PromotionmaterialsListallResponseData {
+  /** 素材 ID */
+  Id: number
+  /** 素材圖片路徑 */
+  ImagePath: string
+  /** 代理語言分組 ID */
+  LangGroupId: number
+  /** 產品 ID */
+  PackageId: number
+  /** 產品名稱 */
+  PackageName: string
+  /** 尺寸 ID */
+  SizeId: number
+  /** 尺寸名稱 */
+  SizeName: string
+  /** 主題 ID */
+  ThemeId: number
+  /** 主題名稱 */
+  ThemeName: string
+  /** 創建時間 */
+  CreateTime: number
+}
+export interface PromotionmaterialsListallRequest {
+  /** 尺寸 ID */
+  SizeId?: number
+  /** 主題 ID */
+  ThemeId?: number
+  /** 產品 ID */
+  PackageId?: number
+}
+
+export interface PromotionmaterialsListallResponse {
+  Code: number
+  Data: { Items: Array<PromotionmaterialsListallResponseData> }
+  Msg: string
+  Id: string
 }
 
 export interface BankList {
@@ -124,7 +255,6 @@ export interface ConfigInfoResponse {
   Id: string
 }
 
-
 export interface NetcashdashboardInfoV2Response {
   Code: number
   Data: NetcashdashboardInfoV2Data
@@ -145,7 +275,7 @@ export interface NetcashdashboardInfoV2MonthTotal {
   SumNewPayMoney: number // 新會員存款金额，單位:分
   SumPayMoney: number // 充值金额，單位:分
   SumWithdrawMoney: number // 提現金额，單位:分
-  SumFirstPayNum: number // 首存人数 
+  SumFirstPayNum: number // 首存人数
   SumBetGameNum: number // 投注人数 (去重)
   SumGoodBetGameMoney: number // 有效投注金额，單位:分
   SumFirstPayMoney: number // 首存金额，單位:分
