@@ -229,3 +229,100 @@ export interface PromotionmaterialsListallResponse {
   Msg: string
   Id: string
 }
+
+
+export interface BankList {
+  AgentId: number // 代理id
+  BankCode: string // 银行代码
+  BankName: string // 银行名称
+  IsOpen: number // 是否开启
+  Key: number // 键
+}
+
+export interface RealPackageIdNameMap {
+  AdminId: number // 代理id
+  PackageId: number // 包id
+  PackageName: string // 包名称
+}
+export interface ConfigInfoData {
+  BankList: BankList[] // 银行列表
+  RealPackageIdNameMap: RealPackageIdNameMap[] // 真实包id与名称映射
+}
+
+export interface ConfigInfoResponse {
+  Code: number
+  Data: ConfigInfoData
+  Msg: string
+  Id: string
+}
+
+
+export interface NetcashdashboardInfoV2Response {
+  Code: number
+  Data: NetcashdashboardInfoV2Data
+  Msg: string
+  Id: string
+}
+
+export interface NetcashdashboardInfoV2Query {
+  ReportType: number // 報表類型，1:日報，2:月報
+  MonthDate: string // 查詢月份
+  PackageId: number
+}
+
+export interface NetcashdashboardInfoV2MonthTotal {
+  SumNewRegNum: number // 注册人数
+  SumPayNum: number // 充值人数 (去重)
+  SumWithdrawNum: number // 提現人数 (去重)
+  SumNewPayMoney: number // 新會員存款金额，單位:分
+  SumPayMoney: number // 充值金额，單位:分
+  SumWithdrawMoney: number // 提現金额，單位:分
+  SumFirstPayNum: number // 首存人数 
+  SumBetGameNum: number // 投注人数 (去重)
+  SumGoodBetGameMoney: number // 有效投注金额，單位:分
+  SumFirstPayMoney: number // 首存金额，單位:分
+  SumBetGameMoney: number // 投注金额，單位:分
+  SumWinLostMoney: number // 公司输赢，單位:分
+  SumAgentCustomerPayMoney: number // 代存金额，單位:分
+  SumAgentCustomerPayNum: number // 代存人数
+}
+
+export interface NetcashdashboardInfoV2Data {
+  PlayerNum: number // 下級成員數
+  ActivityUserNum: number // 活躍會員數
+  LastMonthTotal: NetcashdashboardInfoV2MonthTotal // 上月加總
+  MonthTotal: NetcashdashboardInfoV2MonthTotal // 本月加總
+}
+
+export interface CompareGameDataQuery {
+  ReportType: number // 報表類型，1:日報，2:月報
+}
+
+export interface CompareGameDataResponse {
+  Code: number
+  Data: CompareGameDataData
+  Msg: string
+  Id: string
+}
+
+export interface CompareGameDataData {
+  GameData: GameDataItem[] // 當前週期遊戲數據
+  LastPeriodGameData: GameDataItem[] // 之前週期遊戲數據
+}
+
+export interface GameDataItem {
+  GameType: string // 遊戲代號(請前端mapping到遊戲名稱)
+  SumValidWater: number // 有效投注，單位:分
+  SumWinLose: number // 總盈利(公司輸贏)，單位:分
+}
+
+export interface SolidConfigResponse {
+  Code: number
+  Data: SolidConfigData
+  Msg: string
+  Id: string
+}
+
+export interface SolidConfigData {
+  GameSetting: Record<string, any>[]
+}

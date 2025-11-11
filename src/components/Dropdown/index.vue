@@ -10,18 +10,23 @@ interface DropdownOption {
 
 interface Props {
   modelValue?: string | number
+  // class?: string
+  height?: string
   options: DropdownOption[]
   placeholder?: string
   disabled?: boolean
 }
 
+const model = defineModel<string | number>('modelValue', { required: true })
+
 const props = withDefaults(defineProps<Props>(), {
   placeholder: '請選擇',
   disabled: false,
+  // class: '',
+  height: '2.5rem',
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | number]
   'change': [value: string | number]
 }>()
 
@@ -42,7 +47,7 @@ const toggleDropdown = () => {
 }
 
 const selectOption = (option: DropdownOption) => {
-  emit('update:modelValue', option.value)
+  model.value = option.value
   emit('change', option.value)
   isOpen.value = false
 }
@@ -113,7 +118,8 @@ const handleClickOutside = () => {
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0.625rem 0.75rem;
+  height: v-bind(height);
+  padding: .75rem .5rem;
   background: var(--color-white);
   border: 1px solid var(--color-neutral2-seventh);
   border-radius: 6.25rem;
@@ -246,17 +252,18 @@ const handleClickOutside = () => {
 /* RWD 響應式 */
 @media (max-width: 640px) {
   .dropdown-button {
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
+    height: v-bind(height);
+    padding: .75rem .5rem;
+    font-size: .875rem;
   }
 
   .dropdown-text {
-    font-size: 1rem;
+    font-size: .875rem;
   }
 
   .dropdown-item {
-    padding: 0.875rem 1rem;
-    font-size: 1rem;
+    padding: .75rem .5rem;
+    font-size: .875rem;
   }
 
   .dropdown-menu {
