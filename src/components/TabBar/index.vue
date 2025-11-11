@@ -84,7 +84,7 @@ onMounted(() => {
 <template>
   <div :style="{ height: globalStore.tabbarHeight + 'px' }" />
   <div class="tabbar-container" ref="tabbarContainer">
-    <van-tabbar v-model="activeKey" active-color="#007AFF" @change="handleTabChange" :fixed="false">
+    <van-tabbar v-model="activeKey" active-color="#007AFF" @change="handleTabChange" :fixed="false" :safe-area-inset-bottom="true">
       <van-tabbar-item v-for="tab in tabs" :key="tab.key" :name="tab.key" :icon="tab.icon">
         {{ tab.label }}
       </van-tabbar-item>

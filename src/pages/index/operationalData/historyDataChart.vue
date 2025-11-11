@@ -3,9 +3,11 @@ import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
 import { formatNumberToK, formatMoneyToK } from '@/utils/formatNumber'
+import type { ReportChartItem } from '@/apis/codegen/data-contracts'
 
 const props = defineProps<{
-  data: { name: string, data: { ReportMonth: string, ParamName: string, ParamValue: string }[] }[]
+  data: { name: string, data: ReportChartItem[] }[]
+  isDayReport: boolean
 }>()
 
 const chartRef = ref<HTMLDivElement>()
@@ -14,6 +16,9 @@ const colors = ['#5DD4FA', '#007AFF', '#72C240', '#FF9999' ]
 
 const initChart = () => {
   if (!chartRef.value) return
+  
+  // 如果已經有實例，先銷毀
+  if (chart.value) chart.value.dispose()
   
   const myChart = echarts.init(chartRef.value)
   
@@ -136,7 +141,7 @@ const initChart = () => {
       axisLabel: {
         color: '#666'
       },
-      data: props.data[0]?.data.map((item) => `${+dayjs(item.ReportMonth).format('MM')}月`) ?? [],
+      data: props.data[0]?.data.map((item) => props.isDayReport ? dayjs(item.ReportDay).format('MM-DD') : `${+dayjs(item.ReportMonth).format('MM')}月`) ?? [],
       splitLine: {
         show: true,
         lineStyle: {
