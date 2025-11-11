@@ -27,7 +27,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div id="app" class="min-h-screen">
+  <div class="min-h-screen">
     <RouterView />
     <TabBar v-if="route.meta.showTabBar" />
   </div>

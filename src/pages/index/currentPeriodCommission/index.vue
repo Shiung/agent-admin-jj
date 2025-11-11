@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import API from '@/apis'
-import { formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
+import { formatMoneyToK, formatSignedMoney, formatMoney } from '@/utils/formatNumber'
 import InfoDialog from '@/components/InfoDialog/index.vue'
 
 const router = useRouter()
@@ -101,7 +101,7 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
       <div class="w-[7.5rem] text-primary-normal text-sm font-semibold">佣金比例</div>
       <van-divider vertical :style="{ height: '1.25rem', color: 'var(--color-primary-10)' }" />
       <div class="flex items-center justify-center flex-1 bg-primary-5 text-primary-normal rounded-2xl p-1">
-        <div class="text-2xl font-semibold">{{ commissionData.commissionRate }}</div>
+        <div class="text-2xl font-semibold">{{ formatMoney(commissionData.commissionRate) }}</div>
         <div class="text-lg self-end font-semibold">%</div>
       </div>
     </div>

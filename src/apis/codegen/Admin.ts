@@ -5,6 +5,8 @@ import type {
   NetcashdashboardInfoV2Response,
   CompareGameDataQuery,
   CompareGameDataResponse,
+  ReportsChartsQuery,
+  ReportsChartsResponse,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 // import { ContentType } from './http-client'
@@ -89,6 +91,26 @@ export class Admin<SecurityDataType = unknown> {
   ) =>
     this.http.request<CompareGameDataResponse, any>({
       path: '/admin/netcashdashboard/compare/gameData',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+  /**
+   * 首頁-遊戲數據-包含上月遊戲數據(代理後台重構)
+   *
+   * @tags Admin
+   * @name CompareGameData
+   * @request GET:/admin/netcashdashboard/reports/charts
+   * @secure
+   */
+  getReportsCharts = (
+    query: ReportsChartsQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<ReportsChartsResponse, any>({
+      path: '/admin/netcashdashboard/reports/charts',
       method: "GET",
       secure: true,
       format: "json",

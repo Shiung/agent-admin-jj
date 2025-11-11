@@ -1,0 +1,16 @@
+export const typeMapping = {
+  SumNewRegNum: '注册人数',
+  SumPayNum: '充值人数',
+  SumWithdrawNum: '提现人数',
+  SumNewPayMoney: '新会员充值金额',
+  SumPayMoney: '充值金额',
+  SumWithdrawMoney: '提现金额',
+  SumFirstPayNum: '首存人数',
+  SumBetGameNum: '投注人数',
+  SumGoodBetGameMoney: '有效投注',
+  SumFirstPayMoney: '首存金额',
+  SumBetGameMoney: '投注金额',
+  SumWinLostMoney: '总盈利',
+  SumAgentCustomerPayNum: '代存人数',
+  SumAgentCustomerPayMoney: '代存金额',
+}

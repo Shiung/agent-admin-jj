@@ -194,3 +194,40 @@ export interface SolidConfigResponse {
 export interface SolidConfigData {
   GameSetting: Record<string, any>[]
 }
+
+export interface ReportsChartsQuery {
+  ReportType: number // 報表類型，1:日報，2:月報
+  PackageId: number
+  ParamAmountLeft: string // 金額維度指標名稱
+  ParamAmountRight: string // 金額維度指標名稱
+  ParamCountLeft: string // 數量維度指標名稱
+  ParamCountRight: string // 數量維度指標名稱
+}
+
+export interface ReportsChartsResponse {
+  Code: number
+  Data: ReportsChartsData
+  Msg: string
+  Id: string
+}
+
+export interface ReportsChartsData {
+  ParamAmountList: string[] // 金額維度下拉選單
+  ParamCountList: string[] // 數量維度下拉選單
+  MonthReportChartItems: ReportChartItems // 月報各項指標資料
+  DayReportChartItems: ReportChartItems // 日報各項指標資料
+}
+
+export interface ReportChartItems {
+  ParamAmountLeft: ReportChartItem[]
+  ParamAmountRight: ReportChartItem[]
+  ParamCountLeft: ReportChartItem[]
+  ParamCountRight: ReportChartItem[]
+}
+
+export interface ReportChartItem {
+  ReportDay?: string
+  ReportMonth?: string
+  ParamName: string
+  ParamValue: string // 指標值，如為金額(ParamAmount)則單位為分
+}
