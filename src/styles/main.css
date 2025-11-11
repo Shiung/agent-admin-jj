@@ -5,6 +5,7 @@
   --color-primary-normal: #007AFF;
   --color-primary-5: rgba(0, 122, 255, 0.05);
   --color-primary-10: rgba(0, 122, 255, 0.1);
+  --color-primary-50: rgba(0, 122, 255, 0.5);
 
   --color-error-normal: #F22A2A;
   --color-success-normal: #72C240;

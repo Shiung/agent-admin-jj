@@ -2,10 +2,12 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import API from '@/apis'
-import type { NetcashdashboardInfoV2Data } from '@/apis/codegen/data-contracts'
+import type { NetcashdashboardInfoV2Data, ReportChartItems } from '@/apis/codegen/data-contracts'
 import { formatNumberToK, formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
 import { useGlobalStore } from '@/stores/global'
 import Dropdown from '@/components/Dropdown/index.vue'
+import HistoryDataChart from './historyDataChart.vue'
+import { typeMapping } from './mapping'
 
 const globalStore = useGlobalStore()
 
@@ -73,14 +75,6 @@ const fetchNetcashdashboardInfoV2 = async () => {
   netcashdashboardInfoV2.value = res.data.Data
 }
 
-onMounted(() => {
-  fetchNetcashdashboardInfoV2()
-})
-
-watch(() => [currentMonth.value, selectedPackageId.value], () => {
-  fetchNetcashdashboardInfoV2()
-})
-
 const showInfoData = computed(() => {
   const totalWinLostMoney = formatSignedMoney(netcashdashboardInfoV2.value.MonthTotal.SumWinLostMoney)
   return [
@@ -94,6 +88,80 @@ const showInfoData = computed(() => {
   ]
 })
 
+// 報表指標
+const moneyDropdownValue1 = ref<keyof typeof typeMapping>('SumGoodBetGameMoney')
+const moneyDropdownValue2 = ref<keyof typeof typeMapping>('SumWinLostMoney')
+const countDropdownValue1 = ref<keyof typeof typeMapping>('SumBetGameNum')
+const countDropdownValue2 = ref<keyof typeof typeMapping>('SumNewRegNum')
+const moneyDropdownOptions = ref<{ label: string, value: string }[]>([])
+const countDropdownOptions = ref<{ label: string, value: string }[]>([])
+
+const reportChartDataList = ref<{ name: string, data: { ReportMonth: string, ParamName: string, ParamValue: string }[] }[]>([])
+
+const fetchReportsChartsData = async () => {
+  const res = await API.admin.getReportsCharts({
+    ReportType: activeTab.value,
+    PackageId: selectedPackageId.value,
+    ParamAmountLeft: moneyDropdownValue1.value,
+    ParamAmountRight: moneyDropdownValue2.value,
+    ParamCountLeft: countDropdownValue1.value,
+    ParamCountRight: countDropdownValue2.value,
+  })
+  if (res.data.Code !== 200) return
+
+  moneyDropdownOptions.value = res.data.Data.ParamAmountList.map((key: string) => ({
+    label: typeMapping[key as keyof typeof typeMapping],
+    value: key,
+  }))
+  countDropdownOptions.value = res.data.Data.ParamCountList.map((key: string) => ({
+    label: typeMapping[key as keyof typeof typeMapping],
+    value: key,
+  }))
+
+  reportChartDataList.value = generateMonthChartsData(res.data.Data.MonthReportChartItems)
+}
+
+// res的Param對應的key
+const paramMapping = computed(() => {
+  return {
+    ParamAmountLeft: moneyDropdownValue1.value,
+    ParamAmountRight: moneyDropdownValue2.value,
+    ParamCountLeft: countDropdownValue1.value,
+    ParamCountRight: countDropdownValue2.value,
+  }
+})
+
+const generateMonthChartsData = (res: ReportChartItems) => {
+  return Object.keys(res).map((key: string) => {
+    const data = res[key as keyof ReportChartItems]?.length ? res[key as keyof ReportChartItems] : [{ ReportMonth: dayjs().subtract(1, 'month').format('MM'), ParamName: paramMapping.value[key as keyof typeof paramMapping.value] as keyof typeof typeMapping || '', ParamValue: '0' }]
+    // 如果data[0]有值，則取data[0].ReportMonth的月份，否則取當前月份的前一個月份
+    const lastMonth = Number(data[0] ? dayjs(data[0].ReportMonth).format('MM') : dayjs().subtract(1, 'month').format('MM'))
+    return {
+      name: typeMapping[data[0]?.ParamName as keyof typeof typeMapping],
+      data: Array.from({ length: 6 }, (_, index) => {
+        return {
+          ReportMonth: data[index]?.ReportMonth || dayjs(dayjs()).month(lastMonth - (index + 1)).format('YYYY-MM'),
+          ParamName: data[index]?.ParamName ?? '',
+          ParamValue: data[index]?.ParamValue ?? '0',
+        }
+      })
+    }
+  })
+}
+
+watch(() => [currentMonth.value, selectedPackageId.value], () => {
+  fetchNetcashdashboardInfoV2()
+  fetchReportsChartsData()
+})
+
+watch(() => [moneyDropdownValue1.value, moneyDropdownValue2.value, countDropdownValue1.value, countDropdownValue2.value], () => {
+  fetchReportsChartsData()
+})
+
+onMounted(() => {
+  fetchNetcashdashboardInfoV2()
+  fetchReportsChartsData()
+})
 </script>
 
 <template>
@@ -130,11 +198,37 @@ const showInfoData = computed(() => {
       </div>
     </div>
 
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-lg font-semibold text-neutral2-basic">历史数据</h2>
-      <div class="flex items-center justify-between">
-        <div class="text-sm text-neutral2-secondary">1</div>
-        <div class="text-sm text-neutral2-secondary">2</div>
+    <div class="flex items-center justify-between mb-1">
+      <div class="flex-1 text-lg font-semibold text-neutral2-basic">历史数据</div>
+      <div class="flex-[1.5] flex items-center justify-end gap-2">
+        <Dropdown class="flex-1" v-model="moneyDropdownValue1" :options="moneyDropdownOptions" height="1.25rem">
+          <template #prefix>
+            <div class="w-1 h-1 rounded-full bg-fixed-lightBlue" />
+          </template>
+        </Dropdown>
+        <Dropdown class="flex-1" v-model="moneyDropdownValue2" :options="moneyDropdownOptions" height="1.25rem">
+          <template #prefix>
+            <div class="w-1 h-1 rounded-full bg-primary-normal" />
+          </template>
+        </Dropdown>
+      </div>
+    </div>
+
+    <HistoryDataChart :data="reportChartDataList" />
+
+    <div class="flex items-center justify-end gap-2 my-2">
+      <div class="flex-1" />
+      <div class="flex-[1.5] flex items-center justify-end gap-2">
+        <Dropdown class="flex-1" v-model="countDropdownValue1" :options="countDropdownOptions" height="1.25rem">
+          <template #prefix>
+            <div class="w-1 h-1 rounded-full bg-success-normal" />
+          </template>
+        </Dropdown>
+        <Dropdown class="flex-1" v-model="countDropdownValue2" :options="countDropdownOptions" height="1.25rem">
+          <template #prefix>
+            <div class="w-1 h-1 rounded-full bg-fixed-pink" />
+          </template>
+        </Dropdown>
       </div>
     </div>
 

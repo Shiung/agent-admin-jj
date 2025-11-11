@@ -65,9 +65,9 @@ const handleClickOutside = () => {
       :class="{ 'is-open': isOpen, 'is-disabled': disabled }"
       @click="toggleDropdown"
     >
-      <span class="dropdown-text" :class="{ 'is-placeholder': !selectedOption }">
-        {{ displayText }}
-      </span>
+      <div class="dropdown-text flex items-center gap-2" :class="{ 'is-placeholder': !selectedOption }">
+        <slot name="prefix" />{{ displayText }}
+      </div>
       <svg
         class="dropdown-icon"
         :class="{ 'rotate': isOpen }"
