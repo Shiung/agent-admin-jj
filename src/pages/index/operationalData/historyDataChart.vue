@@ -15,6 +15,9 @@ const colors = ['#5DD4FA', '#007AFF', '#72C240', '#FF9999' ]
 const initChart = () => {
   if (!chartRef.value) return
   
+  // 如果已經有實例，先銷毀
+  if (chart.value) chart.value.dispose()
+  
   const myChart = echarts.init(chartRef.value)
   
   // 數據
