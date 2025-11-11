@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import API from '@/apis'
-import type { NetcashdashboardInfoV2Data, ReportChartItems } from '@/apis/codegen/data-contracts'
+import type { NetcashdashboardInfoV2Data, ReportChartItems, ReportChartItem } from '@/apis/codegen/data-contracts'
 import { formatNumberToK, formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
 import { useGlobalStore } from '@/stores/global'
 import Dropdown from '@/components/Dropdown/index.vue'
@@ -96,7 +96,7 @@ const countDropdownValue2 = ref<keyof typeof typeMapping>('SumNewRegNum')
 const moneyDropdownOptions = ref<{ label: string, value: string }[]>([])
 const countDropdownOptions = ref<{ label: string, value: string }[]>([])
 
-const reportChartDataList = ref<{ name: string, data: { ReportMonth: string, ParamName: string, ParamValue: string }[] }[]>([])
+const reportChartDataList = ref<{ name: string, data: ReportChartItem[] }[]>([])
 
 const fetchReportsChartsData = async () => {
   const res = await API.admin.getReportsCharts({
@@ -118,7 +118,8 @@ const fetchReportsChartsData = async () => {
     value: key,
   }))
 
-  reportChartDataList.value = generateMonthChartsData(res.data.Data.MonthReportChartItems)
+  const isDayReport = activeTab.value === 1
+  reportChartDataList.value = isDayReport ? generateDayChartsData(res.data.Data.DayReportChartItems) : generateMonthChartsData(res.data.Data.MonthReportChartItems)
 }
 
 // res的Param對應的key
@@ -131,6 +132,23 @@ const paramMapping = computed(() => {
   }
 })
 
+const generateDayChartsData = (res: ReportChartItems) => {
+  return Object.keys(res).map((key: string) => {
+    const data = res[key as keyof ReportChartItems]?.length ? res[key as keyof ReportChartItems] : [{ ReportDay: dayjs().subtract(1, 'day').format('YYYY-MM-DD'), ParamName: paramMapping.value[key as keyof typeof paramMapping.value] as keyof typeof typeMapping || '', ParamValue: '0' }]
+    return {
+      name: typeMapping[data[0]?.ParamName as keyof typeof typeMapping],
+      // 取當前月份的前180天
+      data: Array.from({ length: 180 }, (_, index) => {
+        return {
+          ReportDay: data[index]?.ReportDay || dayjs(dayjs()).subtract(index + 1, 'day').format('YYYY-MM-DD'),
+          ParamName: data[index]?.ParamName ?? '',
+          ParamValue: data[index]?.ParamValue ?? '0',
+        }
+      })
+    }
+  })
+}
+
 const generateMonthChartsData = (res: ReportChartItems) => {
   return Object.keys(res).map((key: string) => {
     const data = res[key as keyof ReportChartItems]?.length ? res[key as keyof ReportChartItems] : [{ ReportMonth: dayjs().subtract(1, 'month').format('MM'), ParamName: paramMapping.value[key as keyof typeof paramMapping.value] as keyof typeof typeMapping || '', ParamValue: '0' }]
@@ -138,6 +156,7 @@ const generateMonthChartsData = (res: ReportChartItems) => {
     const lastMonth = Number(data[0] ? dayjs(data[0].ReportMonth).format('MM') : dayjs().subtract(1, 'month').format('MM'))
     return {
       name: typeMapping[data[0]?.ParamName as keyof typeof typeMapping],
+      // 取當前月份的前6個月份
       data: Array.from({ length: 6 }, (_, index) => {
         return {
           ReportMonth: data[index]?.ReportMonth || dayjs(dayjs()).month(lastMonth - (index + 1)).format('YYYY-MM'),
@@ -214,7 +233,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <HistoryDataChart :data="reportChartDataList" />
+    <HistoryDataChart :data="reportChartDataList" :isDayReport="activeTab === 1" />
 
     <div class="flex items-center justify-end gap-2 my-2">
       <div class="flex-1" />
