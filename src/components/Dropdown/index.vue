@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, useAttrs } from 'vue'
+
+const attrs = useAttrs()
 
 interface DropdownOption {
   label: string
@@ -52,7 +54,7 @@ const handleClickOutside = () => {
 </script>
 
 <template>
-  <div class="dropdown-container" v-click-outside="handleClickOutside">
+  <div class="dropdown-container" :class="attrs.class" v-click-outside="handleClickOutside">
     <!-- 下拉選單按鈕 -->
     <button
       type="button"

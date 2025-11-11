@@ -68,7 +68,7 @@ const themeOptions = computed(() => {
       ls.set(d.ThemeId, { label: d.ThemeName, value: d.ThemeId })
     }
   })
-  return [...ls.values()]
+  return [{ label: '全部主题', value: '' }, ...ls.values()]
 })
 
 const sizeOptions = computed(() => {
@@ -79,13 +79,16 @@ const sizeOptions = computed(() => {
     }
   })
 
-  return [...ls.values()]
+  return [{ label: '全部尺寸', value: '' }, ...ls.values()]
 })
 
 const renderData = computed(() => {
   const hasSelectTheme = selectTheme.value
   const hasSelectSize = selectSize.value
   return data.value.filter((d) => {
+    if (hasSelectTheme && hasSelectSize) {
+      return  d.ThemeId === hasSelectTheme && d.SizeId === hasSelectSize
+    }
     if (hasSelectTheme) {
       return d.ThemeId === hasSelectTheme
     }
@@ -161,11 +164,11 @@ onMounted(() => {
 <template>
   <div>
     <NavBar title="素材设置" />
-    <div class="">
-      <Dropdown v-model="selectChannelId" :options="channelOptions" placeholder="渠道号" />
-      <Dropdown v-model="selectDevice" :options="deviceOptions" placeholder="装置" />
-      <Dropdown v-model="selectTheme" :options="themeOptions" placeholder="全部主题" />
-      <Dropdown v-model="selectSize" :options="sizeOptions" placeholder="全部尺寸" />
+    <div class="grid grid-cols-4 gap-1 px-1">
+      <Dropdown v-model="selectChannelId" :options="channelOptions" class="dropDownCus" placeholder="渠道号" />
+      <Dropdown v-model="selectDevice" :options="deviceOptions" class="dropDownCus" placeholder="装置" />
+      <Dropdown v-model="selectTheme" :options="themeOptions" class="dropDownCus" placeholder="全部主题" />
+      <Dropdown v-model="selectSize" :options="sizeOptions" class="dropDownCus" placeholder="全部尺寸" />
     </div>
 
     <div class="mb-4">
@@ -218,5 +221,24 @@ onMounted(() => {
 }
 .preCard_block {
   width: v-bind(blockW);
+}
+
+.dropDownCus {
+  :deep(>button) {
+    padding: 0.75rem 0.5rem;
+    > span {
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  :deep(.dropdown-menu) {
+    width: calc(100vw - 24px);
+    position: fixed;
+    top: unset;
+    left: 12px;
+  }
 }
 </style>

@@ -123,10 +123,10 @@ onMounted(() => {
 
 <template>
   <div>
-    <div>
-      <Dropdown v-if="!isProduct" v-model="selectProd" :options="prodOptions" placeholder="全部产品" />
-      <Dropdown v-model="selectTheme" :options="themeOptions" placeholder="全部主题" />
-      <Dropdown v-model="selectSize" :options="sizeOptions" placeholder="全部尺寸" />
+    <div class="grid gap-1 px-1" :class="isProduct ? ' grid-cols-2': 'grid-cols-3'" >
+      <Dropdown v-if="!isProduct" v-model="selectProd" class="dropDownCus" :options="prodOptions" placeholder="全部产品" />
+      <Dropdown v-model="selectTheme" class="dropDownCus" :options="themeOptions" placeholder="全部主题" />
+      <Dropdown v-model="selectSize" class="dropDownCus" :options="sizeOptions" placeholder="全部尺寸" />
     </div>
 
     <div :class="['space-y-4', !isProduct && '-mx-2']"> 
@@ -154,3 +154,25 @@ onMounted(() => {
 
   </div>
 </template>
+
+<style lang="scss" scoped>
+
+.dropDownCus {
+  :deep(>button) {
+    padding: 0.75rem 0.5rem;
+    > span {
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  :deep(.dropdown-menu) {
+    width: calc(100vw - 24px);
+    position: fixed;
+    top: unset;
+    left: 12px;
+  }
+}
+</style>
