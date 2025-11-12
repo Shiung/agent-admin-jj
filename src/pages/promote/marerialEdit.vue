@@ -25,6 +25,8 @@ const blockW = ref<String>('0px')
 
 const qrcodeURL = ref<string>('')
 
+const initDone = ref<boolean>(false)
+const deviceAutoFromChannel = ref<boolean>(false)
 // const data = ref(fakeMaterial)
 const data = computed(() => materialLsSelectByPid.value(Number(pId)) ?? [])
 
@@ -101,9 +103,11 @@ const renderData = computed(() => {
 
 watch(
   () => deviceOptions.value,
-  (options) => { 
+  (options) => {
+    if (!deviceAutoFromChannel.value) return
     if (options.length > 0) {
       if (options[0]?.value) selectDevice.value = options[0]?.value
+      deviceAutoFromChannel.value = false
     } 
   }
 )
@@ -155,17 +159,32 @@ const calcuSize = () => {
   blockW.value = `${helf}px`
 }
 
+/** 初始化圖片位置 */
+watchEffect(() => {
+  if (initDone.value) return
+  const data = renderData.value
+  const queryId = route.query?.mId
+  const findIndex = data.findIndex((d) => d.Id === Number(queryId))
+  if (findIndex === -1) return
+  setTimeout(() => {
+    initDone.value = true
+    onThumbClick(findIndex)
+  }, 15)
+})
+
+/** 初始化裝置設置 */
 onMounted(() => {
-  // const findIndex = level.value.findIndex(({ current }) => current) || 0
-  onThumbClick(0)
+  const { channel, device } = route.query
+  if (channel) selectChannelId.value = channel.toString()
+  if (device) selectDevice.value = device.toString()
 })
 </script>
 
 <template>
-  <div>
+  <div class="space-y-2">
     <NavBar title="素材设置" />
     <div class="grid grid-cols-4 gap-1 px-1">
-      <Dropdown v-model="selectChannelId" :options="channelOptions" class="dropDownCus" placeholder="渠道号" />
+      <Dropdown v-model="selectChannelId" :options="channelOptions" class="dropDownCus" placeholder="渠道号" @change="deviceAutoFromChannel = true" />
       <Dropdown v-model="selectDevice" :options="deviceOptions" class="dropDownCus" placeholder="装置" />
       <Dropdown v-model="selectTheme" :options="themeOptions" class="dropDownCus" placeholder="全部主题" />
       <Dropdown v-model="selectSize" :options="sizeOptions" class="dropDownCus" placeholder="全部尺寸" />
@@ -225,8 +244,9 @@ onMounted(() => {
 
 .dropDownCus {
   :deep(>button) {
-    padding: 0.75rem 0.5rem;
-    > span {
+    // padding: 0.75rem 0.5rem;
+    .dropdown-text {
+      display: inline-block;
       font-size: 12px;
       overflow: hidden;
       text-overflow: ellipsis;
