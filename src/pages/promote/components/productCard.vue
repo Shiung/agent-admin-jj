@@ -20,8 +20,8 @@ const trasPushType = (type: PromotionlinkListV2ResponseData['PushType']) => {
   }
 }
 
-const clickHandler = (productId: number) => {
-  router.push({ name: 'materialPort', params: { productId } })
+const clickHandler = (productId: number, channel: number, device: string ) => {
+  router.push({ name: 'materialPort', params: { productId }, query: { channel, device } })
 }
 </script>
 
@@ -51,7 +51,7 @@ const clickHandler = (productId: number) => {
           <div class="flex justify-start items-center gap-2">
             <div class="w-16 min-w-14 justify-start text-blue-950/90 text-sm font-semibold">APP{{ product.AppDomains.length > 1 ? `_${idx + 1}` : '' }}</div>
             <div class="w-px h-3 bg-blue-950/5 rounded"></div>
-            <div class="flex-1 text-right justify-start text-blue-950/70 text-xs font-normal truncate">{{  app.Domain }}</div>
+            <div class="flex-1 text-right justify-start text-blue-950/70 text-xs font-normal truncate">{{ app.Domain }}</div>
           </div>
           <div class="flex justify-center items-center gap-2">
             <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
@@ -70,7 +70,7 @@ const clickHandler = (productId: number) => {
               <div class="w-3 h-3 relative">
                 <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
               </div>
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickHandler(product.PackageId)">素材设置</div>
+              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickHandler(product.PackageId, product.ChannelId, app.Domain)">素材设置</div>
             </div>
           </div>
         </div>
@@ -101,7 +101,7 @@ const clickHandler = (productId: number) => {
               <div class="w-3 h-3 relative">
                 <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
               </div>
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickHandler(product.PackageId)">素材设置</div>
+              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickHandler(product.PackageId, product.ChannelId, h5.Domain)">素材设置</div>
             </div>
           </div>
         </div>
