@@ -34,6 +34,7 @@ const themeOptions = computed(() => {
   // 移除第一筆預設值
   prodLs.shift()
   prodLs.forEach((prod: any) => {
+    if (isProduct && prod.value !== Number(pId)) return 
     materialLsSelectByPid.value(prod.value).forEach((m) => {
       if (!ls.has(m.ThemeId)) {
         ls.set(m.ThemeId, { label: m.ThemeName, value: m.ThemeId })
@@ -50,6 +51,7 @@ const sizeOptions = computed(() => {
   // 移除第一筆預設值
   prodLs.shift()
   prodLs.forEach((prod: any) => {
+    if (isProduct && prod.value !== Number(pId)) return 
     materialLsSelectByPid.value(prod.value).forEach((m) => {
       if (!ls.has(m.SizeId)) {
         ls.set(m.SizeId, { label: m.SizeName, value: m.SizeId })
