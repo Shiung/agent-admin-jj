@@ -2,7 +2,7 @@
 import { ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
-import { formatNumberToK, formatMoneyToK } from '@/utils/formatNumber'
+import { formatNumberToK } from '@/utils/formatNumber'
 import type { ReportChartItem } from '@/apis/codegen/data-contracts'
 
 const props = defineProps<{
@@ -35,10 +35,7 @@ const initChart = () => {
   // 計算左側軸的範圍（CCC + DDD）
   const leftMax = Math.max(...count1, ...count2)
   const leftMin = Math.min(...count1, ...count2)
-  
-  const yMin = Math.floor(leftMin * 0.9)
-  const yMax = Math.ceil(leftMax * 1.1)
-  
+
   // 計算分割數量和繪製橫跨整個寬度的格線
   const splitNumber = 5
   const chartWidth = chartRef.value?.offsetWidth || 0
@@ -153,8 +150,8 @@ const initChart = () => {
       {
         type: 'value',
         position: 'left',
-        min: yMin,
-        max: yMax,
+        min: Math.floor(leftMin * (leftMin > 0 ? 0.9 : 1.1)),
+        max: Math.ceil(leftMax * (leftMax > 0 ? 1.1 : 0.9)),
         splitNumber: splitNumber,
         axisLine: {
           show: false,
@@ -174,14 +171,14 @@ const initChart = () => {
       {
         type: 'value',
         position: 'right',
-        min: Math.floor(rightMin * 0.9),
-        max: Math.ceil(rightMax * 1.1),
+        min: Math.floor(rightMin * (rightMin > 0 ? 0.9 : 1.1)),
+        max: Math.ceil(rightMax * (rightMax > 0 ? 1.1 : 0.9)),
         axisLine: {
           show: false,
           lineStyle: { color: '#999' }
         },
         axisLabel: {
-          formatter: (value: number) => formatMoneyToK(value),
+          formatter: (value: number) => formatNumberToK(value),
           color: '#666',
           verticalAlign: 'bottom'
         },
@@ -213,7 +210,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="bg-white w-full">
+  <div :class="['bg-white', isDayReport ? 'w-[250rem]' : 'w-full']">
     <div ref="chartRef" style="width: 100%; height: 400px;"></div>
   </div>
 </template>
