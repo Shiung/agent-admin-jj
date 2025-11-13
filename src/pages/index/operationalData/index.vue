@@ -121,7 +121,7 @@ const fetchReportsChartsData = async () => {
   }))
 
   const isDayReport = activeTab.value === 1
-  reportChartDataList.value = isDayReport ? generateDayChartsData(res.data.Data.DayReportChartItems) : generateMonthChartsData(res.data.Data.MonthReportChartItems)
+  reportChartDataList.value = (isDayReport ? generateDayChartsData(res.data.Data.DayReportChartItems) : generateMonthChartsData(res.data.Data.MonthReportChartItems)) as { name: string, data: ReportChartItem[] }[]
 }
 
 // res的Param對應的key
