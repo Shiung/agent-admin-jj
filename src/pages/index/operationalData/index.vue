@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import API from '@/apis'
 import type { NetcashdashboardInfoV2Data, ReportChartItems, ReportChartItem } from '@/apis/codegen/data-contracts'
-import { formatNumberToK, formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
+import { formatMoney, formatNumberToK, formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
 import { useGlobalStore } from '@/stores/global'
 import Dropdown from '@/components/Dropdown/index.vue'
 import HistoryDataChart from './historyDataChart.vue'
@@ -21,12 +21,14 @@ const currentMonth = computed(() => {
   return dayjs().format('YYYY-MM')
 })
 
-const options = computed(() => globalStore.configInfo?.RealPackageIdNameMap.map((pkg) => ({
-  label: pkg.PackageName,
-  value: pkg.PackageId,
-})) || [])
+const packageOptions = computed(() => {
+  return [{ label: '全部', value: 0 }, ...globalStore.configInfo?.RealPackageIdNameMap.map((pkg) => ({
+    label: pkg.PackageName,
+    value: pkg.PackageId,
+  })) || []]
+})
 
-const selectedPackageId = ref(1)
+const selectedPackageId = ref(0)
 
 const netcashdashboardInfoV2 = ref<NetcashdashboardInfoV2Data>({
   PlayerNum: 0,
@@ -139,10 +141,12 @@ const generateDayChartsData = (res: ReportChartItems) => {
       name: typeMapping[data[0]?.ParamName as keyof typeof typeMapping],
       // 取當前月份的前180天
       data: Array.from({ length: 180 }, (_, index) => {
+        const currentDay = dayjs(dayjs()).subtract(index + 1, 'day').format('YYYY-MM-DD')
+        const dataItem = data.find((item) => item.ReportDay === currentDay)
         return {
-          ReportDay: data[index]?.ReportDay || dayjs(dayjs()).subtract(index + 1, 'day').format('YYYY-MM-DD'),
-          ParamName: data[index]?.ParamName ?? '',
-          ParamValue: data[index]?.ParamValue ?? '0',
+          ReportDay: dayjs(dayjs()).subtract(index + 1, 'day').format('YYYY-MM-DD'),
+          ParamName: dataItem?.ParamName ?? '',
+          ParamValue: ['ParamAmountLeft', 'ParamAmountRight'].includes(key) ? formatMoney(dataItem?.ParamValue ?? '0') : dataItem?.ParamValue ?? '0',
         }
       })
     }
@@ -153,15 +157,18 @@ const generateMonthChartsData = (res: ReportChartItems) => {
   return Object.keys(res).map((key: string) => {
     const data = res[key as keyof ReportChartItems]?.length ? res[key as keyof ReportChartItems] : [{ ReportMonth: dayjs().subtract(1, 'month').format('MM'), ParamName: paramMapping.value[key as keyof typeof paramMapping.value] as keyof typeof typeMapping || '', ParamValue: '0' }]
     // 如果data[0]有值，則取data[0].ReportMonth的月份，否則取當前月份的前一個月份
-    const lastMonth = Number(data[0] ? dayjs(data[0].ReportMonth).format('MM') : dayjs().subtract(1, 'month').format('MM'))
+    const lastMonth = Number(dayjs().subtract(1, 'month').format('MM'))
     return {
       name: typeMapping[data[0]?.ParamName as keyof typeof typeMapping],
       // 取當前月份的前6個月份
       data: Array.from({ length: 6 }, (_, index) => {
+        const currentMonth = dayjs(dayjs()).month(lastMonth - (index + 1)).format('YYYY-MM')
+        const dataItem = data.find((item) => item.ReportMonth === currentMonth)
         return {
-          ReportMonth: data[index]?.ReportMonth || dayjs(dayjs()).month(lastMonth - (index + 1)).format('YYYY-MM'),
-          ParamName: data[index]?.ParamName ?? '',
-          ParamValue: data[index]?.ParamValue ?? '0',
+          ReportMonth: currentMonth,
+          ParamName: dataItem?.ParamName ?? '',
+          // 錢要除100
+          ParamValue: ['ParamAmountLeft', 'ParamAmountRight'].includes(key) ? formatMoney(dataItem?.ParamValue ?? '0') : dataItem?.ParamValue ?? '0',
         }
       })
     }
@@ -186,7 +193,7 @@ onMounted(() => {
 <template>
   <div>
     <div class="flex items-center justify-between mb-2">
-      <Dropdown class="flex-1 h-10 mr-2" v-model="selectedPackageId" :options="options" height="2.5rem" />
+      <Dropdown class="flex-1 h-10 mr-2" v-model="selectedPackageId" :options="packageOptions" height="2.5rem" />
       <!-- 日月報選擇 -->
       <div class="operation-tabs bg-white w-[7.25rem] h-10">
         <van-tabs
@@ -233,7 +240,9 @@ onMounted(() => {
       </div>
     </div>
 
-    <HistoryDataChart :data="reportChartDataList" :isDayReport="activeTab === 1" />
+    <div class="w-[calc(100vw-1.5rem)] overflow-x-auto">
+      <HistoryDataChart :data="reportChartDataList" :isDayReport="activeTab === 1" />
+    </div>
 
     <div class="flex items-center justify-end gap-2 my-2">
       <div class="flex-1" />
