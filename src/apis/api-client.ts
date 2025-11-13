@@ -7,9 +7,6 @@ interface SecurityDataType {
   token?: string
 }
 
-const isDevelopMode = import.meta.env.DEV
-console.log('isDevelopMode', isDevelopMode)
-
 // 初始化全局的 HttpClient 实例
 export const apiClient = new HttpClient<SecurityDataType>({
   baseURL: import.meta.env.VITE_PROXY_PREFIX || '/cloud',
