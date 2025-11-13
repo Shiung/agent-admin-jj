@@ -10,6 +10,7 @@ import AutoImport from 'unplugin-auto-import/vite'
 import Components from 'unplugin-vue-components/vite'
 import { VantResolver } from '@vant/auto-import-resolver'
 import tailwindcss from '@tailwindcss/vite'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode, command }) => {
@@ -31,6 +32,7 @@ export default defineConfig(({ mode, command }) => {
         resolvers: [VantResolver()],
       }),
       tailwindcss(),
+      tsconfigPaths(),
     ],
     resolve: {
       alias: {

@@ -3,6 +3,7 @@ import '@/styles/main.css'
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import { ConfigProvider } from 'vant'
+
 import Big from 'big.js'
 
 import App from './App.vue'
@@ -11,11 +12,12 @@ import { clickOutside } from '@/directives/click-outside'
 
 // 全局的設置無條件捨去
 Big.RM = Big.roundDown
+const vantComponents = [ConfigProvider]
 
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(ConfigProvider)
+vantComponents.forEach((c) => app.use(c))
 app.use(router)
 
 // 註冊全局指令
