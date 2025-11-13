@@ -17,6 +17,14 @@ const router = createRouter({
       },
     },
     {
+      path: '/manage',
+      name: 'manage',
+      component: () => import('@/pages/manage/index.vue'),
+      meta: {
+        showTabBar: true,
+      },
+    },
+    {
       path: '/promote',
       name: 'promote',
       components: {
@@ -41,16 +49,32 @@ const router = createRouter({
           },
           meta: {
             showTabBar: true,
-          }
+          },
         },
         {
           path: 'material/:productId/edit',
           name: 'materialEdit',
           components: {
             default: () => import('@/pages/promote/marerialEdit.vue'),
-          }
-        }
-      ]
+          },
+        },
+      ],
+    },
+    {
+      path: '/report',
+      name: 'report',
+      component: () => import('@/pages/report/index.vue'),
+      meta: {
+        showTabBar: true,
+      },
+    },
+    {
+      path: '/mine',
+      name: 'mine',
+      component: () => import('@/pages/mine/index.vue'),
+      meta: {
+        showTabBar: true,
+      },
     },
     {
       path: '/commission-detail',

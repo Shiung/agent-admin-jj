@@ -25,19 +25,14 @@ const currentComponent = computed(() => {
 </script>
 
 <template>
-  <div class="bg-white min-h-screen">
+  <div class="flex flex-col">
     <!-- 头像与功能按钮行 -->
     <HeaderBar />
 
     <!-- 标签页 -->
     <div class="index-tabs bg-white h-16 px-3 py-2">
-      <van-tabs
-        v-model:active="activeTab"
-        color="var(--color-primary-normal)"
-        title-active-color="var(--color-white)"
-        title-inactive-color="var(--color-neutral-secondary)"
-        type="card"
-      >
+      <van-tabs v-model:active="activeTab" color="var(--color-primary-normal)" title-active-color="var(--color-white)"
+        title-inactive-color="var(--color-neutral-secondary)" type="card">
         <van-tab v-for="(tab, index) in tabs" :key="index" :title="tab" />
       </van-tabs>
     </div>
@@ -67,18 +62,22 @@ const currentComponent = computed(() => {
 
 <style lang="scss" scoped>
 .index-tabs {
+
   /* 自定义 van-tabs 样式 */
   :deep(.van-tabs) {
     --van-tabs-card-height: 3rem;
     --van-padding-md: 0rem;
     --van-radius-sm: 6.25rem;
+
     .van-tabs__nav.van-tabs__nav--card {
       padding: .25rem;
       border-color: var(--color-neutral2-seventh) !important;
     }
+
     .van-tab--card {
       border-right: none;
     }
+
     .van-tab.van-tab--card.van-tab--active {
       border-radius: var(--van-radius-sm);
     }

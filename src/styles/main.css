@@ -2,14 +2,14 @@
 
 /* base color */
 @theme {
-  --color-primary-normal: #007AFF;
+  --color-primary-normal: #007aff;
   --color-primary-5: rgba(0, 122, 255, 0.05);
   --color-primary-10: rgba(0, 122, 255, 0.1);
   --color-primary-50: rgba(0, 122, 255, 0.5);
 
-  --color-error-normal: #F22A2A;
-  --color-success-normal: #72C240;
-  --color-warning-normal: #FFB341;
+  --color-error-normal: #f22a2a;
+  --color-success-normal: #72c240;
+  --color-warning-normal: #ffb341;
 
   --color-neutral-basic: rgba(29, 39, 86, 0.9);
   --color-neutral-secondary: rgba(0, 0, 0, 0.7);
@@ -22,15 +22,20 @@
 
   --color-bg-floor-1-2: rgba(248, 250, 253, 1);
 
-  --color-fixed-lightBlue: #5DD4FA;
-  --color-fixed-purple: #7F61D2; /* figma沒定義名字，只好自己定義 */
-  --color-fixed-pink: #FF9999;
+  --color-fixed-lightBlue: #5dd4fa;
+  --color-fixed-purple: #7f61d2; /* figma沒定義名字，只好自己定義 */
+  --color-fixed-pink: #ff9999;
 }
 
 /* vant color */
 /* https://vant-ui.github.io/vant/#/zh-CN/config-provider#tong-guo-css-fu-gai */
 :root:root {
+  --van-tabbar-height: 60px;
   --van-primary-color: var(--color-primary-normal);
   --van-danger-color: var(--color-error-normal);
   --van-success-color: var(--color-success-normal);
+}
+
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
 }

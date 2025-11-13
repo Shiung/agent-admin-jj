@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { useGlobalStore } from '@/stores/global'
 
 const router = useRouter()
 const route = useRoute()
-const globalStore = useGlobalStore()
 
 interface TabItem {
   key: string
@@ -45,17 +43,15 @@ const tabs: TabItem[] = [
     path: '/report',
   },
   {
-    key: 'profile',
+    key: 'mine',
     label: '个人',
     icon: 'user-o',
     activeIcon: 'user-o',
-    path: '/profile',
+    path: '/mine',
   },
 ]
 
 const activeKey = ref('home')
-
-const tabbarContainer = ref<HTMLDivElement | null>(null)
 
 // 根據當前路由更新 activeKey
 watch(
@@ -75,39 +71,26 @@ const handleTabChange = (key: string) => {
     router.push(tab.path)
   }
 }
-
-onMounted(() => {
-  globalStore.tabbarHeight = tabbarContainer.value?.clientHeight || 0
-})
 </script>
 
 <template>
-  <div :style="{ height: globalStore.tabbarHeight + 'px' }" />
-  <div class="tabbar-container" ref="tabbarContainer">
-    <van-tabbar v-model="activeKey" active-color="#007AFF" @change="handleTabChange" :fixed="false" :safe-area-inset-bottom="true">
-      <van-tabbar-item v-for="tab in tabs" :key="tab.key" :name="tab.key" :icon="tab.icon">
-        {{ tab.label }}
-      </van-tabbar-item>
-    </van-tabbar>
-  </div>
+  <van-tabbar class="app-tabbar" v-model="activeKey" active-color="#007AFF" @change="handleTabChange" placeholder
+    safe-area-inset-bottom>
+    <van-tabbar-item v-for="tab in tabs" :key="tab.key" :name="tab.key" :icon="tab.icon">
+      {{ tab.label }}
+    </van-tabbar-item>
+  </van-tabbar>
 </template>
 
-<style scoped>
-.tabbar-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-}
+<style lang="scss" scoped>
+.app-tabbar {
+  :deep(.van-tabbar-item__icon) {
+    font-size: 22px;
+    margin-bottom: 4px;
+  }
 
-:deep(.van-tabbar-item__icon) {
-  font-size: 22px;
-  margin-bottom: 4px;
-}
-
-:deep(.van-tabbar-item__text) {
-  font-size: 12px;
+  :deep(.van-tabbar-item__text) {
+    font-size: 12px;
+  }
 }
 </style>
-

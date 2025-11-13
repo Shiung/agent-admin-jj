@@ -22,30 +22,13 @@ const handleBack = () => {
 </script>
 
 <template>
-  <div class="sticky top-0 z-10 bg-white">
-    <div class="flex items-center justify-between h-14 px-4">
-      <!-- 返回按钮 -->
-      <button 
-        @click="handleBack" 
-        class="p-2 -ml-2 rounded-full transition-colors"
-      >
-        <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-
-      <!-- 标题 -->
-      <h1 class="text-lg font-semibold text-gray-900">{{ title }}</h1>
-
-      <!-- 右側插槽 -->
-      <slot name="right">
-        <!-- 占位符保持布局平衡 -->
-        <div class="w-10" />
-      </slot>
-    </div>
-  </div>
+  <van-nav-bar fixed placeholder safe-area-inset-top :title="title" left-arrow @click-left="handleBack">
+    <template #left>
+      <svg class="w-6 h-6 text-[var(--color-neutral-secondary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </template>
+  </van-nav-bar>
 </template>
 
-<style scoped>
-</style>
-
+<style scoped></style>

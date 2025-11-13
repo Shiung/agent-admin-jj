@@ -33,12 +33,13 @@ const detailData = ref<CompareCommissionResponseData>({
 
 // 预计会员佣金列表
 const memberCommissionList = computed(() => [
-  { label: '会员佣金',value: { current: detailData.value.CurrentMonth.CommissionChildTotal, last: detailData.value.LastMonth.CommissionChildTotal }, isSigned: false },
+  { label: '会员佣金', value: { current: detailData.value.CurrentMonth.CommissionChildTotal, last: detailData.value.LastMonth.CommissionChildTotal }, isSigned: false },
   { label: '净盈利', value: { current: detailData.value.CurrentMonth.CleanBetWinTotal, last: detailData.value.LastMonth.CleanBetWinTotal }, isSigned: true },
   { label: '总盈利', value: { current: detailData.value.CurrentMonth.BetWinTotal, last: detailData.value.LastMonth.BetWinTotal }, isSigned: true },
   { label: '输赢调整', value: { current: detailData.value.CurrentMonth.MoneyChangeFee, last: detailData.value.LastMonth.MoneyChangeFee }, isSigned: false },
   { label: '平台费', value: { current: detailData.value.CurrentMonth.ApiFeeTotalFee, last: detailData.value.LastMonth.ApiFeeTotalFee }, isSigned: false },
-  { label: '存提手续费',
+  {
+    label: '存提手续费',
     value: { current: new Big(detailData.value.CurrentMonth?.PayMoneyFee ?? 0).plus(detailData.value.CurrentMonth.WithdrawMoneyFee ?? 0).toFixed(2), last: new Big(detailData.value.LastMonth?.PayMoneyFee ?? 0).plus(detailData.value.LastMonth?.WithdrawMoneyFee ?? 0).toFixed(2) },
     isSigned: false
   },
@@ -65,7 +66,7 @@ const subordinateContributionList = computed(() => {
     const label = item.CurrentAdmin ? '代理佣金' : levelMap[item.Level] ?? ''
     result.push({ label, value: { current: formatMoneyToK(item.CommissionTotal), last: formatMoneyToK(detailData.value.LastMonth.CommissionChildList.find((lastItem: CommissionChildList) => lastItem.Level === item.Level)?.CommissionTotal ?? 0) } })
   })
-  
+
   return [
     // { label: '代理佣金', value: { current: detailData.value.CurrentMonth.CommissionTotal, last: detailData.value.LastMonth.CommissionTotal } },
     ...result,
@@ -74,7 +75,7 @@ const subordinateContributionList = computed(() => {
 </script>
 
 <template>
-  <div class="commission-detail min-h-screen pb-6">
+  <div class="pb-6">
     <!-- 顶部导航栏 -->
     <NavBar title="佣金详情" />
 
@@ -89,7 +90,8 @@ const subordinateContributionList = computed(() => {
       </div>
 
       <!-- 佣金比例 -->
-      <div class="flex items-center justify-between h-[4.0625rem] bg-white rounded-xl p-3 shadow-sm border border-gray-100 mb-2 gap-3">
+      <div
+        class="flex items-center justify-between h-[4.0625rem] bg-white rounded-xl p-3 shadow-sm border border-gray-100 mb-2 gap-3">
         <div class="w-[7.5rem] text-primary-normal text-sm font-semibold">佣金比例</div>
         <van-divider vertical :style="{ height: '1.25rem', color: 'var(--color-primary-10)' }" />
         <div class="flex items-center justify-center flex-1 bg-primary-5 text-primary-normal rounded-2xl p-1">
@@ -105,28 +107,21 @@ const subordinateContributionList = computed(() => {
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic">上月</div>
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic font-semibold">本月</div>
         </div>
-        <div
-          v-for="(item, index) in memberCommissionList"
-          :key="index"
-          class="flex items-center justify-between h-10 mx-3 border-b border-neutral2-sixth last:border-b-0"
-        >
+        <div v-for="(item, index) in memberCommissionList" :key="index"
+          class="flex items-center justify-between h-10 mx-3 border-b border-neutral2-sixth last:border-b-0">
 
           <div class="flex-1 flex items-center justify-start text-sm text-neutral2-basic">{{ item.label }}</div>
-          <div
-            class="flex-1 flex items-center justify-end text-sm"
-            :class="[
-              item.isSigned ? formatSignedMoney(item.value.last).color : 'text-neutral2-basic'
-            ]"
-          >
-            {{ item.isSigned ? formatSignedMoney(item.value.last).text : formatMoneyToK(item.value.last) }}{{ item.suffix }}
+          <div class="flex-1 flex items-center justify-end text-sm" :class="[
+            item.isSigned ? formatSignedMoney(item.value.last).color : 'text-neutral2-basic'
+          ]">
+            {{ item.isSigned ? formatSignedMoney(item.value.last).text : formatMoneyToK(item.value.last) }}{{
+              item.suffix }}
           </div>
-          <div
-            class="flex-1 flex items-center justify-end text-sm font-semibold"
-            :class="[
-              item.isSigned ? formatSignedMoney(item.value.current).color : 'text-neutral2-basic'
-            ]"
-          >
-            {{ item.isSigned ? formatSignedMoney(item.value.current).text : formatMoneyToK(item.value.current) }}{{ item.suffix }}
+          <div class="flex-1 flex items-center justify-end text-sm font-semibold" :class="[
+            item.isSigned ? formatSignedMoney(item.value.current).color : 'text-neutral2-basic'
+          ]">
+            {{ item.isSigned ? formatSignedMoney(item.value.current).text : formatMoneyToK(item.value.current) }}{{
+              item.suffix }}
           </div>
         </div>
       </div>
@@ -140,11 +135,8 @@ const subordinateContributionList = computed(() => {
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic">上月</div>
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic font-semibold">本月</div>
         </div>
-        <div
-          v-for="(item, index) in subordinateContributionList"
-          :key="index"
-          class="flex items-center justify-between h-10 mx-3 border-b border-neutral2-sixth last:border-b-0"
-        >
+        <div v-for="(item, index) in subordinateContributionList" :key="index"
+          class="flex items-center justify-between h-10 mx-3 border-b border-neutral2-sixth last:border-b-0">
           <div class="flex-1 flex items-center justify-start text-sm text-neutral2-basic">{{ item.label }}</div>
           <div class="flex-1 flex items-center justify-end text-sm text-neutral2-basic">
             {{ item.value.last }}
@@ -166,20 +158,4 @@ const subordinateContributionList = computed(() => {
   </div>
 </template>
 
-<style scoped>
-.commission-detail {
-  animation: slideIn 0.3s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-</style>
-
+<style scoped></style>
