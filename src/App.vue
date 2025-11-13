@@ -30,6 +30,7 @@ onMounted(() => {
   <div class="min-h-screen">
     <RouterView />
     <TabBar v-if="route.meta.showTabBar" />
+    <VanToast />
   </div>
 </template>
 
