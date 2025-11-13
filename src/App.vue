@@ -27,9 +27,11 @@ onMounted(() => {
 
 <template>
   <main class="min-h-[100svh] md:min-h-dvh flex flex-col overflow-y-auto ios-scroll">
-    <transition name="page" mode="out-in">
-      <RouterView />
-    </transition>
+    <RouterView v-slot="{ Component }">
+      <transition name="page" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </RouterView>
   </main>
   <TabBar v-if="route.meta.showTabBar" />
 </template>
