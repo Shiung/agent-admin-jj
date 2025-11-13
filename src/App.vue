@@ -32,8 +32,8 @@ onMounted(() => {
         <component :is="Component" />
       </transition>
     </RouterView>
+    <TabBar v-if="route.meta.showTabBar" />
   </main>
-  <TabBar v-if="route.meta.showTabBar" />
 </template>
 
 <style scoped>
