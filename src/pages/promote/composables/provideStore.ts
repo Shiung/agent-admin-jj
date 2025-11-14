@@ -1,4 +1,4 @@
-import { provide, reactive, onMounted, computed, watchEffect } from 'vue'
+import { provide, reactive, onMounted, computed, readonly } from 'vue'
 import type { ComputedRef, InjectionKey } from 'vue'
 import API from '@/apis'
 import type {
@@ -11,6 +11,8 @@ import type {
 } from '@/apis/codegen/data-contracts'
 
 type State = {
+  /** 初始化資料完成 */
+  isReady: boolean
   dataLs: {
     /** 代理清單 */
     agent: Array<PromotionlinkListV2ResponseData>
@@ -39,6 +41,7 @@ export const PromoteActionSymbol: InjectionKey<{
 
 export const usePromote = () => {
   const states = reactive<State>({
+    isReady: false,
     dataLs: {
       agent: [],
       exclusive: []
@@ -95,7 +98,7 @@ export const usePromote = () => {
         states.confList.theme = res4.value.data.Data.Items
       }
     })
-
+    states.isReady = true
   }
 
   const fetchMaterialLs = async (params: PromotionmaterialsListallRequest) => {
@@ -125,4 +128,8 @@ export const usePromote = () => {
   onMounted(() => {
     fetchPromoteList()
   })
+
+  return {
+    states: readonly(states)
+  }
 }

@@ -6,6 +6,11 @@ import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
 import { showToast, showFailToast } from 'vant'
 import { useClipboard } from '@vueuse/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
+import apple from '@/assets/images/apple.png'
+import andriod from '@/assets/images/andriod.png'
+import copyLite from '@/assets/images/copy_lite.png'
+import qrcodeLite from '@/assets/images/qrcode_lite.png'
+import shareLite from '@/assets/images/share_lite.png'
 
 import useImage from '../composables/useImage'
 defineProps<{
@@ -69,11 +74,19 @@ const clickCopy = async() => {
         <div class="flex-1">
           <div class="font-semibold text-gray-800">{{ product.ChannelId }}</div>
           <div class="text-sm text-gray-500">{{ product.PackageName }}</div>
-          <div class="text-xs text-gray-400">版本 {{ product.IosPackVersion }} / {{ product.AndroidPackVersion }}</div>
+          <div class="text-gray-400 flex items-center space-x-1">
+            <van-image :src="apple" fit="contain" class="h-4" />
+            <div class="text-xs/normal">{{ product.IosPackVersion }}</div>
+            <van-image :src="andriod" fit="contain" class="h-4 ml-3" />
+            <div class="text-xs/normal">{{ product.AndroidPackVersion }}</div>
+          </div>
         </div>
-        <div class="text-center bg-slate-50 p-2 w-16 aspect-square rounded-xl flex flex-col justify-center">
+        <div class="text-center bg-slate-50 p-2 aspect-square min-w-16 rounded-xl flex flex-col justify-center">
           <div class="text-xs text-gray-500">邀请码</div>
-          <div class="font-semibold text-blue-500">{{ product.InvitationCode }}</div>
+          <div class="font-semibold text-blue-500 flex items-center space-x-1" @click="copy(product.InvitationCode)">
+            <div>{{ product.InvitationCode }}</div>
+            <van-image :src="copyLite" fit="contain" class="w-3" />
+          </div>
         </div>
       </div>
   
@@ -88,22 +101,16 @@ const clickCopy = async() => {
             <div class="flex-1 text-right justify-start text-blue-950/70 text-xs font-normal truncate">{{ app.Domain }}</div>
           </div>
           <div class="flex justify-center items-center gap-2">
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.75px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="copyLite" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="copy(app.Domain)">复制链接</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="qrcodeLite" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickQrcodeDialog(app.Domain)">二维码</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="shareLite" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickHandler(product.PackageId, product.ChannelId, app.Domain)">素材设置</div>
             </div>
           </div>
@@ -119,22 +126,16 @@ const clickCopy = async() => {
             <div class="flex-1 text-right justify-start text-blue-950/70 text-xs font-normal truncate">{{  h5.Domain }}</div>
           </div>
           <div class="flex justify-center items-center gap-2">
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.75px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="copyLite" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="copy(h5.Domain)">复制链接</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="qrcodeLite" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickQrcodeDialog(h5.Domain)">二维码</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="shareLite" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickHandler(product.PackageId, product.ChannelId, h5.Domain)">素材设置</div>
             </div>
           </div>

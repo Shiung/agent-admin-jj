@@ -1,3 +1,4 @@
+import { showFailToast } from 'vant'
 import { ref } from 'vue'
 
 const _isBase64Image = (s: string) => {
@@ -28,6 +29,20 @@ const _base64ToBlob = (base64: string): Blob | null  => {
   } catch {
     return null
   }
+}
+
+/**
+ * 將 Base64 DataURL 轉成 File 物件
+ * @param base64 - 例如 data:image/png;base64,iVBORw0K...
+ * @param filename - 檔名
+ */
+function _base64ToFile(base64: string, filename = 'image.png'): File | null {
+  const [meta, data] = base64.split(',')
+  if (!meta || !data) return null
+  const mime = meta.match(/:(.*?);/)?.[1] || 'image/png'
+  const binary = atob(data)
+  const array = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+  return new File([array], filename, { type: mime })
 }
 
 export default function useImage() {
@@ -66,9 +81,33 @@ export default function useImage() {
     }
   }
 
+  /**
+   * 使用 Web Share API 分享圖片
+   */
+  async function shareBase64Image(base64: string) {
+    if (!navigator.share) {
+      showFailToast({ message: '系统不支援' })
+      return
+    }
+
+    try {
+      const file = _base64ToFile(base64, 'qrcode.png')
+      if (!file) throw { message: '_base64ToFile null' }
+      const filesArray = [file]
+      await navigator.share({
+        // title: '我的 QR Code',
+        // text: '快掃描這個 QR Code！',
+        files: filesArray,
+      })
+    } catch (err) {
+      console.error('❌ 分享失敗', err)
+    }
+  }
+
   return {
     copyIng,
     downLoadImage,
-    copyImageToClipboard
+    copyImageToClipboard,
+    shareBase64Image
   }
 }
