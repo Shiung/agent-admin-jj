@@ -12,6 +12,7 @@ declare module 'vue' {
     CarouselContent: typeof import('./src/components/carousel/CarouselContent.vue')['default']
     CarouselItem: typeof import('./src/components/carousel/CarouselItem.vue')['default']
     Dropdown: typeof import('./src/components/Dropdown/index.vue')['default']
+    Empty: typeof import('./src/components/Empty.vue')['default']
     HeaderBar: typeof import('./src/components/HeaderBar/index.vue')['default']
     InfoDialog: typeof import('./src/components/InfoDialog/index.vue')['default']
     NavBar: typeof import('./src/components/NavBar/index.vue')['default']
