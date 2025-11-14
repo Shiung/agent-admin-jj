@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router'
 import type { PromotionlinkListV2ResponseData } from '@/apis/codegen/data-contracts'
 import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
 import { showToast, showFailToast } from 'vant'
-import { useClipboard } from '@vueuse/core'
+import { useClipboard, useDateFormat } from '@vueuse/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 import apple from '@/assets/images/apple.png'
 import andriod from '@/assets/images/andriod.png'
@@ -35,6 +35,14 @@ const qrcodeURL = ref<string>('')
 const showQrcode = ref<boolean>(false)
 const { copy, copied } = useClipboard()
 const qrcode = useQRCode(qrcodeURL, { width: 200, margin: 0, errorCorrectionLevel: 'L' })
+
+const showDate = (ts: number | string | null) => {
+  if (!ts) return null
+  const num = Number(ts)
+  if (isNaN(num)) return null
+  return useDateFormat(num > 1e12 ?  num : num * 1000, 'YYYY-MM-DD').value
+}
+
 
 watchEffect(() => {
   if (copied.value) showToast({ message: '已复制' })
@@ -145,7 +153,7 @@ const clickCopy = async() => {
 
     <div class="flex justify-between items-center text-xs text-gray-400 pt-2 border-t border-blue-950/5 px-4 pb-4">
       <div>{{ trasPushType(product.PushType) }}</div>
-      <div>{{ product.CreateTime }}</div>
+      <div>{{ showDate(product.CreateTime) }}</div>
     </div>
   </div>
   <van-dialog
