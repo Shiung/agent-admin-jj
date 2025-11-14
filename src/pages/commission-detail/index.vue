@@ -33,11 +33,11 @@ const detailData = ref<CompareCommissionResponseData>({
 
 // 预计会员佣金列表
 const memberCommissionList = computed(() => [
-  { label: '会员佣金', value: { current: detailData.value.CurrentMonth.CommissionChildTotal, last: detailData.value.LastMonth.CommissionChildTotal }, isSigned: false },
+  { label: '会员佣金', value: { current: detailData.value.CurrentMonth.CommissionSelfTotal, last: detailData.value.LastMonth.CommissionSelfTotal }, isSigned: false },
   { label: '净盈利', value: { current: detailData.value.CurrentMonth.CleanBetWinTotal, last: detailData.value.LastMonth.CleanBetWinTotal }, isSigned: true },
   { label: '总盈利', value: { current: detailData.value.CurrentMonth.BetWinTotal, last: detailData.value.LastMonth.BetWinTotal }, isSigned: true },
   { label: '输赢调整', value: { current: detailData.value.CurrentMonth.MoneyChangeFee, last: detailData.value.LastMonth.MoneyChangeFee }, isSigned: false },
-  { label: '平台费', value: { current: detailData.value.CurrentMonth.ApiFeeTotalFee, last: detailData.value.LastMonth.ApiFeeTotalFee }, isSigned: false },
+  { label: '场馆费', value: { current: detailData.value.CurrentMonth.ApiFeeTotalFee, last: detailData.value.LastMonth.ApiFeeTotalFee }, isSigned: false },
   {
     label: '存提手续费',
     value: { current: new Big(detailData.value.CurrentMonth?.PayMoneyFee ?? 0).plus(detailData.value.CurrentMonth.WithdrawMoneyFee ?? 0).toFixed(2), last: new Big(detailData.value.LastMonth?.PayMoneyFee ?? 0).plus(detailData.value.LastMonth?.WithdrawMoneyFee ?? 0).toFixed(2) },

@@ -91,6 +91,7 @@ export interface CompareCommissionData {
   CommissionChildTotal: number // 下級貢獻，單位:分
   CommissionChildList: CommissionChildList[] // 各層下級貢獻
   CleanBetWinTotal: number // 净输赢，單位:分
+  CommissionSelfTotal: number // 会员佣金，單位:分
 }
 
 export interface CommissionChildList {
