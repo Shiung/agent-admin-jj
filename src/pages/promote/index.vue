@@ -2,12 +2,11 @@
 import { watchEffect } from 'vue'
 import { useRoute } from 'vue-router'
 import { usePromote } from './composables/provideStore'
-import { showLoadingToast } from 'vant'
 
 const route = useRoute()
 const { states } = usePromote()
 
-const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0, loadingType: 'spinner' })
+const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
 
 watchEffect(() => {
   if (states.isReady) loading.close()
