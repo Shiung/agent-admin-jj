@@ -4,6 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
 
 import { PromoteStateSymbol, PromoteComputeSymbol, PromoteActionSymbol } from '../composables/provideStore'
+import { showLoadingToast } from 'vant'
+
+const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0, loadingType: 'spinner' })
 
 const route = useRoute()
 const router = useRouter()
@@ -145,10 +148,11 @@ const clickHandler = (pId: string, mId: number) => {
   router.push({ name: 'materialEdit', params: { productId: pId }, query: { ...routeQuery, mId }})
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (typeof fetchMaterialLs === 'function') {
-    fetchMaterialLs({})
+    await fetchMaterialLs({})
   }
+  loading.close()
 })
 </script>
 

@@ -1,12 +1,24 @@
 <script setup lang="ts">
+import { watchEffect, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { PromotionlinkListV2ResponseData } from '@/apis/codegen/data-contracts'
 import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
+import { showToast, showFailToast } from 'vant'
+import { useClipboard, useDateFormat } from '@vueuse/core'
+import { useQRCode } from '@vueuse/integrations/useQRCode'
+import apple from '@/assets/images/apple.png'
+import andriod from '@/assets/images/andriod.png'
+import copyLite from '@/assets/images/copy_lite.png'
+import qrcodeLite from '@/assets/images/qrcode_lite.png'
+import shareLite from '@/assets/images/share_lite.png'
+
+import useImage from '../composables/useImage'
 defineProps<{
   product: any
 }>()
 
 const router = useRouter()
+const { copyIng, downLoadImage, copyImageToClipboard } = useImage()
 
 const trasPushType = (type: PromotionlinkListV2ResponseData['PushType']) => {
   switch (type) {
@@ -19,10 +31,45 @@ const trasPushType = (type: PromotionlinkListV2ResponseData['PushType']) => {
     default: return type
   }
 }
+const qrcodeURL = ref<string>('')
+const showQrcode = ref<boolean>(false)
+const { copy, copied } = useClipboard()
+const qrcode = useQRCode(qrcodeURL, { width: 200, margin: 0, errorCorrectionLevel: 'L' })
+
+const showDate = (ts: number | string | null) => {
+  if (!ts) return null
+  const num = Number(ts)
+  if (isNaN(num)) return null
+  return useDateFormat(num > 1e12 ?  num : num * 1000, 'YYYY-MM-DD').value
+}
+
+
+watchEffect(() => {
+  if (copied.value) showToast({ message: '已复制' })
+})
+
+const clickQrcodeDialog = (domain: string) => {
+  qrcodeURL.value = domain
+  showQrcode.value = true
+}
 
 const clickHandler = (productId: number, channel: number, device: string ) => {
   router.push({ name: 'materialPort', params: { productId }, query: { channel, device } })
 }
+
+const clickDownLoad = () => {
+  downLoadImage(qrcode.value)
+}
+
+const clickCopy = async() => {
+  const res = await copyImageToClipboard(qrcode.value)
+  if (res) {
+    showToast({ message: '图片已复制' })
+  } else {
+    showFailToast({ message: '图片复制失败', className: '!bg-[var(--van-danger-color)]' })
+  }
+}
+
 </script>
 
 <template>
@@ -35,11 +82,19 @@ const clickHandler = (productId: number, channel: number, device: string ) => {
         <div class="flex-1">
           <div class="font-semibold text-gray-800">{{ product.ChannelId }}</div>
           <div class="text-sm text-gray-500">{{ product.PackageName }}</div>
-          <div class="text-xs text-gray-400">版本 {{ product.IosPackVersion }} / {{ product.AndroidPackVersion }}</div>
+          <div class="text-gray-400 flex items-center space-x-1">
+            <van-image :src="apple" fit="contain" class="h-4" />
+            <div class="text-xs/normal">{{ product.IosPackVersion }}</div>
+            <van-image :src="andriod" fit="contain" class="h-4 ml-3" />
+            <div class="text-xs/normal">{{ product.AndroidPackVersion }}</div>
+          </div>
         </div>
-        <div class="text-center bg-slate-50 p-2 w-16 aspect-square rounded-xl flex flex-col justify-center">
+        <div class="text-center bg-slate-50 p-2 aspect-square min-w-16 rounded-xl flex flex-col justify-center">
           <div class="text-xs text-gray-500">邀请码</div>
-          <div class="font-semibold text-blue-500">{{ product.InvitationCode }}</div>
+          <div class="font-semibold text-blue-500 flex items-center space-x-1" @click="copy(product.InvitationCode)">
+            <div>{{ product.InvitationCode }}</div>
+            <van-image :src="copyLite" fit="contain" class="w-3" />
+          </div>
         </div>
       </div>
   
@@ -54,22 +109,16 @@ const clickHandler = (productId: number, channel: number, device: string ) => {
             <div class="flex-1 text-right justify-start text-blue-950/70 text-xs font-normal truncate">{{ app.Domain }}</div>
           </div>
           <div class="flex justify-center items-center gap-2">
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.75px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold">复制链接</div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="copyLite" fit="contain" class="w-3" />
+              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="copy(app.Domain)">复制链接</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold">二维码</div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="qrcodeLite" fit="contain" class="w-3" />
+              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickQrcodeDialog(app.Domain)">二维码</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="shareLite" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickHandler(product.PackageId, product.ChannelId, app.Domain)">素材设置</div>
             </div>
           </div>
@@ -85,22 +134,16 @@ const clickHandler = (productId: number, channel: number, device: string ) => {
             <div class="flex-1 text-right justify-start text-blue-950/70 text-xs font-normal truncate">{{  h5.Domain }}</div>
           </div>
           <div class="flex justify-center items-center gap-2">
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.75px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold">复制链接</div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="copyLite" fit="contain" class="w-3" />
+              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="copy(h5.Domain)">复制链接</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold">二维码</div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="qrcodeLite" fit="contain" class="w-3" />
+              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickQrcodeDialog(h5.Domain)">二维码</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center gap-0.5">
-              <div class="w-3 h-3 relative">
-                <div class="w-2 h-2 left-[1.50px] top-[1.50px] absolute bg-blue-950/90"></div>
-              </div>
+            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+              <van-image :src="shareLite" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold" @click="clickHandler(product.PackageId, product.ChannelId, h5.Domain)">素材设置</div>
             </div>
           </div>
@@ -110,7 +153,23 @@ const clickHandler = (productId: number, channel: number, device: string ) => {
 
     <div class="flex justify-between items-center text-xs text-gray-400 pt-2 border-t border-blue-950/5 px-4 pb-4">
       <div>{{ trasPushType(product.PushType) }}</div>
-      <div>{{ product.CreateTime }}</div>
+      <div>{{ showDate(product.CreateTime) }}</div>
     </div>
   </div>
+  <van-dialog
+    v-model:show="showQrcode"
+    title="二维码"
+    theme="round-button"
+    close-on-click-overlay
+  >
+    <div class="flex justify-center items-center py-4">
+      <van-image fit="cover" :src="qrcode" />
+    </div>
+    <template #footer>
+      <div class="py-4 flex items-center justify-center !space-x-3">
+        <van-button :loading="copyIng" round plain type="primary" class="w-[100px]" @click="clickCopy">复制图片</van-button>
+        <van-button round type="primary" class="w-[100px]" @click="clickDownLoad">下载图片</van-button>
+        </div>
+    </template>
+  </van-dialog>
 </template>

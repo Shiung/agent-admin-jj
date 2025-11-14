@@ -6,9 +6,46 @@ import { useQRCode } from '@vueuse/integrations/useQRCode'
 import type { CarouselApi } from '@/components/carousel'
 import { PromoteStateSymbol, PromoteComputeSymbol, PromoteActionSymbol } from './composables/provideStore'
 import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
+import { useClipboard } from '@vueuse/core'
 
 import photo from './components/photo.vue'
-// import { fakeMaterial } from './fake'
+
+import copySheet from '@/assets/images/copySheet.png'
+import downLoadSheet from '@/assets/images/downLoadSheet.png'
+import shareSheet from '@/assets/images/shareSheet.png'
+
+import useImage from './composables/useImage'
+
+import { showFailToast, showSuccessToast } from 'vant'
+
+const { downLoadImage, shareBase64Image } = useImage()
+const { copy } = useClipboard()
+
+const photoRefs = ref<Record<string | number, InstanceType<typeof photo>>>({})
+
+const setUnitPhotoRef = (el: InstanceType<typeof photo> | null, key: string | number) => {
+  if (el) photoRefs.value[key] = el
+  else delete photoRefs.value[key]
+}
+
+const getCurrentChildExposedImageBase64 = () => {
+  const currentPos = emblaMainApi.value?.selectedScrollSnap()
+  const renderLs = renderData.value
+  const photoRefLs = photoRefs.value
+  
+  let returnImage = ''
+  if (currentPos !== undefined) {
+    const currentPhoto = renderLs[currentPos]
+    if (currentPhoto) {
+      if (currentPhoto.Id in photoRefLs) {
+        const res = photoRefLs?.[currentPhoto.Id]?.getMergeImage() ?? ''
+        if (res) returnImage = res
+      }
+    }
+  }
+
+  return returnImage
+}
 
 const route = useRoute()
 const pId = route.params?.productId
@@ -27,7 +64,7 @@ const qrcodeURL = ref<string>('')
 
 const initDone = ref<boolean>(false)
 const deviceAutoFromChannel = ref<boolean>(false)
-// const data = ref(fakeMaterial)
+
 const data = computed(() => materialLsSelectByPid.value(Number(pId)) ?? [])
 
 const dataBind = computed(() => packageIdGroupByLs.value(Number(pId)) ?? [])
@@ -54,7 +91,7 @@ const deviceOptions = computed<Array<{ label: string, value: string }>>(() => {
   })
 
   H5Domains.forEach((d, idx) => {
-    const key = H5DomainsMulti ? `PC/H5_${idx + 1}` : 'APP'
+    const key = H5DomainsMulti ? `PC/H5_${idx + 1}` : 'PC/H5'
     if (!ls.has(key)) {
       const prefixName = d.NetCashDomainType === 0 ? '代理' : '专属'
       ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain })
@@ -159,6 +196,42 @@ const calcuSize = () => {
   blockW.value = `${helf}px`
 }
 
+const bottomSheetConf: Array<{ id: string, name: string, img: string, action: () => void }> = [
+  {
+    id: 'copy',
+    name: '复制链接',
+    img: copySheet,
+    action: () => {
+      if (qrcodeURL.value) {
+        copy(qrcodeURL.value)
+        showSuccessToast({ message: '复制成功' })
+        return
+      }
+      showFailToast({ message: '请先配置渠道号和装置' })
+    }
+  },
+  {
+    id: 'downLoad',
+    name: '保存图片',
+    img: downLoadSheet,
+    action: () => {
+      const imageBase64 = getCurrentChildExposedImageBase64()
+      if (imageBase64) downLoadImage(imageBase64)
+      else showFailToast({ message: '请先配置渠道号和装置' })
+    }
+  },
+  {
+    id: 'share',
+    name: '分享APP',
+    img: shareSheet,
+    action: () => {
+      const imageBase64 = getCurrentChildExposedImageBase64()
+      if (!imageBase64) showFailToast({ message: '请先配置渠道号和装置' })
+      shareBase64Image(imageBase64)
+    }
+  }
+]
+
 /** 初始化圖片位置 */
 watchEffect(() => {
   if (initDone.value) return
@@ -181,7 +254,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="space-y-2">
+  <div class="space-y-2 flex-1 flex flex-col">
     <NavBar title="素材设置" />
     <div class="grid grid-cols-4 gap-1 px-1">
       <Dropdown v-model="selectChannelId" :options="channelOptions" class="dropDownCus" placeholder="渠道号" @change="deviceAutoFromChannel = true" />
@@ -189,12 +262,13 @@ onMounted(() => {
       <Dropdown v-model="selectTheme" :options="themeOptions" class="dropDownCus" placeholder="全部主题" />
       <Dropdown v-model="selectSize" :options="sizeOptions" class="dropDownCus" placeholder="全部尺寸" />
     </div>
+    <div class="flex-1"></div>
 
     <div class="mb-4">
       <Carousel @init-api="(val) => (emblaMainApi = val)">
         <CarouselContent class="ml-0 px-2 space-x-1">
           <CarouselItem v-for="(l, idx) in renderData" :key="idx" class="!pl-0 space-y-3">
-            <photo :imag-src="getRemoteSourcePath(l.ImagePath ?? '')" :qrcode-src="qrcode" />
+            <photo :ref="el => setUnitPhotoRef(el as any, l.Id)" :imag-src="getRemoteSourcePath(l.ImagePath ?? '')" :qrcode-src="qrcode" />
             <div class="flex justify-center items-center space-x-2">
               <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.ThemeName }}</div>
               <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.SizeName }}</div>
@@ -224,6 +298,17 @@ onMounted(() => {
           </div>
         </CarouselContent>
       </Carousel>
+    </div>
+
+    <div class="flex-1"></div>
+    
+    <div class="sticky bottom-0 z-[1] shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] bg-white h-32 rounded-tl-3xl rounded-tr-3xl flex justify-between items-center pr-11 pl-11">
+      <div v-for="s in bottomSheetConf" :key="s.id" class="flex flex-col items-center space-y-1" @click="s.action">
+        <div class="bg-primary-normal/5 rounded-full flex items-center justify-center w-12 aspect-square">
+          <van-image :src="s.img" class="w-8" fit="contain" />
+        </div>
+        <div class="text-sm">{{ s.name }}</div>
+      </div>
     </div>
   </div>
 </template>

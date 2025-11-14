@@ -71,6 +71,14 @@ watchEffect(() => {
   if (!imagSrc || !qrcodeSrc) return
   genImg(imagSrc)
 })
+
+defineExpose<{
+  getMergeImage: () => string | undefined
+}>({
+  getMergeImage: () => {
+    return mergeImag.value
+  }
+})
 </script>
 
 <template>

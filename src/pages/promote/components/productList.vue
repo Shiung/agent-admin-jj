@@ -12,7 +12,8 @@ const data = computed(() => {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <product-card v-for="d in data" :product="d" :key="d.PackageId" />
+  <empty v-if="data.length === 0 && state.isReady" class="flex-1" />
+  <div v-else class="space-y-4">
+    <product-card v-for="d in data" :product="d" :key="d.PackageId" />  
   </div>
 </template>
