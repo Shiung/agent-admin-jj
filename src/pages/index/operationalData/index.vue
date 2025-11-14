@@ -265,7 +265,7 @@ onMounted(() => {
       <p><strong>1. 数据更新频率：</strong>每10分钟</p>
       <p><strong>2. 总盈利：</strong>会员投注产生的公司盈亏。</p>
       <p><strong>3. 新会员充值金额：</strong>所选时间内注册会员充值的金额。</p>
-      <p><strong>4.</strong>红色正数代表公司盈利，绿色负数代表公司成本。</p>
+      <p><strong>4.</strong>红色正数代表公司盈利，绿色负数代表公司亏损。</p>
     </InfoDialog>
   </div>
 </template>

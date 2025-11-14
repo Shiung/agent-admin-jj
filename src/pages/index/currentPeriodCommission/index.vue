@@ -160,7 +160,7 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
       <p><strong>2. 总盈利：</strong>会员投注产生的公司盈亏。</p>
       <p><strong>3. 预计下级贡献：</strong>从下级代理获得的佣金分润。</p>
       <p><strong>4. 预计代存回馈：</strong>代理为会员代存后可获得的返利金额。</p>
-      <p><strong>5.</strong> 红色正数代表公司盈利，绿色负数代表公司成本。</p>
+      <p><strong>5.</strong> 红色正数代表公司盈利，绿色负数代表公司亏损。</p>
     </InfoDialog>
   </div>
 </template>
