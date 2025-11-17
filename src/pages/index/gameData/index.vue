@@ -58,7 +58,7 @@ const gameDataList = computed(() => {
 
 <template>
   <div>
-    <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center justify-between bg-white px-3 py-2 pt-2 fixed top-[var(--mainFixedHeight)] left-0 z-10 w-full">
       <h2 class="text-lg font-semibold text-neutral2-basic">{{ currentMonth }}</h2>
       <!-- 日月報選擇 -->
       <div class="operation-tabs bg-white w-[7.25rem] h-10">
@@ -73,6 +73,8 @@ const gameDataList = computed(() => {
         </van-tabs>
       </div>
     </div>
+
+    <div class="w-full h-10 mb-2" />
 
     <!-- 预计佣金回馈 -->
     <div class="bg-white rounded-xl shadow-sm overflow-hidden">

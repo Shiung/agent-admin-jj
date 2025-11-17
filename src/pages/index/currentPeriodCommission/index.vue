@@ -89,12 +89,14 @@ const handleViewMore = () => router.push({ name: 'commissionDetail' })
 <template>
   <div class="current-period-commission">
     <!-- 标题栏 -->
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between bg-white px-3 fixed top-[var(--mainFixedHeight)] left-0 z-10 w-full">
       <h2 class="text-lg font-semibold text-neutral2-basic">{{ currentMonth }}</h2>
       <button @click="showInfo = true" class="p-2 rounded-full">
         <van-icon name="question-o" size="16" :style="{ fontWeight: 'bold' }" />
       </button>
     </div>
+    <!-- 占位符 -->
+    <div class="w-full h-10" />
 
     <!-- 佣金比例 -->
     <div

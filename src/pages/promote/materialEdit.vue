@@ -69,10 +69,10 @@ const data = computed(() => materialLsSelectByPid.value(Number(pId)) ?? [])
 
 const dataBind = computed(() => packageIdGroupByLs.value(Number(pId)) ?? [])
 
-const selectChannelId = ref<number | string>('')
-const selectDevice = ref<number | string>('')
-const selectTheme = ref<number | string>('')
-const selectSize = ref<number | string>('')
+const selectChannelId = ref<number | string | null>(null)
+const selectDevice = ref<number | string | null>(null)
+const selectTheme = ref<number | string | null>(null)
+const selectSize = ref<number | string | null>(null)
 const channelOptions = computed(() => dataBind.value.map((d) => ({ label: d.ChannelId, value: d.ChannelId })))
 
 const deviceOptions = computed<Array<{ label: string, value: string }>>(() => {
@@ -107,7 +107,7 @@ const themeOptions = computed(() => {
       ls.set(d.ThemeId, { label: d.ThemeName, value: d.ThemeId })
     }
   })
-  return [{ label: '全部主题', value: '' }, ...ls.values()]
+  return [{ label: '全部主题', value: null }, ...ls.values()]
 })
 
 const sizeOptions = computed(() => {
@@ -118,7 +118,7 @@ const sizeOptions = computed(() => {
     }
   })
 
-  return [{ label: '全部尺寸', value: '' }, ...ls.values()]
+  return [{ label: '全部尺寸', value: null }, ...ls.values()]
 })
 
 const renderData = computed(() => {
@@ -167,7 +167,7 @@ const onSelect = () => {
   emblaThumbnailApiForTab.value.scrollTo(emblaMainApi.value.selectedScrollSnap() + 1)
 }
 
-watchOnce(emblaMainApi, (emblaMainApi) => {
+watchOnce(emblaMainApi, (emblaMainApi: CarouselApi) => {
   if (!emblaMainApi) return
   onSelect()
   emblaMainApi.on('select', onSelect)
@@ -265,7 +265,7 @@ onMounted(() => {
     <div class="flex-1"></div>
 
     <div class="mb-4">
-      <Carousel @init-api="(val) => (emblaMainApi = val)">
+      <Carousel @init-api="(val: CarouselApi) => (emblaMainApi = val)">
         <CarouselContent class="ml-0 px-2 space-x-1">
           <CarouselItem v-for="(l, idx) in renderData" :key="idx" class="!pl-0 space-y-3">
             <photo :ref="el => setUnitPhotoRef(el as any, l.Id)" :imag-src="getRemoteSourcePath(l.ImagePath ?? '')" :qrcode-src="qrcode" />
@@ -281,7 +281,7 @@ onMounted(() => {
     <div ref="tabsEl" class="relative">
       <div data-use="shadow" class="absolute top-0 left-0 w-4 h-full z-[1] backdrop-blur-xs rounded-tr-xl rounded-br-xl" />
       <div data-use="shadow" class="absolute top-0 right-0 w-4 h-full z-[1] backdrop-blur-xs rounded-tl-xl rounded-bl-xl" />
-      <Carousel class="flex-1" @init-api="(val) => (emblaThumbnailApiForTab = val)">
+      <Carousel class="flex-1" @init-api="(val: CarouselApi) => (emblaThumbnailApiForTab = val)">
         <CarouselContent class="ml-0 relative w-full space-x-1 py-3">
           <div>
             <div class="preCard_block" />

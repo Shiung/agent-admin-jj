@@ -16,9 +16,9 @@ const state = inject(PromoteStateSymbol)!
 const { materialLsSelectByPid } = inject(PromoteComputeSymbol)!
 const { fetchMaterialLs } = inject(PromoteActionSymbol)!
 
-const selectProd = ref<number | string>('')
-const selectTheme = ref<number | string>('')
-const selectSize = ref<number | string>('')
+const selectProd = ref<number | string | null>(null)
+const selectTheme = ref<number | string | null>(null)
+const selectSize = ref<number | string | null>(null)
 
 const prodOptions = computed(() => {
   const ls = new Map()
@@ -27,7 +27,7 @@ const prodOptions = computed(() => {
       ls.set(m.PackageId, { label: m.PackageName, value: m.PackageId })
     }
   })
-  return [{ label: '全部产品', value: '' }, ...ls.values()]
+  return [{ label: '全部产品', value: null }, ...ls.values()]
 })
 
 const themeOptions = computed(() => {
@@ -44,7 +44,7 @@ const themeOptions = computed(() => {
     })
   })
 
-  return [{ label: '全部主题', value: '' }, ...ls.values()]
+  return [{ label: '全部主题', value: null }, ...ls.values()]
 })
 
 const sizeOptions = computed(() => {
@@ -61,7 +61,7 @@ const sizeOptions = computed(() => {
     })
   })
 
-  return [{ label: '全部尺寸', value: '' }, ...ls.values()]
+  return [{ label: '全部尺寸', value: null }, ...ls.values()]
 })
 
 const dataGroupBy = computed(() => {
@@ -89,11 +89,11 @@ const dataGroupBy = computed(() => {
     }
 
     /** 下拉選單選擇prod */
-    if (selectProd.value !== '' && selectProd.value !== productId) return sum
+    if (selectProd.value !== null && selectProd.value !== productId) return sum
     /** 下拉選單選擇theme */
-    if (selectTheme.value !== '' && selectTheme.value !== themeId) return sum
+    if (selectTheme.value !== null && selectTheme.value !== themeId) return sum
     /** 下拉選單選擇size */
-    if (selectSize.value !== '' && selectSize.value !== sizeId) return sum
+    if (selectSize.value !== null && selectSize.value !== sizeId) return sum
 
     if (!hasProductLs) {
       return {

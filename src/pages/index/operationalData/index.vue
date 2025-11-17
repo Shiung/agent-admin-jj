@@ -192,7 +192,7 @@ onMounted(() => {
 
 <template>
   <div>
-    <div class="flex items-center justify-between mb-2">
+    <div class="flex items-center justify-between bg-white px-3 pt-2 fixed top-[var(--mainFixedHeight)] left-0 z-10 w-full">
       <Dropdown class="flex-1 h-10 mr-2" v-model="selectedPackageId" :options="packageOptions" height="2.5rem" />
       <!-- 日月報選擇 -->
       <div class="operation-tabs bg-white w-[7.25rem] h-10">
@@ -207,12 +207,15 @@ onMounted(() => {
         </van-tabs>
       </div>
     </div>
-    <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center justify-between bg-white pt-2 px-3 fixed top-[calc(var(--mainFixedHeight)+3rem)] left-0 z-10 w-full">
       <h2 class="text-lg font-semibold text-neutral2-basic">{{ currentMonth }}</h2>
       <button @click="showInfo = true" class="p-2 rounded-full">
         <van-icon name="question-o" size="16" :style="{ fontWeight: 'bold' }" />
       </button>
     </div>
+
+    <!-- 占位符 -->
+    <div class="w-full h-20 mb-4" />
 
     <div v-for="(infoRow, rowIdx) in showInfoData" :key="rowIdx" class="flex items-center justify-between bg-bg-floor-1-2 rounded-2xl h-[4.25rem] mb-2">
       <div v-for="(info, infoIdx) in infoRow" :key="infoIdx" class="flex flex-col items-center justify-center px-3 py-2 flex-1">
