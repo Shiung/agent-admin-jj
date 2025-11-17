@@ -20,6 +20,8 @@ const selectProd = ref<number | string | null>(null)
 const selectTheme = ref<number | string | null>(null)
 const selectSize = ref<number | string | null>(null)
 
+const initDone = ref<boolean>(false)
+
 const prodOptions = computed(() => {
   const ls = new Map()
   state.materialLs.forEach((m) => {
@@ -152,6 +154,7 @@ onMounted(async () => {
     await fetchMaterialLs({})
   }
   loading.close()
+  initDone.value = true
 })
 </script>
 
@@ -163,7 +166,7 @@ onMounted(async () => {
       <Dropdown v-model="selectSize" class="dropDownCus" :options="sizeOptions" placeholder="全部尺寸" />
     </div>
 
-    <div :class="['space-y-4', !isProduct && '-mx-2']">
+    <div v-if="Object.keys(dataGroupBy).length > 0 && initDone" :class="['space-y-4', !isProduct && '-mx-2']">
       <div v-for="(val, key) in dataGroupBy" :key="key">
         <div v-for="(tVal, tKey) in val.group" :key="tKey">
           <div class="flex justify-between items-center p-2">
@@ -188,6 +191,10 @@ onMounted(async () => {
           </div>
         </div>
       </div>
+    </div>
+
+    <div v-else-if="initDone" class="min-h-[50svh] flex items-center">
+      <empty  />
     </div>
 
   </div>
