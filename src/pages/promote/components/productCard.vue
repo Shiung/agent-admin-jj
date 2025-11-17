@@ -6,11 +6,6 @@ import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
 import { showToast, showFailToast } from 'vant'
 import { useClipboard, useDateFormat } from '@vueuse/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
-import apple from '@/assets/images/apple.png'
-import andriod from '@/assets/images/andriod.png'
-import copyLite from '@/assets/images/copy_lite.png'
-import qrcodeLite from '@/assets/images/qrcode_lite.png'
-import shareLite from '@/assets/images/share_lite.png'
 
 import useImage from '../composables/useImage'
 defineProps<{
@@ -84,9 +79,9 @@ const clickCopy = async () => {
           <div class="font-semibold text-gray-800">{{ product.ChannelId }}</div>
           <div class="text-sm text-gray-500">{{ product.PackageName }}</div>
           <div class="text-gray-400 flex items-center space-x-1">
-            <van-image :src="apple" fit="contain" class="h-4" />
+            <van-image src="./static/images/promote/apple.png" fit="contain" class="h-4" />
             <div class="text-xs/normal">{{ product.IosPackVersion }}</div>
-            <van-image :src="andriod" fit="contain" class="h-4 ml-3" />
+            <van-image src="./static/images/promote/andriod.png" fit="contain" class="h-4 ml-3" />
             <div class="text-xs/normal">{{ product.AndroidPackVersion }}</div>
           </div>
         </div>
@@ -94,7 +89,7 @@ const clickCopy = async () => {
           <div class="text-xs text-gray-500">邀请码</div>
           <div class="font-semibold text-blue-500 flex items-center space-x-1" @click="copy(product.InvitationCode)">
             <div>{{ product.InvitationCode }}</div>
-            <van-image :src="copyLite" fit="contain" class="w-3" />
+            <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
           </div>
         </div>
       </div>
@@ -111,17 +106,17 @@ const clickCopy = async () => {
           </div>
           <div class="flex justify-center items-center gap-2">
             <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
-              <van-image :src="copyLite" fit="contain" class="w-3" />
+              <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
                 @click="copy(app.Domain)">复制链接</div>
             </div>
             <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
-              <van-image :src="qrcodeLite" fit="contain" class="w-3" />
+              <van-image src="./static/images/promote/qrcode_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
                 @click="clickQrcodeDialog(app.Domain)">二维码</div>
             </div>
             <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
-              <van-image :src="shareLite" fit="contain" class="w-3" />
+              <van-image src="./static/images/promote/share_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
                 @click="clickHandler(product.PackageId, product.ChannelId, app.Domain)">素材设置</div>
             </div>
@@ -139,17 +134,17 @@ const clickCopy = async () => {
           </div>
           <div class="flex justify-center items-center gap-2">
             <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
-              <van-image :src="copyLite" fit="contain" class="w-3" />
+              <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
                 @click="copy(h5.Domain)">复制链接</div>
             </div>
             <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
-              <van-image :src="qrcodeLite" fit="contain" class="w-3" />
+              <van-image src="./static/images/promote/qrcode_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
                 @click="clickQrcodeDialog(h5.Domain)">二维码</div>
             </div>
             <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
-              <van-image :src="shareLite" fit="contain" class="w-3" />
+              <van-image src="./static/images/promote/share_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
                 @click="clickHandler(product.PackageId, product.ChannelId, h5.Domain)">素材设置</div>
             </div>
@@ -168,7 +163,7 @@ const clickCopy = async () => {
       <van-image fit="cover" :src="qrcode" />
     </div>
     <template #footer>
-      <div class="py-4 flex items-center justify-center !space-x-3">
+      <div class="py-4 flex items-center justify-center space-x-3!">
         <van-button :loading="copyIng" round plain type="primary" class="w-[100px]" @click="clickCopy">复制图片</van-button>
         <van-button round type="primary" class="w-[100px]" @click="clickDownLoad">下载图片</van-button>
       </div>

@@ -21,7 +21,7 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col flex-1">
     <router-view />
   </div>
 </template>
