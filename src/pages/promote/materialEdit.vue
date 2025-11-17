@@ -10,10 +10,6 @@ import { useClipboard } from '@vueuse/core'
 
 import photo from './components/photo.vue'
 
-import copySheet from '@/assets/images/copySheet.png'
-import downLoadSheet from '@/assets/images/downLoadSheet.png'
-import shareSheet from '@/assets/images/shareSheet.png'
-
 import useImage from './composables/useImage'
 
 import { showFailToast, showSuccessToast } from 'vant'
@@ -32,7 +28,7 @@ const getCurrentChildExposedImageBase64 = () => {
   const currentPos = emblaMainApi.value?.selectedScrollSnap()
   const renderLs = renderData.value
   const photoRefLs = photoRefs.value
-  
+
   let returnImage = ''
   if (currentPos !== undefined) {
     const currentPhoto = renderLs[currentPos]
@@ -79,7 +75,7 @@ const deviceOptions = computed<Array<{ label: string, value: string }>>(() => {
   const hasExistChannel = dataBind.value.find((bind) => bind.ChannelId === selectChannelId.value)
   if (!hasExistChannel) return []
   const ls = new Map()
-  const { AppDomains = [], H5Domains = []} = hasExistChannel
+  const { AppDomains = [], H5Domains = [] } = hasExistChannel
   const AppLsMulti = AppDomains.length > 1
   const H5DomainsMulti = H5Domains.length > 1
   AppDomains.forEach((d, idx) => {
@@ -126,7 +122,7 @@ const renderData = computed(() => {
   const hasSelectSize = selectSize.value
   return data.value.filter((d) => {
     if (hasSelectTheme && hasSelectSize) {
-      return  d.ThemeId === hasSelectTheme && d.SizeId === hasSelectSize
+      return d.ThemeId === hasSelectTheme && d.SizeId === hasSelectSize
     }
     if (hasSelectTheme) {
       return d.ThemeId === hasSelectTheme
@@ -145,7 +141,7 @@ watch(
     if (options.length > 0) {
       if (options[0]?.value) selectDevice.value = options[0]?.value
       deviceAutoFromChannel.value = false
-    } 
+    }
   }
 )
 
@@ -200,7 +196,7 @@ const bottomSheetConf: Array<{ id: string, name: string, img: string, action: ()
   {
     id: 'copy',
     name: '复制链接',
-    img: copySheet,
+    img: './static/images/promote/copySheet.png',
     action: () => {
       if (qrcodeURL.value) {
         copy(qrcodeURL.value)
@@ -213,7 +209,7 @@ const bottomSheetConf: Array<{ id: string, name: string, img: string, action: ()
   {
     id: 'downLoad',
     name: '保存图片',
-    img: downLoadSheet,
+    img: './static/images/promote/downLoadSheet.png',
     action: () => {
       const imageBase64 = getCurrentChildExposedImageBase64()
       if (imageBase64) downLoadImage(imageBase64)
@@ -223,7 +219,7 @@ const bottomSheetConf: Array<{ id: string, name: string, img: string, action: ()
   {
     id: 'share',
     name: '分享APP',
-    img: shareSheet,
+    img: './static/images/promote/shareSheet.png',
     action: () => {
       const imageBase64 = getCurrentChildExposedImageBase64()
       if (!imageBase64) showFailToast({ message: '请先配置渠道号和装置' })
@@ -257,7 +253,8 @@ onMounted(() => {
   <div class="space-y-2 flex-1 flex flex-col">
     <NavBar title="素材设置" />
     <div class="grid grid-cols-4 gap-1 px-1">
-      <Dropdown v-model="selectChannelId" :options="channelOptions" class="dropDownCus" placeholder="渠道号" @change="deviceAutoFromChannel = true" />
+      <Dropdown v-model="selectChannelId" :options="channelOptions" class="dropDownCus" placeholder="渠道号"
+        @change="deviceAutoFromChannel = true" />
       <Dropdown v-model="selectDevice" :options="deviceOptions" class="dropDownCus" placeholder="装置" />
       <Dropdown v-model="selectTheme" :options="themeOptions" class="dropDownCus" placeholder="全部主题" />
       <Dropdown v-model="selectSize" :options="sizeOptions" class="dropDownCus" placeholder="全部尺寸" />
@@ -267,11 +264,14 @@ onMounted(() => {
     <div class="mb-4">
       <Carousel @init-api="(val: CarouselApi) => (emblaMainApi = val)">
         <CarouselContent class="ml-0 px-2 space-x-1">
-          <CarouselItem v-for="(l, idx) in renderData" :key="idx" class="!pl-0 space-y-3">
-            <photo :ref="el => setUnitPhotoRef(el as any, l.Id)" :imag-src="getRemoteSourcePath(l.ImagePath ?? '')" :qrcode-src="qrcode" />
+          <CarouselItem v-for="(l, idx) in renderData" :key="idx" class="pl-0! space-y-3">
+            <photo :ref="el => setUnitPhotoRef(el as any, l.Id)" :imag-src="getRemoteSourcePath(l.ImagePath ?? '')"
+              :qrcode-src="qrcode" />
             <div class="flex justify-center items-center space-x-2">
-              <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.ThemeName }}</div>
-              <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.SizeName }}</div>
+              <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.ThemeName }}
+              </div>
+              <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.SizeName }}
+              </div>
             </div>
           </CarouselItem>
         </CarouselContent>
@@ -279,17 +279,21 @@ onMounted(() => {
     </div>
 
     <div ref="tabsEl" class="relative">
-      <div data-use="shadow" class="absolute top-0 left-0 w-4 h-full z-[1] backdrop-blur-xs rounded-tr-xl rounded-br-xl" />
-      <div data-use="shadow" class="absolute top-0 right-0 w-4 h-full z-[1] backdrop-blur-xs rounded-tl-xl rounded-bl-xl" />
+      <div data-use="shadow"
+        class="absolute top-0 left-0 w-4 h-full z-1 backdrop-blur-xs rounded-tr-xl rounded-br-xl" />
+      <div data-use="shadow"
+        class="absolute top-0 right-0 w-4 h-full z-1 backdrop-blur-xs rounded-tl-xl rounded-bl-xl" />
       <Carousel class="flex-1" @init-api="(val: CarouselApi) => (emblaThumbnailApiForTab = val)">
         <CarouselContent class="ml-0 relative w-full space-x-1 py-3">
           <div>
             <div class="preCard_block" />
           </div>
-          <div v-for="(i, idx) in renderData" :key="idx" :data-id="idx" class="preCard shrink-0" :class="selectedIndex === idx && 'active'">
-            <CarouselItem class="unit !pl-0 text-xs text-neutral_d01 font-semibold" @click="onThumbClick(idx)">
-              <div class="aspect-[36/40]">
-                <van-image use-error-slot use-loading-slot fit="cover" :src="getRemoteSourcePath(i.ImagePath)" class="w-full h-full" />
+          <div v-for="(i, idx) in renderData" :key="idx" :data-id="idx" class="preCard shrink-0"
+            :class="selectedIndex === idx && 'active'">
+            <CarouselItem class="unit pl-0! text-xs text-neutral_d01 font-semibold" @click="onThumbClick(idx)">
+              <div class="aspect-36/40">
+                <van-image use-error-slot use-loading-slot fit="cover" :src="getRemoteSourcePath(i.ImagePath)"
+                  class="w-full h-full" />
               </div>
             </CarouselItem>
           </div>
@@ -301,8 +305,9 @@ onMounted(() => {
     </div>
 
     <div class="flex-1"></div>
-    
-    <div class="sticky bottom-0 z-[1] shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] bg-white h-32 rounded-tl-3xl rounded-tr-3xl flex justify-between items-center pr-11 pl-11">
+
+    <div
+      class="sticky bottom-0 z-1 shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] bg-white h-32 rounded-tl-3xl rounded-tr-3xl flex justify-between items-center pr-11 pl-11">
       <div v-for="s in bottomSheetConf" :key="s.id" class="flex flex-col items-center space-y-1" @click="s.action">
         <div class="bg-primary-normal/5 rounded-full flex items-center justify-center w-12 aspect-square">
           <van-image :src="s.img" class="w-8" fit="contain" />
@@ -316,19 +321,23 @@ onMounted(() => {
 <style lang="scss" scoped>
 .preCard {
   transition: transform .2s;
+
   &.active {
     transform: scale(1.2);
   }
+
   .unit {
     width: v-bind(prevCardW);
   }
 }
+
 .preCard_block {
   width: v-bind(blockW);
 }
 
 .dropDownCus {
   :deep(>button) {
+
     // padding: 0.75rem 0.5rem;
     .dropdown-text {
       display: inline-block;
