@@ -10,18 +10,38 @@ const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
-const fetchIsLogin = async () => {
-  const res = await API.system.isLogin()
-  if (res.data.Code !== 200) return router.push('/login')
+const goLogin = () => {
+  if (route.name !== 'login') {
+    router.push({ name: 'login' })
+  }
+}
 
-  userStore.userInfo = res.data.Data
+const fetchIsLogin = async () => {
+  try {
+    const res = await API.system.isLogin()
+    if (res.data.Code !== 200) {
+      userStore.setToken(null)
+      goLogin()
+      return
+    }
+
+    userStore.userInfo = res.data.Data
+  } catch (err) {
+    console.error('isLogin error', err)
+    goLogin()
+  }
 }
 
 onMounted(() => {
-  // TODO - 沒登入的話才要跳
-  const userInfo = localStorage.getItem('userToken')
-  if (!userInfo) router.push('/login')
-  else fetchIsLogin()
+  const token = userStore.token
+
+  if (!token) {
+    goLogin()
+    return
+  }
+
+  // 有 token → 檢查是否仍有效
+  fetchIsLogin()
 })
 </script>
 
@@ -49,7 +69,7 @@ onMounted(() => {
 }
 
 .page-enter-active {
-  transition: opacity .25s ease-out, transform .25s ease-out;
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 
 /* 離場 */
@@ -64,6 +84,6 @@ onMounted(() => {
 }
 
 .page-leave-active {
-  transition: opacity .20s ease-in, transform .20s ease-in;
+  transition: opacity 0.2s ease-in, transform 0.2s ease-in;
 }
 </style>

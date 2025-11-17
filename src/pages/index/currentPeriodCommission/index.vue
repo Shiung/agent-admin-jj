@@ -83,7 +83,7 @@ const indicators = computed(() => {
 })
 
 // 跳转到佣金详情页面
-const handleViewMore = () => router.push({ name: 'commission-detail' })
+const handleViewMore = () => router.push({ name: 'commissionDetail' })
 </script>
 
 <template>
@@ -97,7 +97,8 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
     </div>
 
     <!-- 佣金比例 -->
-    <div class="flex items-center justify-between h-[4.0625rem] bg-white rounded-xl p-3 shadow-sm border border-gray-100 mb-2 gap-3">
+    <div
+      class="flex items-center justify-between h-[4.0625rem] bg-white rounded-xl p-3 shadow-sm border border-gray-100 mb-2 gap-3">
       <div class="w-[7.5rem] text-primary-normal text-sm font-semibold">佣金比例</div>
       <van-divider vertical :style="{ height: '1.25rem', color: 'var(--color-primary-10)' }" />
       <div class="flex items-center justify-center flex-1 bg-primary-5 text-primary-normal rounded-2xl p-1">
@@ -108,11 +109,8 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
 
     <!-- 指标卡片 -->
     <div class="space-y-3">
-      <div
-        v-for="(item, index) in indicators"
-        :key="index"
-        class="flex items-center justify-between h-[4.375rem] gap-3 bg-bg-floor-1-2 rounded-2xl px-3 py-2"
-      >
+      <div v-for="(item, index) in indicators" :key="index"
+        class="flex items-center justify-between h-[4.375rem] gap-3 bg-bg-floor-1-2 rounded-2xl px-3 py-2">
         <div class="w-[7.5rem] text-neutral2-secondary text-sm">{{ item.label }}</div>
 
         <van-divider vertical :style="{ height: '1.25rem', color: 'var(--color-neutral2-seventh)' }" />
@@ -121,10 +119,8 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
           <!-- 本月 -->
           <div class="flex items-baseline justify-between mb-1">
             <div class="text-xs text-neutral2-basic font-semibold">本月</div>
-            <div
-              class="text-base font-semibold"
-              :class="item.isSigned ? formatSignedMoney(item.current).color : 'text-neutral2-basic'"
-            >
+            <div class="text-base font-semibold"
+              :class="item.isSigned ? formatSignedMoney(item.current).color : 'text-neutral2-basic'">
               {{ item.isSigned ? formatSignedMoney(item.current).text : formatMoneyToK(item.current) }}
             </div>
           </div>
@@ -132,10 +128,7 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
           <!-- 上月 -->
           <div class="flex items-center justify-between">
             <div class="text-xs text-neutral2-basic">上月</div>
-            <div
-              class="text-sm"
-              :class="item.isSigned ? formatSignedMoney(item.last).color : 'text-neutral2-basic'"
-            >
+            <div class="text-sm" :class="item.isSigned ? formatSignedMoney(item.last).color : 'text-neutral2-basic'">
               {{ item.isSigned ? formatSignedMoney(item.last).text : formatMoneyToK(item.last) }}
             </div>
           </div>
@@ -144,10 +137,8 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
     </div>
 
     <!-- 查看更多按钮 -->
-    <button
-      class="w-full mt-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2"
-      @click="handleViewMore"
-    >
+    <button class="w-full mt-4 py-3 rounded-lg font-medium flex items-center justify-center gap-2"
+      @click="handleViewMore">
       <span class="text-primary-normal font-semibold">查看更多数据</span>
       <svg class="w-4 h-4 text-primary-normal" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -175,6 +166,7 @@ const handleViewMore = () => router.push({ name: 'commission-detail' })
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

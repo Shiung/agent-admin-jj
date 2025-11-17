@@ -144,7 +144,7 @@ const dataGroupBy = computed(() => {
 
 const clickHandler = (pId: string, mId: number) => {
   const routeQuery = route.query
-  router.push({ name: 'materialEdit', params: { productId: pId }, query: { ...routeQuery, mId } })
+  router.push({ name: 'promoteMaterialEdit', params: { productId: pId }, query: { ...routeQuery, mId } })
 }
 
 onMounted(async () => {

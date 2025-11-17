@@ -1,49 +1,50 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { RouteLocationRaw } from 'vue-router'
 
 interface TabItem {
   key: string
   label: string
   active: string
   inactive: string
-  to: string
+  to: RouteLocationRaw
 }
 
 const tabs: TabItem[] = [
   {
     key: 'home',
     label: '首页',
-    active: '/static/images/tabBar/active/home.svg',
-    inactive: '/static/images/tabBar/home.svg',
-    to: '/',
+    active: './static/images/tabBar/active/home.svg',
+    inactive: './static/images/tabBar/home.svg',
+    to: { name: 'index' },
   },
   {
     key: 'manage',
     label: '管理',
-    active: '/static/images/tabBar/active/manage.svg',
-    inactive: '/static/images/tabBar/manage.svg',
-    to: '/manage',
+    active: './static/images/tabBar/active/manage.svg',
+    inactive: './static/images/tabBar/manage.svg',
+    to: { name: 'manage' },
   },
   {
     key: 'promote',
     label: '推广',
-    active: '/static/images/tabBar/active/promote.svg',
-    inactive: '/static/images/tabBar/promote.svg',
-    to: '/promote',
+    active: './static/images/tabBar/active/promote.svg',
+    inactive: './static/images/tabBar/promote.svg',
+    to: { name: 'promoteHome' },
   },
   {
     key: 'report',
     label: '报表',
-    active: '/static/images/tabBar/active/report.svg',
-    inactive: '/static/images/tabBar/report.svg',
-    to: '/report',
+    active: './static/images/tabBar/active/report.svg',
+    inactive: './static/images/tabBar/report.svg',
+    to: { name: 'report' },
   },
   {
     key: 'mine',
     label: '个人',
-    active: '/static/images/tabBar/active/mine.svg',
-    inactive: '/static/images/tabBar/mine.svg',
-    to: '/mine',
+    active: './static/images/tabBar/active/mine.svg',
+    inactive: './static/images/tabBar/mine.svg',
+    to: { name: 'mine' },
   },
 ]
 

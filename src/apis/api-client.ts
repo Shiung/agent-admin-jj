@@ -1,5 +1,6 @@
 // api/apiClient.ts
 import { HttpClient } from './codegen/http-client'
+import { useUserStore } from '@/stores/user'
 // import { emitter } from '@/core/mitt'
 // import { APIERROR } from './config'
 
@@ -44,11 +45,10 @@ apiClient.instance.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error?.response?.status === 401 && !error.config._retry) {
+      const userStore = useUserStore()
+      userStore.logout()
+
       // TODO 權限異常
-      // emitter.emit('unAuthorized', true)
-      alert('登入已過期，請重新登入')
-      localStorage.removeItem('userToken')
-      window.location.href = '/login'
     }
     if (error?.response?.status === 400) {
       // const errorCode = APIERROR[error?.response?.data?.errorCode]
@@ -57,7 +57,7 @@ apiClient.instance.interceptors.response.use(
     }
 
     // emitter.emit('errorMsg', error)
-    console.log('攔截器 error', error)
+    console.log('interceptors error', error)
     return Promise.reject(error)
   },
 )
