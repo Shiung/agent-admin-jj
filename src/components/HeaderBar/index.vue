@@ -27,7 +27,8 @@ const handleNotificationClick = () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-between h-11 px-3 py-2 bg-white">
+  <div class="h-11 w-full" />
+  <div class="flex items-center justify-between h-11 w-full px-3 py-2 bg-white fixed top-0 left-0 z-10">
     <!-- 左侧：头像与欢迎语 -->
     <div class="flex items-center space-x-1">
       <van-image width="28" height="28" src="./static/images/avatar.png" />
