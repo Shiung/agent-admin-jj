@@ -8,6 +8,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    AppField: typeof import('./src/components/AppField/index.vue')['default']
     Carousel: typeof import('./src/components/carousel/Carousel.vue')['default']
     CarouselContent: typeof import('./src/components/carousel/CarouselContent.vue')['default']
     CarouselItem: typeof import('./src/components/carousel/CarouselItem.vue')['default']
@@ -38,6 +39,7 @@ declare module 'vue' {
     VanForm: typeof import('vant/es')['Form']
     VanIcon: typeof import('vant/es')['Icon']
     VanImage: typeof import('vant/es')['Image']
+    VanNavBar: typeof import('vant/es')['NavBar']
     VanPopup: typeof import('vant/es')['Popup']
     VanTab: typeof import('vant/es')['Tab']
     VanTabbar: typeof import('vant/es')['Tabbar']
