@@ -19,9 +19,32 @@ const routes: RouteRecordRaw[] = [
     path: '/manage',
     name: 'manage',
     component: () => import('@/pages/manage/index.vue'),
-    meta: {
-      showTabBar: true,
-    },
+    redirect: '/manage/member',
+    children: [
+      {
+        path: 'member',
+        name: 'manageMember',
+        component: () => import('@/pages/manage/member.vue'),
+        meta: {
+          showTabBar: true,
+        }
+      },
+      {
+        path: 'agent',
+        name: 'manageAgent',
+        component: () => import('@/pages/manage/agent.vue')
+      },
+      {
+        path: 'team',
+        name: 'manageTeam',
+        component: () => import('@/pages/manage/team.vue')
+      },
+      /** 巢狀路由(管理) 頁面迷航 導回會員管理 */
+      {
+        path: '/manage/:pathMatch(.*)*',
+        redirect: '/manage/member'
+      }
+    ]
   },
   {
     path: '/promote',
