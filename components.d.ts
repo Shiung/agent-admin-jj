@@ -30,6 +30,7 @@ declare module 'vue' {
     SelectSeparator: typeof import('./src/components/ui/select/SelectSeparator.vue')['default']
     SelectTrigger: typeof import('./src/components/ui/select/SelectTrigger.vue')['default']
     SelectValue: typeof import('./src/components/ui/select/SelectValue.vue')['default']
+    SwitchTab: typeof import('./src/components/SwitchTab/index.vue')['default']
     TabBar: typeof import('./src/components/TabBar/index.vue')['default']
     VanButton: typeof import('vant/es')['Button']
     VanCheckbox: typeof import('vant/es')['Checkbox']
