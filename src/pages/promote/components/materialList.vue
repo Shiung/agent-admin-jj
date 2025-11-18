@@ -20,6 +20,8 @@ const selectProd = ref<number | string | null>(null)
 const selectTheme = ref<number | string | null>(null)
 const selectSize = ref<number | string | null>(null)
 
+const initDone = ref<boolean>(false)
+
 const prodOptions = computed(() => {
   const ls = new Map()
   state.materialLs.forEach((m) => {
@@ -152,18 +154,19 @@ onMounted(async () => {
     await fetchMaterialLs({})
   }
   loading.close()
+  initDone.value = true
 })
 </script>
 
 <template>
-  <div class="space-y-2">
+  <div class="space-y-2 flex-1 flex flex-col">
     <div class="grid gap-1 px-1" :class="isProduct ? ' grid-cols-2' : 'grid-cols-3'">
       <Dropdown v-if="!isProduct" v-model="selectProd" class="dropDownCus" :options="prodOptions" placeholder="全部产品" />
       <Dropdown v-model="selectTheme" class="dropDownCus" :options="themeOptions" placeholder="全部主题" />
       <Dropdown v-model="selectSize" class="dropDownCus" :options="sizeOptions" placeholder="全部尺寸" />
     </div>
 
-    <div :class="['space-y-4', !isProduct && '-mx-2']">
+    <div v-if="Object.keys(dataGroupBy).length > 0 && initDone" :class="['space-y-4', !isProduct && '-mx-2']">
       <div v-for="(val, key) in dataGroupBy" :key="key">
         <div v-for="(tVal, tKey) in val.group" :key="tKey">
           <div class="flex justify-between items-center p-2">
@@ -190,6 +193,9 @@ onMounted(async () => {
       </div>
     </div>
 
+    <div v-else-if="initDone" class="flex-1 flex items-center">
+      <empty />
+    </div>
   </div>
 </template>
 

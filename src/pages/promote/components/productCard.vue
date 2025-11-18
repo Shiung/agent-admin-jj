@@ -87,7 +87,7 @@ const clickCopy = async () => {
         </div>
         <div class="text-center bg-slate-50 p-2 aspect-square min-w-16 rounded-xl flex flex-col justify-center">
           <div class="text-xs text-gray-500">邀请码</div>
-          <div class="font-semibold text-blue-500 flex items-center space-x-1" @click="copy(product.InvitationCode)">
+          <div class="font-semibold text-neutral-basic flex items-center space-x-1" @click="copy(product.InvitationCode)">
             <div>{{ product.InvitationCode }}</div>
             <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
           </div>
@@ -105,19 +105,19 @@ const clickCopy = async () => {
             </div>
           </div>
           <div class="flex justify-center items-center gap-2">
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
+              <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="copy(app.Domain)">复制链接</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/qrcode_lite.png" fit="contain" class="w-3" />
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
+              <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="clickQrcodeDialog(app.Domain)">二维码</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/share_lite.png" fit="contain" class="w-3" />
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
+              <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="clickHandler(product.PackageId, product.ChannelId, app.Domain)">素材设置</div>
             </div>
           </div>
@@ -133,19 +133,19 @@ const clickCopy = async () => {
             </div>
           </div>
           <div class="flex justify-center items-center gap-2">
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
+              <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="copy(h5.Domain)">复制链接</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/qrcode_lite.png" fit="contain" class="w-3" />
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
+              <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="clickQrcodeDialog(h5.Domain)">二维码</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border flex justify-center items-center space-x-1">
+            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/share_lite.png" fit="contain" class="w-3" />
-              <div class="text-center justify-start text-blue-950/90 text-[10px] font-semibold"
+              <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="clickHandler(product.PackageId, product.ChannelId, h5.Domain)">素材设置</div>
             </div>
           </div>
