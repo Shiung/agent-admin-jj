@@ -159,7 +159,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="space-y-2">
+  <div class="space-y-2 flex-1 flex flex-col">
     <div class="grid gap-1 px-1" :class="isProduct ? ' grid-cols-2' : 'grid-cols-3'">
       <Dropdown v-if="!isProduct" v-model="selectProd" class="dropDownCus" :options="prodOptions" placeholder="全部产品" />
       <Dropdown v-model="selectTheme" class="dropDownCus" :options="themeOptions" placeholder="全部主题" />
@@ -193,10 +193,9 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div v-else-if="initDone" class="min-h-[50svh] flex items-center">
-      <empty  />
+    <div v-else-if="initDone" class="flex-1 flex items-center">
+      <empty />
     </div>
-
   </div>
 </template>
 

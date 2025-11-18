@@ -260,56 +260,58 @@ onMounted(() => {
       <Dropdown v-model="selectSize" :options="sizeOptions" class="dropDownCus" placeholder="全部尺寸" />
     </div>
 
-    <div v-if="renderData.length === 0"  class="min-h-[50svh] flex items-center">
+    <div v-if="renderData.length === 0"  class="flex-1 flex items-center">
       <empty />
     </div>
 
-    <div class="flex-1"></div>
-
-    <div class="mb-4">
-      <Carousel @init-api="(val: CarouselApi) => (emblaMainApi = val)">
-        <CarouselContent class="ml-0 px-2 space-x-1">
-          <CarouselItem v-for="(l, idx) in renderData" :key="idx" class="pl-0! space-y-3">
-            <photo :ref="el => setUnitPhotoRef(el as any, l.Id)" :imag-src="getRemoteSourcePath(l.ImagePath ?? '')"
-              :qrcode-src="qrcode" />
-            <div class="flex justify-center items-center space-x-2">
-              <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.ThemeName }}
-              </div>
-              <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.SizeName }}
-              </div>
-            </div>
-          </CarouselItem>
-        </CarouselContent>
-      </Carousel>
-    </div>
-
-    <div ref="tabsEl" class="relative">
-      <div data-use="shadow"
-        class="absolute top-0 left-0 w-4 h-full z-1 backdrop-blur-xs rounded-tr-xl rounded-br-xl" />
-      <div data-use="shadow"
-        class="absolute top-0 right-0 w-4 h-full z-1 backdrop-blur-xs rounded-tl-xl rounded-bl-xl" />
-      <Carousel class="flex-1" @init-api="(val: CarouselApi) => (emblaThumbnailApiForTab = val)">
-        <CarouselContent class="ml-0 relative w-full space-x-1 py-3">
-          <div>
-            <div class="preCard_block" />
-          </div>
-          <div v-for="(i, idx) in renderData" :key="idx" :data-id="idx" class="preCard shrink-0"
-            :class="selectedIndex === idx && 'active'">
-            <CarouselItem class="unit pl-0! text-xs text-neutral_d01 font-semibold" @click="onThumbClick(idx)">
-              <div class="aspect-36/40">
-                <van-image use-error-slot use-loading-slot fit="cover" :src="getRemoteSourcePath(i.ImagePath)"
-                  class="w-full h-full" />
+    <template v-else>
+      <div class="flex-1"></div>
+  
+      <div class="mb-4">
+        <Carousel @init-api="(val: CarouselApi) => (emblaMainApi = val)">
+          <CarouselContent class="ml-0 px-2 space-x-1">
+            <CarouselItem v-for="(l, idx) in renderData" :key="idx" class="pl-0! space-y-3">
+              <photo :ref="el => setUnitPhotoRef(el as any, l.Id)" :imag-src="getRemoteSourcePath(l.ImagePath ?? '')"
+                :qrcode-src="qrcode" />
+              <div class="flex justify-center items-center space-x-2">
+                <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.ThemeName }}
+                </div>
+                <div class="border rounded-xl px-2 text-primary-normal text-xs bg-primary-normal/20">{{ l.SizeName }}
+                </div>
               </div>
             </CarouselItem>
-          </div>
-          <div>
-            <div class="preCard_block" />
-          </div>
-        </CarouselContent>
-      </Carousel>
-    </div>
-
-    <div class="flex-1"></div>
+          </CarouselContent>
+        </Carousel>
+      </div>
+  
+      <div ref="tabsEl" class="relative">
+        <div data-use="shadow"
+          class="absolute top-0 left-0 w-4 h-full z-1 backdrop-blur-xs rounded-tr-xl rounded-br-xl" />
+        <div data-use="shadow"
+          class="absolute top-0 right-0 w-4 h-full z-1 backdrop-blur-xs rounded-tl-xl rounded-bl-xl" />
+        <Carousel class="flex-1" @init-api="(val: CarouselApi) => (emblaThumbnailApiForTab = val)">
+          <CarouselContent class="ml-0 relative w-full space-x-1 py-3">
+            <div>
+              <div class="preCard_block" />
+            </div>
+            <div v-for="(i, idx) in renderData" :key="idx" :data-id="idx" class="preCard shrink-0"
+              :class="selectedIndex === idx && 'active'">
+              <CarouselItem class="unit pl-0! text-xs text-neutral_d01 font-semibold" @click="onThumbClick(idx)">
+                <div class="aspect-36/40">
+                  <van-image use-error-slot use-loading-slot fit="cover" :src="getRemoteSourcePath(i.ImagePath)"
+                    class="w-full h-full" />
+                </div>
+              </CarouselItem>
+            </div>
+            <div>
+              <div class="preCard_block" />
+            </div>
+          </CarouselContent>
+        </Carousel>
+      </div>
+  
+      <div class="flex-1"></div>
+    </template>
 
     <div
       class="sticky bottom-0 z-1 shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] bg-white h-32 rounded-tl-3xl rounded-tr-3xl flex justify-between items-center pr-11 pl-11">
