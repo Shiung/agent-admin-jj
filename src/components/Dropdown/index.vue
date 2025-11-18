@@ -54,7 +54,9 @@ const selectOption = (option: DropdownOption) => {
   <Select v-model="model" :disabled="disabled">
     <SelectTrigger class="dropdown-button" :class="attrs.class">
       <SelectValue :placeholder="placeholder">
-        <slot name="prefix" />{{ displayText }}
+        <slot name="prefix" />
+        <p class="whitespace-nowrap overflow-hidden text-ellipsis">{{ displayText }}</p>
+        <slot name="suffix" />
       </SelectValue>
     </SelectTrigger>
     <SelectContent class="dropdown-menu">
@@ -66,7 +68,7 @@ const selectOption = (option: DropdownOption) => {
           :class="['dropdown-item', { 'is-selected': option.value === model }]"
           @click="selectOption(option)"
         >
-          {{ option.label }}
+          <p class="whitespace-nowrap overflow-hidden text-ellipsis">{{ option.label }}</p>
         </SelectItem>
       </SelectGroup>
     </SelectContent>
