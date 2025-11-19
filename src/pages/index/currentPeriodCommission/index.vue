@@ -24,12 +24,12 @@ const fetchCompareCommission = async () => {
   commissionData.value.commissionRate = res.data.Data.CurrentMonth.CommissionRate
 
   commissionData.value.totalProfit.current = res.data.Data.CurrentMonth.BetWinTotal
-  commissionData.value.estimatedMemberCommission.current = res.data.Data.CurrentMonth.CommissionTotal
+  commissionData.value.estimatedMemberCommission.current = res.data.Data.CurrentMonth.CommissionSelfTotal
   commissionData.value.estimatedSubordinateContribution.current = res.data.Data.CurrentMonth.CommissionChildTotal
   commissionData.value.estimatedDepositRebate.current = res.data.Data.CurrentMonth.AdminChargeMoneyFee
 
   commissionData.value.totalProfit.last = res.data.Data.LastMonth.BetWinTotal
-  commissionData.value.estimatedMemberCommission.last = res.data.Data.LastMonth.CommissionTotal
+  commissionData.value.estimatedMemberCommission.last = res.data.Data.LastMonth.CommissionSelfTotal
   commissionData.value.estimatedSubordinateContribution.last = res.data.Data.LastMonth.CommissionChildTotal
   commissionData.value.estimatedDepositRebate.last = res.data.Data.LastMonth.AdminChargeMoneyFee
 }
