@@ -77,7 +77,7 @@ export interface CompareCommissionResponseData {
 
 export interface CompareCommissionData {
   ReportMonth: string // 佣金月份
-  CommissionTotal: number // 预计佣金
+  CommissionTotal: number // 预计佣金(單層)
   CommissionRate: number // 佣金比例
   BetWinTotal: number // 公司输赢，單位:分
   MoneyChangeFee: number // 輸贏調整承擔費用，單位:分
@@ -88,10 +88,10 @@ export interface CompareCommissionData {
   RedGoldFee: number // 紅利承擔費用，單位:分
   LastMonthCleanBetWinTotal: number // 上期结余，單位:分
   AdminChargeMoneyFee: number // 代存回馈，單位:分
-  CommissionChildTotal: number // 下級貢獻，單位:分
+  CommissionChildTotal: number // 下級貢獻，單位:分(多層)
   CommissionChildList: CommissionChildList[] // 各層下級貢獻
   CleanBetWinTotal: number // 净输赢，單位:分
-  CommissionSelfTotal: number // 会员佣金，單位:分
+  CommissionSelfTotal: number // 会员佣金，單位:分(多層)
 }
 
 export interface CommissionChildList {

@@ -5,11 +5,14 @@ import Big from 'big.js'
 import API from '@/apis'
 import type { CompareCommissionResponseData, CompareCommissionData, CommissionChildList } from '@/apis/codegen/data-contracts'
 import { formatMoneyToK, formatSignedMoney, formatMoney } from '@/utils/formatNumber'
+import { useUserStore } from '@/stores/user'
 import NavBar from '@/components/NavBar/index.vue'
 import InfoDialog from '@/components/InfoDialog/index.vue'
 
+const userStore = useUserStore()
+
 // 是否为多层代理
-const isMultiLevelAgent = ref(true)
+const isSingleAgent = computed(() => userStore.isSingleAgent)
 
 // 显示说明弹窗
 const showInfo = ref(false)
@@ -32,23 +35,27 @@ const detailData = ref<CompareCommissionResponseData>({
 })
 
 // 预计会员佣金列表
-const memberCommissionList = computed(() => [
-  { label: '会员佣金', value: { current: detailData.value.CurrentMonth.CommissionSelfTotal, last: detailData.value.LastMonth.CommissionSelfTotal }, isSigned: false },
-  { label: '净盈利', value: { current: detailData.value.CurrentMonth.CleanBetWinTotal, last: detailData.value.LastMonth.CleanBetWinTotal }, isSigned: true },
-  { label: '总盈利', value: { current: detailData.value.CurrentMonth.BetWinTotal, last: detailData.value.LastMonth.BetWinTotal }, isSigned: true },
-  { label: '输赢调整', value: { current: detailData.value.CurrentMonth.MoneyChangeFee, last: detailData.value.LastMonth.MoneyChangeFee }, isSigned: false },
-  { label: '场馆费', value: { current: detailData.value.CurrentMonth.ApiFeeTotalFee, last: detailData.value.LastMonth.ApiFeeTotalFee }, isSigned: false },
-  {
-    label: '存提手续费',
-    value: { current: new Big(detailData.value.CurrentMonth?.PayMoneyFee ?? 0).plus(detailData.value.CurrentMonth.WithdrawMoneyFee ?? 0).toFixed(2), last: new Big(detailData.value.LastMonth?.PayMoneyFee ?? 0).plus(detailData.value.LastMonth?.WithdrawMoneyFee ?? 0).toFixed(2) },
-    isSigned: false
-  },
-  { label: '红利', value: { current: detailData.value.CurrentMonth.RedGoldFee, last: detailData.value.LastMonth.RedGoldFee }, isSigned: false },
-  { label: '返水', value: { current: detailData.value.CurrentMonth.BackWaterGoldFee, last: detailData.value.LastMonth.BackWaterGoldFee }, isSigned: false },
-  { label: '上期结余', value: { current: detailData.value.CurrentMonth.LastMonthCleanBetWinTotal, last: detailData.value.LastMonth.LastMonthCleanBetWinTotal }, isSigned: true },
-  { label: '代存回馈', value: { current: detailData.value.CurrentMonth.AdminChargeMoneyFee, last: detailData.value.LastMonth.AdminChargeMoneyFee }, isSigned: false },
-  { label: '回馈比例', value: { current: detailData.value.CurrentMonth.CommissionRate, last: detailData.value.LastMonth.CommissionRate }, isSigned: false, suffix: '%' },
-])
+const memberCommissionList = computed(() => {
+  // 單層跟多層的key不同
+  const commissionTotalKey = isSingleAgent.value ? 'CommissionTotal' : 'CommissionSelfTotal'
+  return [
+    { label: '会员佣金', value: { current: detailData.value.CurrentMonth[commissionTotalKey], last: detailData.value.LastMonth[commissionTotalKey] }, isSigned: false },
+    { label: '净盈利', value: { current: detailData.value.CurrentMonth.CleanBetWinTotal, last: detailData.value.LastMonth.CleanBetWinTotal }, isSigned: true },
+    { label: '总盈利', value: { current: detailData.value.CurrentMonth.BetWinTotal, last: detailData.value.LastMonth.BetWinTotal }, isSigned: true },
+    { label: '输赢调整', value: { current: detailData.value.CurrentMonth.MoneyChangeFee, last: detailData.value.LastMonth.MoneyChangeFee }, isSigned: false },
+    { label: '场馆费', value: { current: detailData.value.CurrentMonth.ApiFeeTotalFee, last: detailData.value.LastMonth.ApiFeeTotalFee }, isSigned: false },
+    {
+      label: '存提手续费',
+      value: { current: new Big(detailData.value.CurrentMonth?.PayMoneyFee ?? 0).plus(detailData.value.CurrentMonth.WithdrawMoneyFee ?? 0).toFixed(2), last: new Big(detailData.value.LastMonth?.PayMoneyFee ?? 0).plus(detailData.value.LastMonth?.WithdrawMoneyFee ?? 0).toFixed(2) },
+      isSigned: false
+    },
+    { label: '红利', value: { current: detailData.value.CurrentMonth.RedGoldFee, last: detailData.value.LastMonth.RedGoldFee }, isSigned: false },
+    { label: '返水', value: { current: detailData.value.CurrentMonth.BackWaterGoldFee, last: detailData.value.LastMonth.BackWaterGoldFee }, isSigned: false },
+    { label: '上期结余', value: { current: detailData.value.CurrentMonth.LastMonthCleanBetWinTotal, last: detailData.value.LastMonth.LastMonthCleanBetWinTotal }, isSigned: true },
+    { label: '代存回馈', value: { current: detailData.value.CurrentMonth.AdminChargeMoneyFee, last: detailData.value.LastMonth.AdminChargeMoneyFee }, isSigned: false },
+    { label: '回馈比例', value: { current: detailData.value.CurrentMonth.CommissionRate, last: detailData.value.LastMonth.CommissionRate }, isSigned: false, suffix: '%' },
+  ]
+})
 
 // 预计下级贡献列表
 const subordinateContributionList = computed(() => {
@@ -128,7 +135,7 @@ const subordinateContributionList = computed(() => {
     </div>
 
     <!-- 预计下级贡献 -->
-    <div v-if="isMultiLevelAgent" class="mt-6 px-4">
+    <div v-if="!isSingleAgent" class="mt-6 px-4">
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <div class="flex items-center justify-between h-8 px-3 bg-bg-floor-1-2">
           <div class="flex-1 flex items-center justify-start text-sm text-neutral2-basic">预计下级贡献</div>

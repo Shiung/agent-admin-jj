@@ -1,4 +1,4 @@
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { defineStore } from 'pinia'
 import API from '@/apis'
 import { setHeaderToken } from '@/apis/api-client'
@@ -11,6 +11,9 @@ export const useUserStore = defineStore('user', () => {
 
   const token = ref<string | null>(localStorage.getItem('userToken') || null)
   const userInfo = ref<Record<string, any> | null>(null)
+
+  /** 是否為單層代理（AccountType: 1=单层代理,2=多层代理-单费率,3=多层代理-多费率(目前無3)） */
+  const isSingleAgent = computed(() => userInfo.value?.AccountType === 1)
 
   watch(userInfo, (newVal) => {
     if (!newVal) return
@@ -70,6 +73,7 @@ export const useUserStore = defineStore('user', () => {
   return {
     token,
     userInfo,
+    isSingleAgent,
     setToken,
     logout,
     fetchIsLogin,
