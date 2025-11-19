@@ -73,7 +73,7 @@ const handleLogin = async () => {
   try {
     const res = await API.system.login(formData.value)
     if (res.data.Code !== 200) {
-      showToast(res.data.Msg || '登入失败，请检查帐号密码')
+      showToast(res.data.Msg || '登录失败，请检查帐号密码')
       // 失敗就更新驗證碼
       fetchCaptcha()
       return
@@ -89,12 +89,12 @@ const handleLogin = async () => {
 
     userStore.userInfo = data
 
-    // 登入成功後導向首頁
-    router.push({ name: 'index' })
-    showToast('登入成功！')
+    // 登录成功後導向首頁
+    router.replace({ name: 'index' })
+    showToast('登录成功！')
   } catch (error) {
-    console.error('登入失败：', error)
-    showToast('登入失败，请检查帐号密码')
+    console.error('登录失败：', error)
+    showToast('登录失败，请检查帐号密码')
     fetchCaptcha()
   } finally {
     loading.value = false
@@ -119,18 +119,18 @@ const handleVLogin = async () => {
 
 
     if (res.data.Code !== 200) {
-      showToast(res.data.Msg || '登入失败，请检查帐号密码')
+      showToast(res.data.Msg || '登录失败，请检查帐号密码')
       return
     }
 
     userStore.userInfo = res.data.Data
 
-    // 登入成功後導向首頁
-    router.push({ name: 'index' })
-    showToast('登入成功！')
+    // 登录成功後導向首頁
+    router.replace({ name: 'index' })
+    showToast('登录成功！')
   } catch (error) {
-    console.error('登入失敗：', error)
-    showToast('登入失败，请检查帐号密码')
+    console.error('登录失敗：', error)
+    showToast('登录失败，请检查帐号密码')
   } finally {
     loading.value = false
   }
@@ -187,10 +187,10 @@ const togglePassword = () => showPassword.value = !showPassword.value
             </a> -->
         </div>
 
-        <!-- 登入按鈕 -->
+        <!-- 登录按鈕 -->
         <div class="mt-4">
-          <van-button block round type="primary" native-type="submit" :loading="loading" loading-text="登入中...">
-            登入
+          <van-button block round type="primary" native-type="submit" :loading="loading" loading-text="登录中...">
+            登录
           </van-button>
         </div>
       </van-form>

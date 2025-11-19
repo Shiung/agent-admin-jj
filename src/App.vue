@@ -2,46 +2,22 @@
 import { onMounted } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import API from '@/apis'
-
 import TabBar from '@/components/TabBar/index.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
-const goLogin = () => {
-  if (route.name !== 'login') {
-    router.push({ name: 'login' })
-  }
-}
+onMounted(async () => {
+  if (!userStore.token) return
+  if (userStore.userInfo) return
 
-const fetchIsLogin = async () => {
   try {
-    const res = await API.system.isLogin()
-    if (res.data.Code !== 200) {
-      userStore.setToken(null)
-      goLogin()
-      return
-    }
-
-    userStore.userInfo = res.data.Data
-  } catch (err) {
-    console.error('isLogin error', err)
-    goLogin()
+    await userStore.ensureUser()
+  } catch (e) {
+    userStore.logout()
+    router.replace({ name: 'login' })
   }
-}
-
-onMounted(() => {
-  const token = userStore.token
-
-  if (!token) {
-    goLogin()
-    return
-  }
-
-  // 有 token → 檢查是否仍有效
-  fetchIsLogin()
 })
 </script>
 

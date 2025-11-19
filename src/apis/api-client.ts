@@ -1,4 +1,3 @@
-// api/apiClient.ts
 import { HttpClient } from './codegen/http-client'
 import { useUserStore } from '@/stores/user'
 // import { emitter } from '@/core/mitt'
@@ -31,11 +30,12 @@ export const apiClient = new HttpClient<SecurityDataType>({
 
 // 全局错误处理 request 攔截器
 apiClient.instance.interceptors.request.use(
-  (response) => {
-    // console.log('response ===>', response)
-    return response
+  (config) => {
+    // Do something before request is sent
+    return config
   },
   (error) => {
+    // Do something with request error
     return Promise.reject(error)
   },
 )
@@ -44,20 +44,29 @@ apiClient.instance.interceptors.request.use(
 apiClient.instance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error?.response?.status === 401 && !error.config._retry) {
+    const resp = error.response
+
+    if (!resp) {
+      return Promise.reject(error)
+    }
+
+    const { status, data } = resp
+
+    // 401：權限或登入失效
+    if (status === 401) {
       const userStore = useUserStore()
       userStore.logout()
-
-      // TODO 權限異常
+      showToast('登录逾期，請重新登录')
     }
-    if (error?.response?.status === 400) {
+
+    // TODO 權限異常
+
+    if (status === 400) {
       // const errorCode = APIERROR[error?.response?.data?.errorCode]
       // const errorMessage = error?.response?.data?.errorMessage
       // console.warn('resepose erro ==>', { errorCode, errorMessage, origin: error?.response?.data })
     }
 
-    // emitter.emit('errorMsg', error)
-    console.log('interceptors error', error)
     return Promise.reject(error)
   },
 )

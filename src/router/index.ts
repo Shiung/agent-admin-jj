@@ -1,11 +1,14 @@
 import { createRouter, createWebHashHistory, type RouteRecordRaw } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { preloadTabsOnce } from '@/utils/preloadTabs'
+import Login from '@/pages/login/index.vue'
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('@/pages/login/index.vue'),
+    component: Login,
+    meta: { isPublic: true },
   },
   {
     path: '/',
@@ -27,24 +30,24 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/manage/member.vue'),
         meta: {
           showTabBar: true,
-        }
+        },
       },
       {
         path: 'agent',
         name: 'manageAgent',
-        component: () => import('@/pages/manage/agent.vue')
+        component: () => import('@/pages/manage/agent.vue'),
       },
       {
         path: 'team',
         name: 'manageTeam',
-        component: () => import('@/pages/manage/team.vue')
+        component: () => import('@/pages/manage/team.vue'),
       },
       /** 巢狀路由(管理) 頁面迷航 導回會員管理 */
       {
         path: '/manage/:pathMatch(.*)*',
-        redirect: '/manage/member'
-      }
-    ]
+        redirect: '/manage/member',
+      },
+    ],
   },
   {
     path: '/promote',
@@ -118,21 +121,27 @@ const router = createRouter({
   },
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
   const token = userStore.token
 
-  // 已登入 → 禁止進 login
+  // 已登入 → 不讓去 login
   if (to.name === 'login' && token) {
     return next({ name: 'index' })
   }
 
-  // 未登入 → 想進非 login → 導到 login
-  if (!token && to.name !== 'login') {
+  // 未登入 → 不給進非 public 頁
+  if (!token && to.meta.isPublic !== true) {
     return next({ name: 'login' })
   }
 
   next()
+})
+
+router.afterEach((to) => {
+  if (to.meta.showTabBar) {
+    preloadTabsOnce()
+  }
 })
 
 export default router

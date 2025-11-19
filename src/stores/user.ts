@@ -1,5 +1,6 @@
 import { ref, watch } from 'vue'
 import { defineStore } from 'pinia'
+import API from '@/apis'
 import { setHeaderToken } from '@/apis/api-client'
 import { useGlobalStore } from '@/stores/global'
 import { useGameStore } from '@/stores/game'
@@ -8,42 +9,70 @@ export const useUserStore = defineStore('user', () => {
   const globalStore = useGlobalStore()
   const gameStore = useGameStore()
 
-  const token = ref(localStorage.getItem('userToken') || null)
+  const token = ref<string | null>(localStorage.getItem('userToken') || null)
   const userInfo = ref<Record<string, any> | null>(null)
 
-  // 是否正在登出 → 避免 logout 時 userInfo = null 觸發 watch 的邏輯
-  const isLoggingOut = ref(false)
-
   watch(userInfo, (newVal) => {
-    if (isLoggingOut.value) return
     if (!newVal) return
 
-    const token = newVal.Token
-    if (!token) return
+    const t = newVal.Token
+    if (!t) return
 
-    setToken(token)
-    setHeaderToken(token)
+    setToken(t)
+    setHeaderToken(t)
 
+    // 登入後需要的初始化
     globalStore.fetchConfigInfo()
     gameStore.fetchSolidConfig()
   })
 
   const setToken = (t: string | null) => {
     token.value = t
-    if (t) localStorage.setItem('userToken', t)
-    else localStorage.removeItem('userToken')
+    if (t) {
+      localStorage.setItem('userToken', t)
+      setHeaderToken(t)
+    } else {
+      localStorage.removeItem('userToken')
+      setHeaderToken('')
+    }
   }
 
+  // 登出
   const logout = () => {
-    isLoggingOut.value = true
-
     setToken(null)
-    setHeaderToken('')
-
     userInfo.value = null
-
-    isLoggingOut.value = false
   }
 
-  return { token, userInfo, setToken, logout }
+  const fetchIsLogin = async () => {
+    const res = await API.system.isLogin()
+    if (res.data.Code !== 200) {
+      throw new Error('isLogin failed')
+    }
+    userInfo.value = res.data.Data
+    return res.data.Data
+  }
+
+  const ensureUser = async () => {
+    const storedToken = token.value || localStorage.getItem('userToken')
+    if (!storedToken) return null
+
+    if (!token.value) {
+      setToken(storedToken)
+    }
+
+    if (userInfo.value) {
+      return userInfo.value
+    }
+
+    return await fetchIsLogin()
+  }
+
+  return {
+    token,
+    userInfo,
+    setToken,
+    logout,
+    fetchIsLogin,
+    ensureUser,
+  }
 })

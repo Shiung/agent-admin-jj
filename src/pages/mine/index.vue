@@ -80,7 +80,7 @@ const handleMenuClick = () => {
           {{ agentAccount }}
         </p>
         <p class="text-sm text-neutral-secondary">
-          最近登陆 {{ lastLoginIp }}
+          最近登录 {{ lastLoginIp }}
         </p>
       </div>
       <van-icon name="arrow" size="24" class="text-neutral2-tertiary" />
