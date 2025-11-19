@@ -4,6 +4,8 @@ export function preloadTabsOnce() {
   if (hasPreloadedTabs) return
   hasPreloadedTabs = true
 
+  console.log('Preloading tab pages...')
+
   const loaders = [
     () => import('@/pages/index/index.vue'),
     () => import('@/pages/manage/index.vue'),
