@@ -16,6 +16,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/index/index.vue'),
     meta: {
       showTabBar: true,
+      showHeaderBar: true,
     },
   },
   {
@@ -30,17 +31,26 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/manage/member.vue'),
         meta: {
           showTabBar: true,
+          showHeaderBar: true,
         },
       },
       {
         path: 'agent',
         name: 'manageAgent',
         component: () => import('@/pages/manage/agent.vue'),
+        meta: {
+          showTabBar: true,
+          showHeaderBar: true,
+        }
       },
       {
         path: 'team',
         name: 'manageTeam',
         component: () => import('@/pages/manage/team.vue'),
+        meta: {
+          showTabBar: true,
+          showHeaderBar: true,
+        }
       },
       /** 巢狀路由(管理) 頁面迷航 導回會員管理 */
       {
@@ -64,6 +74,7 @@ const routes: RouteRecordRaw[] = [
         },
         meta: {
           showTabBar: true,
+          showHeaderBar: true,
         },
       },
       {
@@ -91,6 +102,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/report/index.vue'),
     meta: {
       showTabBar: true,
+      showHeaderBar: true,
     },
   },
   {
@@ -99,6 +111,7 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/mine/index.vue'),
     meta: {
       showTabBar: true,
+      showHeaderBar: true,
     },
   },
   {

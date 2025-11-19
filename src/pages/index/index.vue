@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import API from '@/apis'
-import HeaderBar from '@/components/HeaderBar/index.vue'
 import CurrentPeriodCommission from './currentPeriodCommission/index.vue'
 import OperationalData from './operationalData/index.vue'
 import GameData from './gameData/index.vue'
@@ -48,9 +47,6 @@ onMounted(() => {
 
 <template>
   <div class="main flex flex-col">
-    <!-- 头像与功能按钮行 -->
-    <HeaderBar />
-
     <div class="bg-white fixed top-11 left-0 z-10 w-full">
       <!-- 标签页 -->
       <div class="index-tabs bg-white h-16 px-3 py-2">

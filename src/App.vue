@@ -2,6 +2,7 @@
 import { onMounted } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import HeaderBar from '@/components/HeaderBar/index.vue'
 import TabBar from '@/components/TabBar/index.vue'
 
 const route = useRoute()
@@ -23,6 +24,8 @@ onMounted(async () => {
 
 <template>
   <main class="min-h-[100svh] md:min-h-dvh flex flex-col overflow-y-auto ios-scroll">
+    <!-- 头像与功能按钮行 -->
+    <HeaderBar v-if="route.meta.showHeaderBar" />
     <RouterView v-slot="{ Component }">
       <transition name="page" mode="out-in">
         <component :is="Component" />
