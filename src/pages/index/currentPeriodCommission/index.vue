@@ -86,6 +86,16 @@ const indicators = computed(() => {
   return base
 })
 
+const currentCommissionInfo = computed(() => {
+  return [
+    { title: '数据更新频率：', content: '每半点（例如：00:30、01:00、01:30...）'},
+    { title: '总盈利：', content: '会员投注产生的公司盈亏。'},
+    ...(isSingleAgent.value ? [] : [{ title: '预计下级贡献：', content: '从下级代理获得的佣金分润。'}]),
+    { title: '预计代存回馈：', content: '代理为会员代存后可获得的返利金额。'},
+    { title: '', content: '红色正数代表公司盈利，绿色负数代表公司亏损。'},
+  ]
+})
+
 // 跳转到佣金详情页面
 const handleViewMore = () => router.push({ name: 'commissionDetail' })
 </script>
@@ -153,11 +163,9 @@ const handleViewMore = () => router.push({ name: 'commissionDetail' })
 
     <!-- 说明弹窗 -->
     <InfoDialog v-model:show="showInfo" title="本期佣金说明">
-      <p><strong>1. 数据更新频率：</strong>每半点（例如：00:30、01:00、01:30...）</p>
-      <p><strong>2. 总盈利：</strong>会员投注产生的公司盈亏。</p>
-      <p><strong>3. 预计下级贡献：</strong>从下级代理获得的佣金分润。</p>
-      <p><strong>4. 预计代存回馈：</strong>代理为会员代存后可获得的返利金额。</p>
-      <p><strong>5.</strong> 红色正数代表公司盈利，绿色负数代表公司亏损。</p>
+      <template v-for="(item, index) in currentCommissionInfo" :key="index">
+        <p><strong>{{ index + 1 }}. {{ item.title }}</strong>{{ item.content }}</p>
+      </template>
     </InfoDialog>
   </div>
 </template>
