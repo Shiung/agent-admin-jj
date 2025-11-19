@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useAttrs, useSlots } from 'vue'
-import type { FieldProps } from 'vant'
+import { ref, useAttrs, useSlots } from 'vue'
+import type { FieldInstance, FieldProps } from 'vant'
+import { useMutationObserver } from '@vueuse/core'
 
 export type AppFieldProps = {
   modelValue?: FieldProps['modelValue']
@@ -15,13 +16,14 @@ export type AppFieldProps = {
   disabled?: FieldProps['disabled']
   readonly?: FieldProps['readonly']
   border?: FieldProps['border']
+  error?: FieldProps['error']
   // 之後有需要可以再把其它常用 prop 補進來
   [key: string]: any
 }
 
 const props = withDefaults(defineProps<AppFieldProps>(), {
   labelAlign: 'top',
-  border: false,
+  border: false
 })
 
 const emit = defineEmits<{
@@ -30,12 +32,25 @@ const emit = defineEmits<{
 
 const attrs = useAttrs()
 const slots = useSlots()
+
+const fieldRef = ref<FieldInstance | null>(null)
+const hasError = ref(false)
+
+// 偵測 error DOM 是否存在
+useMutationObserver(
+  () => fieldRef.value?.$el,
+  () => {
+    const el = fieldRef.value?.$el
+    if (!el) return
+    hasError.value = !!el.querySelector('.van-field__error-message')
+  },
+  { childList: true, subtree: true }
+)
 </script>
 
-
 <template>
-  <van-field v-bind="props" v-on="attrs" class="app-field" :model-value="modelValue"
-    @update:model-value="val => emit('update:modelValue', val)">
+  <van-field ref="fieldRef" v-bind="props" v-on="attrs" class="app-field" :class="{ 'app-field--error': hasError }"
+    :model-value="modelValue" @update:model-value="val => emit('update:modelValue', val)">
     <template v-if="slots.label" #label>
       <slot name="label" />
     </template>
@@ -97,16 +112,16 @@ const slots = useSlots()
     }
   }
 
+  &.app-field--error {
+    :deep(.van-field__body) {
+      border-color: var(--color-error-50);
+    }
+  }
+
   :deep(.van-field__error-message) {
     margin-top: 4px;
     margin-left: 12px;
     line-height: 1.6;
-  }
-
-  &:has(:deep(.van-field__error-message)) {
-    :deep(.van-field__body) {
-      border-color: var(--color-error-50);
-    }
   }
 }
 </style>
