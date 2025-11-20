@@ -25,7 +25,6 @@ watchEffect(() => {
 
 <template>
   <div class="px-3 flex-1 flex flex-col space-y-4">
-    <HeaderBar />
     <promote-switch-btn :promote-tabs="promoteTabs" v-model:promote-active-tab="promoteActiveTab" />
     <component :is="promoteTabs[promoteActiveTab]?.comp" />
     <product-switch-btn v-if="promoteActiveTab !== promoteTabs?.[1]?.id" :product-tabs="productTabs" v-model:product-active-tab="productActiveTab" />
