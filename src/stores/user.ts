@@ -13,7 +13,9 @@ export const useUserStore = defineStore('user', () => {
   const userInfo = ref<Record<string, any> | null>(null)
 
   /** 是否為單層代理（AccountType: 1=单层代理,2=多层代理-单费率,3=多层代理-多费率(目前無3)） */
-  const isSingleAgent = computed(() => userInfo.value?.AccountType === 1)
+  const isSingleAgent = computed(() => userInfo.value?.NetCashAccount.AccountType === 1)
+  /** 有無團隊 (單層代理而且TeamId > 0) */
+  const hasTeam = computed(() => isSingleAgent.value && userInfo.value?.NetCashAccount.TeamId > 0)
 
   watch(userInfo, (newVal) => {
     if (!newVal) return
@@ -74,6 +76,7 @@ export const useUserStore = defineStore('user', () => {
     token,
     userInfo,
     isSingleAgent,
+    hasTeam,
     setToken,
     logout,
     fetchIsLogin,
