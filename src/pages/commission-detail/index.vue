@@ -53,7 +53,6 @@ const memberCommissionList = computed(() => {
     { label: '返水', value: { current: detailData.value.CurrentMonth.BackWaterGoldFee, last: detailData.value.LastMonth.BackWaterGoldFee }, isSigned: false },
     { label: '上期结余', value: { current: detailData.value.CurrentMonth.LastMonthCleanBetWinTotal, last: detailData.value.LastMonth.LastMonthCleanBetWinTotal }, isSigned: true },
     { label: '代存回馈', value: { current: detailData.value.CurrentMonth.AdminChargeMoneyFee, last: detailData.value.LastMonth.AdminChargeMoneyFee }, isSigned: false },
-    // { label: '回馈比例', value: { current: detailData.value.CurrentMonth.CommissionRate, last: detailData.value.LastMonth.CommissionRate }, isSigned: false, suffix: '%' },
   ]
 })
 
@@ -121,14 +120,12 @@ const subordinateContributionList = computed(() => {
           <div class="flex-1 flex items-center justify-end text-sm" :class="[
             item.isSigned ? formatSignedMoney(item.value.last).color : 'text-neutral2-basic'
           ]">
-            {{ item.isSigned ? formatSignedMoney(item.value.last).text : formatMoneyToK(item.value.last) }}{{
-              item.suffix }}
+            {{ item.isSigned ? formatSignedMoney(item.value.last).text : formatMoneyToK(item.value.last) }}
           </div>
           <div class="flex-1 flex items-center justify-end text-sm font-semibold" :class="[
             item.isSigned ? formatSignedMoney(item.value.current).color : 'text-neutral2-basic'
           ]">
-            {{ item.isSigned ? formatSignedMoney(item.value.current).text : formatMoneyToK(item.value.current) }}{{
-              item.suffix }}
+            {{ item.isSigned ? formatSignedMoney(item.value.current).text : formatMoneyToK(item.value.current) }}
           </div>
         </div>
       </div>
