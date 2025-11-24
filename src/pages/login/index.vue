@@ -87,7 +87,8 @@ const handleLogin = async () => {
       return
     }
 
-    userStore.userInfo = data
+    userStore.setToken(data.Token)
+    userStore.fetchIsLogin()
 
     // 登录成功後導向首頁
     router.replace({ name: 'index' })
@@ -123,7 +124,8 @@ const handleVLogin = async () => {
       return
     }
 
-    userStore.userInfo = res.data.Data
+    userStore.setToken(res.data.Data?.Token as any)
+    userStore.fetchIsLogin()
 
     // 登录成功後導向首頁
     router.replace({ name: 'index' })
