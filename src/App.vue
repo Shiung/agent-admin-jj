@@ -11,7 +11,6 @@ const userStore = useUserStore()
 
 onMounted(async () => {
   if (!userStore.token) return
-  if (userStore.userInfo) return
 
   try {
     await userStore.ensureUser()

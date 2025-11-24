@@ -53,7 +53,7 @@ const memberCommissionList = computed(() => {
     { label: '返水', value: { current: detailData.value.CurrentMonth.BackWaterGoldFee, last: detailData.value.LastMonth.BackWaterGoldFee }, isSigned: false },
     { label: '上期结余', value: { current: detailData.value.CurrentMonth.LastMonthCleanBetWinTotal, last: detailData.value.LastMonth.LastMonthCleanBetWinTotal }, isSigned: true },
     { label: '代存回馈', value: { current: detailData.value.CurrentMonth.AdminChargeMoneyFee, last: detailData.value.LastMonth.AdminChargeMoneyFee }, isSigned: false },
-    { label: '回馈比例', value: { current: detailData.value.CurrentMonth.CommissionRate, last: detailData.value.LastMonth.CommissionRate }, isSigned: false, suffix: '%' },
+    // { label: '回馈比例', value: { current: detailData.value.CurrentMonth.CommissionRate, last: detailData.value.LastMonth.CommissionRate }, isSigned: false, suffix: '%' },
   ]
 })
 
