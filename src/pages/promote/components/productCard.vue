@@ -40,7 +40,7 @@ const showDate = (ts: number | string | null) => {
 
 
 watchEffect(() => {
-  if (copied.value) showToast({ message: '已复制' })
+  if (copied.value) showToast({ message: '复制成功' })
 })
 
 const clickQrcodeDialog = (domain: string) => {
