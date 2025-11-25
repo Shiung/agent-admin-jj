@@ -144,9 +144,9 @@ const dataGroupBy = computed(() => {
   }, {})
 })
 
-const clickHandler = (pId: string, mId: number) => {
+const clickHandler = (pId: string, mId: number, tId?: number) => {
   const routeQuery = route.query
-  router.push({ name: 'promoteMaterialEdit', params: { productId: pId }, query: { ...routeQuery, mId } })
+  router.push({ name: 'promoteMaterialEdit', params: { productId: pId }, query: { ...routeQuery, mId, tId } })
 }
 
 onMounted(async () => {
@@ -180,7 +180,7 @@ onMounted(async () => {
           <div class="grid grid-cols-3 gap-1">
             <div v-for="(dVal, dKey) in tVal.group" :key="dKey"
               class="rounded-sm aspect-[121/156] shadow-sm flex justify-center items-center overflow-hidden relative"
-              @click="clickHandler(dVal?.PackageId?.toString(), dVal.Id)
+              @click="clickHandler(dVal?.PackageId?.toString(), dVal.Id, dVal.ThemeId)
                 ">
               <van-image use-error-slot use-loading-slot fit="cover" :src="getRemoteSourcePath(dVal.ImagePath)"
                 class="w-full h-full"></van-image>
