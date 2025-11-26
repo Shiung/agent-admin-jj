@@ -8,7 +8,7 @@ import { useGameStore } from '@/stores/game'
 
 const gameStore = useGameStore()
 
-const activeTab = ref(0)
+const activeTab = ref(2)
 const tabs = [{ label: '月報', value: 2 }, { label: '日報', value: 1 }]
 
 const currentMonth = computed(() => {
