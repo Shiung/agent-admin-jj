@@ -122,7 +122,7 @@ export interface PromotionlinkListV2ResponseData {
   /** 渠道 ID */
   ChannelId: string
   /** 克隆渠道 ID */
-  CloneChannelId: string
+  CloneChanelId: string
   /** 產品 ID */
   PackageId: number
   /** 產品名稱 */

@@ -17,6 +17,8 @@ import { showFailToast, showSuccessToast } from 'vant'
 const { downLoadImage, shareBase64Image } = useImage()
 const { copy } = useClipboard()
 
+const seletorKeySplit = '*mark*'
+
 const photoRefs = ref<Record<string | number, InstanceType<typeof photo>>>({})
 
 const setUnitPhotoRef = (el: InstanceType<typeof photo> | null, key: string | number) => {
@@ -82,7 +84,7 @@ const deviceOptions = computed<Array<{ label: string, value: string }>>(() => {
     const key = AppLsMulti ? `APP_${idx + 1}` : 'APP'
     if (!ls.has(key)) {
       const prefixName = d.NetCashDomainType === 0 ? '代理' : '专属'
-      ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain })
+      ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain + `${seletorKeySplit}${key}` })
     }
   })
 
@@ -90,7 +92,7 @@ const deviceOptions = computed<Array<{ label: string, value: string }>>(() => {
     const key = H5DomainsMulti ? `PC/H5_${idx + 1}` : 'PC/H5'
     if (!ls.has(key)) {
       const prefixName = d.NetCashDomainType === 0 ? '代理' : '专属'
-      ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain })
+      ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain + `${seletorKeySplit}${key}` })
     }
   })
   return [...ls.values()]
@@ -148,7 +150,7 @@ watch(
 watch(
   () => selectDevice.value,
   (selectD) => {
-    qrcodeURL.value = selectD ? selectD.toString() : ''
+    qrcodeURL.value = selectD ? selectD.toString().split(seletorKeySplit)[0] ?? '' : ''
   }
 )
 
@@ -243,9 +245,14 @@ watchEffect(() => {
 
 /** 初始化裝置設置 */
 onMounted(() => {
-  const { channel, device } = route.query
+  const { channel, tId } = route.query
   if (channel) selectChannelId.value = channel.toString()
-  if (device) selectDevice.value = device.toString()
+  if (tId) selectTheme.value = Number(tId)
+})
+/** 初始化裝置設置 [device] */
+watchOnce(deviceOptions, (v) => {
+  const { device } = route.query
+  if (device) selectDevice.value = v.find((key) => key.value.split(seletorKeySplit)[0] === device.toString())?.value ?? null
 })
 </script>
 

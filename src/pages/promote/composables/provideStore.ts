@@ -57,7 +57,16 @@ export const usePromote = () => {
   const packageIdGroupByLs = computed(() => {
     const ls = [...states.dataLs.agent ?? [], ...states.dataLs.exclusive ?? []].reduce<{ [key in number]: Array<PromotionlinkListV2ResponseData> }>((sum, cur) => {
       const packageId = cur.PackageId
-      const hasDataLs = sum?.[packageId] ?? []      
+      const hasDataLs = sum?.[packageId] ?? []
+
+      /** 代理以及專屬 依照channel id 合併 */
+      const hasSameChannelId = hasDataLs.find((l) => l.ChannelId === cur.ChannelId)
+      if (hasSameChannelId) {
+        hasSameChannelId.AppDomains.push(...cur.AppDomains)
+        hasSameChannelId.H5Domains.push(...cur.H5Domains)
+        return sum
+      }
+
       return {
           ...sum,
           [packageId]: hasDataLs.concat(cur)
@@ -86,7 +95,19 @@ export const usePromote = () => {
       fetchPromotConf(2),
     ]).then(([res1, res2, res3, res4]) => {
       if (res1.status === 'fulfilled') {
-        states.dataLs.agent = res1.value.data.Data.Items
+        const rebindDomain = res1.value.data.Data.Items.map((d) => {
+          const cloneChannelId = d.CloneChanelId
+          const channelId = d.ChannelId
+          const appDomainsRebind = d.AppDomains.map((a) => ({ ...a, Domain: `${a.Domain}/${cloneChannelId ? `${cloneChannelId}/?ref=${channelId}` : channelId + '/'}`, originDomain: a.Domain }))
+          const h5Domains = d.H5Domains.map((h) => ({ ...h, Domain: `${h.Domain}/?channelId=${channelId}`, originDomain: h.Domain }))
+          return {
+            ...d,
+            AppDomains: appDomainsRebind,
+            H5Domains: h5Domains
+          }
+        })
+        states.dataLs.agent = rebindDomain
+        // states.dataLs.agent = res1.value.data.Data.Items
       }
       if (res2.status === 'fulfilled') {
         states.dataLs.exclusive = res2.value.data.Data.Items
