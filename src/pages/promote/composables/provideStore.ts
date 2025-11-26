@@ -98,7 +98,7 @@ export const usePromote = () => {
         const rebindDomain = res1.value.data.Data.Items.map((d) => {
           const cloneChannelId = d.CloneChanelId
           const channelId = d.ChannelId
-          const appDomainsRebind = d.AppDomains.map((a) => ({ ...a, Domain: `${a.Domain}/${cloneChannelId ? `${cloneChannelId}?ref=${channelId}` : channelId + '/'}`, originDomain: a.Domain }))
+          const appDomainsRebind = d.AppDomains.map((a) => ({ ...a, Domain: `${a.Domain}/${cloneChannelId ? `${cloneChannelId}/?ref=${channelId}` : channelId + '/'}`, originDomain: a.Domain }))
           const h5Domains = d.H5Domains.map((h) => ({ ...h, Domain: `${h.Domain}/?channelId=${channelId}`, originDomain: h.Domain }))
           return {
             ...d,
