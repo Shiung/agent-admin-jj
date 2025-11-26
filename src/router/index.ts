@@ -41,7 +41,7 @@ const routes: RouteRecordRaw[] = [
         meta: {
           showTabBar: true,
           showHeaderBar: true,
-        }
+        },
       },
       {
         path: 'team',
@@ -50,7 +50,7 @@ const routes: RouteRecordRaw[] = [
         meta: {
           showTabBar: true,
           showHeaderBar: true,
-        }
+        },
       },
       /** 巢狀路由(管理) 頁面迷航 導回會員管理 */
       {
@@ -111,7 +111,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/mine/index.vue'),
     meta: {
       showTabBar: true,
-      showHeaderBar: true,
     },
   },
   {
