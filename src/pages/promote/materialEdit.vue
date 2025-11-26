@@ -17,7 +17,7 @@ import { showFailToast, showSuccessToast } from 'vant'
 const { downLoadImage, shareBase64Image } = useImage()
 const { copy } = useClipboard()
 
-const seletorKeySplit = 'mark'
+const seletorKeySplit = '*mark*'
 
 const photoRefs = ref<Record<string | number, InstanceType<typeof photo>>>({})
 
@@ -245,10 +245,14 @@ watchEffect(() => {
 
 /** 初始化裝置設置 */
 onMounted(() => {
-  const { channel, device, tId } = route.query
+  const { channel, tId } = route.query
   if (channel) selectChannelId.value = channel.toString()
-  if (device) selectDevice.value = device.toString()
   if (tId) selectTheme.value = Number(tId)
+})
+/** 初始化裝置設置 [device] */
+watchOnce(deviceOptions, (v) => {
+  const { device } = route.query
+  if (device) selectDevice.value = v.find((key) => key.value.split(seletorKeySplit)[0] === device.toString())?.value ?? null
 })
 </script>
 
