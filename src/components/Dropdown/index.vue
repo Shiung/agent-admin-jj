@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs } from 'vue'
+import { computed, useAttrs, watch } from 'vue'
 import {
   Select,
   SelectContent,
@@ -44,10 +44,7 @@ const displayText = computed(() => {
 })
 
 
-const selectOption = (option: DropdownOption) => {
-  model.value = option.value
-  emit('change', option.value)
-}
+watch(model, (val) => emit('change', val))
 </script>
 
 <template>
@@ -66,7 +63,6 @@ const selectOption = (option: DropdownOption) => {
           :key="option.value || `${option.label}-${option.value}`"
           :value="option.value"
           :class="['dropdown-item', { 'is-selected': option.value === model }]"
-          @click="selectOption(option)"
         >
           <p class="whitespace-nowrap overflow-hidden text-ellipsis">{{ option.label }}</p>
         </SelectItem>
