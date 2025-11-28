@@ -162,7 +162,7 @@ const generateDayChartsData = (res: ReportChartItems) => {
           ParamName: dataItem?.ParamName ?? '',
           ParamValue: ['ParamAmountLeft', 'ParamAmountRight'].includes(key) ? formatMoney(dataItem?.ParamValue ?? '0') : dataItem?.ParamValue ?? '0',
         }
-      })
+      }).reverse()
     }
   })
 }
@@ -184,7 +184,7 @@ const generateMonthChartsData = (res: ReportChartItems) => {
           // 錢要除100
           ParamValue: ['ParamAmountLeft', 'ParamAmountRight'].includes(key) ? formatMoney(dataItem?.ParamValue ?? '0') : dataItem?.ParamValue ?? '0',
         }
-      })
+      }).reverse()
     }
   })
 }
