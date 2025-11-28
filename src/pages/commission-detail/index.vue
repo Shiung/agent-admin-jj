@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import Big from 'big.js'
 import API from '@/apis'
 import type { CompareCommissionResponseData, CompareCommissionData, CommissionChildList } from '@/apis/codegen/data-contracts'
-import { formatMoneyToK, formatSignedMoney, formatMoney } from '@/utils/formatNumber'
+import { formatMoneyToK, formatSignedMoney, formatMoney, formatNumber } from '@/utils/formatNumber'
 import { useUserStore } from '@/stores/user'
 import NavBar from '@/components/NavBar/index.vue'
 import InfoDialog from '@/components/InfoDialog/index.vue'
@@ -13,6 +13,7 @@ const userStore = useUserStore()
 
 // 是否为多层代理
 const isSingleAgent = computed(() => userStore.isSingleAgent)
+const commissionRateParseFunction = computed(() => isSingleAgent.value ? formatNumber : formatMoney)
 
 // 显示说明弹窗
 const showInfo = ref(false)
@@ -101,7 +102,7 @@ const subordinateContributionList = computed(() => {
         <div class="w-[7.5rem] text-primary-normal text-sm font-semibold">佣金比例</div>
         <van-divider vertical :style="{ height: '1.25rem', color: 'var(--color-primary-10)' }" />
         <div class="flex items-center justify-center flex-1 bg-primary-5 text-primary-normal rounded-2xl p-1">
-          <div class="text-2xl font-semibold">{{ formatMoney(detailData.CurrentMonth.CommissionRate) }}</div>
+          <div class="text-2xl font-semibold">{{ commissionRateParseFunction(detailData.CurrentMonth.CommissionRate) }}</div>
           <div class="text-lg self-end font-semibold">%</div>
         </div>
       </div>
