@@ -16,6 +16,14 @@ export const useUserStore = defineStore('user', () => {
   const isSingleAgent = computed(() => userInfo.value?.NetCashAccount.AccountType === 1)
   /** 有無團隊 (單層代理而且TeamId > 0) */
   const hasTeam = computed(() => isSingleAgent.value && userInfo.value?.NetCashAccount.TeamId > 0)
+  /** 代理底下的產品包 */
+  const productPackages = computed(() => {
+    const packageIds = userInfo.value?.Admin.PackageId || ''
+    const allPackageList = globalStore.configInfo?.RealPackageIdNameMap || []
+    if (packageIds === '-1') return allPackageList
+    const packageIdsList = packageIds.split(',')
+    return allPackageList.filter((item) => packageIdsList.includes(String(item.PackageId)))
+  })
 
   watch(userInfo, (newVal) => {
     if (!newVal) return
@@ -77,6 +85,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo,
     isSingleAgent,
     hasTeam,
+    productPackages,
     setToken,
     logout,
     fetchIsLogin,

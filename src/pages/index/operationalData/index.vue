@@ -4,12 +4,12 @@ import dayjs from 'dayjs'
 import API from '@/apis'
 import type { NetcashdashboardInfoV2Data, ReportChartItems, ReportChartItem } from '@/apis/codegen/data-contracts'
 import { formatMoney, formatNumberToK, formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
-import { useGlobalStore } from '@/stores/global'
+import { useUserStore } from '@/stores/user'
 import Dropdown from '@/components/Dropdown/index.vue'
 import HistoryDataChart from './historyDataChart.vue'
 import { typeMapping } from './mapping'
 
-const globalStore = useGlobalStore()
+const userStore = useUserStore()
 
 const activeTab = ref(0)
 const tabs = [{ label: '月報', value: 2 }, { label: '日報', value: 1 }]
@@ -22,7 +22,7 @@ const currentMonth = computed(() => {
 })
 
 const packageOptions = computed(() => {
-  return [{ label: '全部', value: 0 }, ...globalStore.configInfo?.RealPackageIdNameMap.map((pkg) => ({
+  return [{ label: '全部', value: 0 }, ...userStore.productPackages.map((pkg) => ({
     label: pkg.PackageName,
     value: pkg.PackageId,
   })) || []]
