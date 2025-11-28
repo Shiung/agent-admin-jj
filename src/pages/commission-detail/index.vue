@@ -79,6 +79,15 @@ const subordinateContributionList = computed(() => {
     ...result,
   ]
 })
+
+const commissionDetailInfo = computed(() => {
+  return [
+    { title: '数据更新频率：', content: '每半点（例如：00:30、01:00、01:30...）'},
+    { title: '会员佣金：', content: '会员佣金 = 总盈利 - 输赢调整 - 平台费 - 存提手续费 - 返水 - 红利 + 上期结余) × 佣金比例% + 代存回馈'},
+    ...(isSingleAgent.value ? [] : [{ title: '代理佣金：', content: '从下级代理获得的佣金分润。'}]),
+    { title: '每月1日 - 4日进行上月的总佣金结算。', content: ''},
+  ]
+})
 </script>
 
 <template>
@@ -155,10 +164,9 @@ const subordinateContributionList = computed(() => {
 
     <!-- 说明弹窗 -->
     <InfoDialog v-model:show="showInfo" title="佣金详情说明">
-      <p><strong>1. 数据更新频率：</strong>每半点（例如：00:30、01:00、01:30...）</p>
-      <p><strong>2. 会员佣金 ＝</strong> (总盈利 - 输赢调整 - 平台费 - 存提手续费 - 返水 - 红利 + 上期结余) × 佣金比例% + 代存回馈</p>
-      <p><strong>3. 代理佣金：</strong>从下级代理获得的佣金分润。</p>
-      <p><strong>4.</strong> 每月1日 - 4日进行上月的总佣金结算。</p>
+      <template v-for="(item, index) in commissionDetailInfo" :key="index">
+        <p><strong>{{ index + 1 }}. {{ item.title }}</strong>{{ item.content }}</p>
+      </template>
     </InfoDialog>
   </div>
 </template>
