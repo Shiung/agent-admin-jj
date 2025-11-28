@@ -99,25 +99,6 @@ const initChart = () => {
       shadowColor: 'rgba(0, 0, 0, 0.15)',
       shadowOffsetX: 1,
       shadowOffsetY: 1,
-      // formatter: (params: any) => {
-      //   const month = params[0].axisValue
-      //   let result = `<div style="font-weight: bold; margin-bottom: 8px;">${month}</div>`
-        
-      //   params.forEach((item: any) => {
-      //     const value = item.seriesType === 'line' 
-      //       ? formatMoneyToK(item.value)
-      //       : formatNumberToK(item.value)
-      //     result += `
-      //       <div style="display: flex; align-items: center; margin-top: 4px;">
-      //         <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background-color: ${item.color}; margin-right: 8px;"></span>
-      //         <span style="flex: 1;">${item.seriesName}</span>
-      //         <span style="font-weight: bold; margin-left: 12px;">${value}</span>
-      //       </div>
-      //     `
-      //   })
-        
-      //   return result
-      // },
       axisPointer: {
         axis: 'x',
         label: { show: false },
@@ -186,10 +167,10 @@ const initChart = () => {
       }
     ],
     series: [
-      { name: props.data[0]?.name, type: 'line', yAxisIndex: 1, data: money1 },
-      { name: props.data[1]?.name, type: 'line', yAxisIndex: 1, data: money2 },
-      { name: props.data[2]?.name, type: 'bar', yAxisIndex: 0, data: count1 },
-      { name: props.data[3]?.name, type: 'bar', yAxisIndex: 0, data: count2 }
+      { name: props.data[0]?.name, type: 'bar', yAxisIndex: 1, data: money1 },
+      { name: props.data[1]?.name, type: 'bar', yAxisIndex: 1, data: money2 },
+      { name: props.data[2]?.name, type: 'line', yAxisIndex: 0, data: count1 },
+      { name: props.data[3]?.name, type: 'line', yAxisIndex: 0, data: count2 }
     ]
   })
   

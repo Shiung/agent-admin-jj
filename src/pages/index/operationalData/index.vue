@@ -91,12 +91,26 @@ const showInfoData = computed(() => {
 })
 
 // 報表指標
-const moneyDropdownValue1 = ref<keyof typeof typeMapping>('SumGoodBetGameMoney')
+const moneyDropdownValue1 = ref<keyof typeof typeMapping>('SumNewPayMoney')
 const moneyDropdownValue2 = ref<keyof typeof typeMapping>('SumWinLostMoney')
-const countDropdownValue1 = ref<keyof typeof typeMapping>('SumBetGameNum')
-const countDropdownValue2 = ref<keyof typeof typeMapping>('SumNewRegNum')
-const moneyDropdownOptions = ref<{ label: string, value: string }[]>([])
-const countDropdownOptions = ref<{ label: string, value: string }[]>([])
+const countDropdownValue1 = ref<keyof typeof typeMapping>('SumNewRegNum')
+const countDropdownValue2 = ref<keyof typeof typeMapping>('SumBetGameNum')
+const moneyDropdownOptionsData = ref<{ label: string, value: string }[]>([])
+const countDropdownOptionsData = ref<{ label: string, value: string }[]>([])
+
+// 要過濾掉另一個已選的選項
+const moneyDropdownOptions1 = computed(() => {
+  return moneyDropdownOptionsData.value.filter((item) => item.value !== moneyDropdownValue2.value)
+})
+const moneyDropdownOptions2 = computed(() => {
+  return moneyDropdownOptionsData.value.filter((item) => item.value !== moneyDropdownValue1.value)
+})
+const countDropdownOptions1 = computed(() => {
+  return countDropdownOptionsData.value.filter((item) => item.value !== countDropdownValue2.value)
+})
+const countDropdownOptions2 = computed(() => {
+  return countDropdownOptionsData.value.filter((item) => item.value !== countDropdownValue1.value)
+})
 
 const reportChartDataList = ref<{ name: string, data: ReportChartItem[] }[]>([])
 
@@ -111,11 +125,11 @@ const fetchReportsChartsData = async () => {
   })
   if (res.data.Code !== 200) return
 
-  moneyDropdownOptions.value = res.data.Data.ParamAmountList.map((key: string) => ({
+  moneyDropdownOptionsData.value = res.data.Data.ParamAmountList.map((key: string) => ({
     label: typeMapping[key as keyof typeof typeMapping],
     value: key,
   }))
-  countDropdownOptions.value = res.data.Data.ParamCountList.map((key: string) => ({
+  countDropdownOptionsData.value = res.data.Data.ParamCountList.map((key: string) => ({
     label: typeMapping[key as keyof typeof typeMapping],
     value: key,
   }))
@@ -230,12 +244,12 @@ onMounted(() => {
     <div class="flex items-center justify-between mb-1">
       <div class="flex-1 text-lg font-semibold text-neutral2-basic">历史数据</div>
       <div class="flex-[1.5] flex items-center justify-end gap-2">
-        <Dropdown class="flex-1" v-model="moneyDropdownValue1" :options="moneyDropdownOptions" height="1.25rem">
+        <Dropdown class="flex-1" v-model="moneyDropdownValue1" :options="moneyDropdownOptions1" height="1.25rem">
           <template #prefix>
             <div class="w-1 h-1 rounded-full bg-fixed-lightBlue" />
           </template>
         </Dropdown>
-        <Dropdown class="flex-1" v-model="moneyDropdownValue2" :options="moneyDropdownOptions" height="1.25rem">
+        <Dropdown class="flex-1" v-model="moneyDropdownValue2" :options="moneyDropdownOptions2" height="1.25rem">
           <template #prefix>
             <div class="w-1 h-1 rounded-full bg-primary-normal" />
           </template>
@@ -250,12 +264,12 @@ onMounted(() => {
     <div class="flex items-center justify-end gap-2 my-2">
       <div class="flex-1" />
       <div class="flex-[1.5] flex items-center justify-end gap-2">
-        <Dropdown class="flex-1" v-model="countDropdownValue1" :options="countDropdownOptions" height="1.25rem">
+        <Dropdown class="flex-1" v-model="countDropdownValue1" :options="countDropdownOptions1" height="1.25rem">
           <template #prefix>
             <div class="w-1 h-1 rounded-full bg-success-normal" />
           </template>
         </Dropdown>
-        <Dropdown class="flex-1" v-model="countDropdownValue2" :options="countDropdownOptions" height="1.25rem">
+        <Dropdown class="flex-1" v-model="countDropdownValue2" :options="countDropdownOptions2" height="1.25rem">
           <template #prefix>
             <div class="w-1 h-1 rounded-full bg-fixed-pink" />
           </template>
