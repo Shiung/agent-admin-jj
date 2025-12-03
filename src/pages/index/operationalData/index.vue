@@ -4,12 +4,12 @@ import dayjs from 'dayjs'
 import API from '@/apis'
 import type { NetcashdashboardInfoV2Data, ReportChartItems, ReportChartItem } from '@/apis/codegen/data-contracts'
 import { formatMoney, formatNumberToK, formatMoneyToK, formatSignedMoney } from '@/utils/formatNumber'
-import { useGlobalStore } from '@/stores/global'
+import { useUserStore } from '@/stores/user'
 import Dropdown from '@/components/Dropdown/index.vue'
 import HistoryDataChart from './historyDataChart.vue'
 import { typeMapping } from './mapping'
 
-const globalStore = useGlobalStore()
+const userStore = useUserStore()
 
 const activeTab = ref(0)
 const tabs = [{ label: '月报', value: 2 }, { label: '日报', value: 1 }]
@@ -22,7 +22,7 @@ const currentMonth = computed(() => {
 })
 
 const packageOptions = computed(() => {
-  return [{ label: '全部', value: 0 }, ...globalStore.configInfo?.RealPackageIdNameMap.map((pkg) => ({
+  return [{ label: '全部', value: 0 }, ...userStore.productPackages.map((pkg) => ({
     label: pkg.PackageName,
     value: pkg.PackageId,
   })) || []]
@@ -91,12 +91,26 @@ const showInfoData = computed(() => {
 })
 
 // 報表指標
-const moneyDropdownValue1 = ref<keyof typeof typeMapping>('SumGoodBetGameMoney')
+const moneyDropdownValue1 = ref<keyof typeof typeMapping>('SumNewPayMoney')
 const moneyDropdownValue2 = ref<keyof typeof typeMapping>('SumWinLostMoney')
-const countDropdownValue1 = ref<keyof typeof typeMapping>('SumBetGameNum')
-const countDropdownValue2 = ref<keyof typeof typeMapping>('SumNewRegNum')
-const moneyDropdownOptions = ref<{ label: string, value: string }[]>([])
-const countDropdownOptions = ref<{ label: string, value: string }[]>([])
+const countDropdownValue1 = ref<keyof typeof typeMapping>('SumNewRegNum')
+const countDropdownValue2 = ref<keyof typeof typeMapping>('SumBetGameNum')
+const moneyDropdownOptionsData = ref<{ label: string, value: string }[]>([])
+const countDropdownOptionsData = ref<{ label: string, value: string }[]>([])
+
+// 要過濾掉另一個已選的選項
+const moneyDropdownOptions1 = computed(() => {
+  return moneyDropdownOptionsData.value.filter((item) => item.value !== moneyDropdownValue2.value)
+})
+const moneyDropdownOptions2 = computed(() => {
+  return moneyDropdownOptionsData.value.filter((item) => item.value !== moneyDropdownValue1.value)
+})
+const countDropdownOptions1 = computed(() => {
+  return countDropdownOptionsData.value.filter((item) => item.value !== countDropdownValue2.value)
+})
+const countDropdownOptions2 = computed(() => {
+  return countDropdownOptionsData.value.filter((item) => item.value !== countDropdownValue1.value)
+})
 
 const reportChartDataList = ref<{ name: string, data: ReportChartItem[] }[]>([])
 
@@ -111,11 +125,11 @@ const fetchReportsChartsData = async () => {
   })
   if (res.data.Code !== 200) return
 
-  moneyDropdownOptions.value = res.data.Data.ParamAmountList.map((key: string) => ({
+  moneyDropdownOptionsData.value = res.data.Data.ParamAmountList.map((key: string) => ({
     label: typeMapping[key as keyof typeof typeMapping],
     value: key,
   }))
-  countDropdownOptions.value = res.data.Data.ParamCountList.map((key: string) => ({
+  countDropdownOptionsData.value = res.data.Data.ParamCountList.map((key: string) => ({
     label: typeMapping[key as keyof typeof typeMapping],
     value: key,
   }))
@@ -148,7 +162,7 @@ const generateDayChartsData = (res: ReportChartItems) => {
           ParamName: dataItem?.ParamName ?? '',
           ParamValue: ['ParamAmountLeft', 'ParamAmountRight'].includes(key) ? formatMoney(dataItem?.ParamValue ?? '0') : dataItem?.ParamValue ?? '0',
         }
-      })
+      }).reverse()
     }
   })
 }
@@ -170,7 +184,7 @@ const generateMonthChartsData = (res: ReportChartItems) => {
           // 錢要除100
           ParamValue: ['ParamAmountLeft', 'ParamAmountRight'].includes(key) ? formatMoney(dataItem?.ParamValue ?? '0') : dataItem?.ParamValue ?? '0',
         }
-      })
+      }).reverse()
     }
   })
 }
@@ -230,12 +244,12 @@ onMounted(() => {
     <div class="flex items-center justify-between mb-1">
       <div class="flex-1 text-lg font-semibold text-neutral2-basic">历史数据</div>
       <div class="flex-[1.5] flex items-center justify-end gap-2">
-        <Dropdown class="flex-1" v-model="moneyDropdownValue1" :options="moneyDropdownOptions" height="1.25rem">
+        <Dropdown class="flex-1" v-model="moneyDropdownValue1" :options="moneyDropdownOptions1" height="1.25rem">
           <template #prefix>
             <div class="w-1 h-1 rounded-full bg-fixed-lightBlue" />
           </template>
         </Dropdown>
-        <Dropdown class="flex-1" v-model="moneyDropdownValue2" :options="moneyDropdownOptions" height="1.25rem">
+        <Dropdown class="flex-1" v-model="moneyDropdownValue2" :options="moneyDropdownOptions2" height="1.25rem">
           <template #prefix>
             <div class="w-1 h-1 rounded-full bg-primary-normal" />
           </template>
@@ -250,12 +264,12 @@ onMounted(() => {
     <div class="flex items-center justify-end gap-2 my-2">
       <div class="flex-1" />
       <div class="flex-[1.5] flex items-center justify-end gap-2">
-        <Dropdown class="flex-1" v-model="countDropdownValue1" :options="countDropdownOptions" height="1.25rem">
+        <Dropdown class="flex-1" v-model="countDropdownValue1" :options="countDropdownOptions1" height="1.25rem">
           <template #prefix>
             <div class="w-1 h-1 rounded-full bg-success-normal" />
           </template>
         </Dropdown>
-        <Dropdown class="flex-1" v-model="countDropdownValue2" :options="countDropdownOptions" height="1.25rem">
+        <Dropdown class="flex-1" v-model="countDropdownValue2" :options="countDropdownOptions2" height="1.25rem">
           <template #prefix>
             <div class="w-1 h-1 rounded-full bg-fixed-pink" />
           </template>

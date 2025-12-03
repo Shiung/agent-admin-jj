@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import dayjs from 'dayjs'
 import API from '@/apis'
-import { formatMoneyToK, formatSignedMoney, formatMoney } from '@/utils/formatNumber'
+import { formatMoneyToK, formatSignedMoney, formatMoney, formatNumber } from '@/utils/formatNumber'
 import { useUserStore } from '@/stores/user'
 import InfoDialog from '@/components/InfoDialog/index.vue'
 
@@ -11,7 +11,7 @@ const router = useRouter()
 const userStore = useUserStore()
 
 // 是否为多层代理
-const isSingleAgent = computed(() => userStore.userInfo?.isSingleAgent)
+const isSingleAgent = computed(() => userStore.isSingleAgent)
 
 // 显示说明弹窗
 const showInfo = ref(false)
@@ -25,7 +25,8 @@ const fetchCompareCommission = async () => {
 
   const commissionTotalKey = isSingleAgent.value ? 'CommissionTotal' : 'CommissionSelfTotal'
 
-  commissionData.value.commissionRate = res.data.Data.CurrentMonth.CommissionRate
+  const commissionRateParseFunction = isSingleAgent.value ? formatNumber : formatMoney
+  commissionData.value.commissionRate = commissionRateParseFunction(res.data.Data.CurrentMonth.CommissionRate)
 
   commissionData.value.totalProfit.current = res.data.Data.CurrentMonth.BetWinTotal
   commissionData.value.estimatedMemberCommission.current = res.data.Data.CurrentMonth[commissionTotalKey]
@@ -118,7 +119,7 @@ const handleViewMore = () => router.push({ name: 'commissionDetail' })
       <div class="w-[7.5rem] text-primary-normal text-sm font-semibold">佣金比例</div>
       <van-divider vertical :style="{ height: '1.25rem', color: 'var(--color-primary-10)' }" />
       <div class="flex items-center justify-center flex-1 bg-primary-5 text-primary-normal rounded-2xl p-1">
-        <div class="text-2xl font-semibold">{{ formatMoney(commissionData.commissionRate) }}</div>
+        <div class="text-2xl font-semibold">{{ commissionData.commissionRate }}</div>
         <div class="text-lg self-end font-semibold">%</div>
       </div>
     </div>

@@ -78,7 +78,7 @@ export interface CompareCommissionResponseData {
 export interface CompareCommissionData {
   ReportMonth: string // 佣金月份
   CommissionTotal: number // 预计佣金(單層)
-  CommissionRate: number // 佣金比例
+  CommissionRate: number // 佣金比例(單層:30代表30%,多層3000代表30%)
   BetWinTotal: number // 公司输赢，單位:分
   MoneyChangeFee: number // 輸贏調整承擔費用，單位:分
   ApiFeeTotalFee: number // 平台費承擔費用，單位:分

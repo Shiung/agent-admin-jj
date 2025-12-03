@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import Big from 'big.js'
 import API from '@/apis'
 import type { CompareCommissionResponseData, CompareCommissionData, CommissionChildList } from '@/apis/codegen/data-contracts'
-import { formatMoneyToK, formatSignedMoney, formatMoney } from '@/utils/formatNumber'
+import { formatMoneyToK, formatSignedMoney, formatMoney, formatNumber } from '@/utils/formatNumber'
 import { useUserStore } from '@/stores/user'
 import NavBar from '@/components/NavBar/index.vue'
 import InfoDialog from '@/components/InfoDialog/index.vue'
@@ -13,6 +13,7 @@ const userStore = useUserStore()
 
 // 是否为多层代理
 const isSingleAgent = computed(() => userStore.isSingleAgent)
+const commissionRateParseFunction = computed(() => isSingleAgent.value ? formatNumber : formatMoney)
 
 // 显示说明弹窗
 const showInfo = ref(false)
@@ -78,6 +79,15 @@ const subordinateContributionList = computed(() => {
     ...result,
   ]
 })
+
+const commissionDetailInfo = computed(() => {
+  return [
+    { title: '数据更新频率：', content: '每半点（例如：00:30、01:00、01:30...）'},
+    { title: '会员佣金：', content: '会员佣金 = 总盈利 - 输赢调整 - 平台费 - 存提手续费 - 返水 - 红利 + 上期结余) × 佣金比例% + 代存回馈'},
+    ...(isSingleAgent.value ? [] : [{ title: '代理佣金：', content: '从下级代理获得的佣金分润。'}]),
+    { title: '每月1日 - 4日进行上月的总佣金结算。', content: ''},
+  ]
+})
 </script>
 
 <template>
@@ -101,7 +111,7 @@ const subordinateContributionList = computed(() => {
         <div class="w-[7.5rem] text-primary-normal text-sm font-semibold">佣金比例</div>
         <van-divider vertical :style="{ height: '1.25rem', color: 'var(--color-primary-10)' }" />
         <div class="flex items-center justify-center flex-1 bg-primary-5 text-primary-normal rounded-2xl p-1">
-          <div class="text-2xl font-semibold">{{ formatMoney(detailData.CurrentMonth.CommissionRate) }}</div>
+          <div class="text-2xl font-semibold">{{ commissionRateParseFunction(detailData.CurrentMonth.CommissionRate) }}</div>
           <div class="text-lg self-end font-semibold">%</div>
         </div>
       </div>
@@ -154,10 +164,9 @@ const subordinateContributionList = computed(() => {
 
     <!-- 说明弹窗 -->
     <InfoDialog v-model:show="showInfo" title="佣金详情说明">
-      <p><strong>1. 数据更新频率：</strong>每半点（例如：00:30、01:00、01:30...）</p>
-      <p><strong>2. 会员佣金 ＝</strong> (总盈利 - 输赢调整 - 平台费 - 存提手续费 - 返水 - 红利 + 上期结余) × 佣金比例% + 代存回馈</p>
-      <p><strong>3. 代理佣金：</strong>从下级代理获得的佣金分润。</p>
-      <p><strong>4.</strong> 每月1日 - 4日进行上月的总佣金结算。</p>
+      <template v-for="(item, index) in commissionDetailInfo" :key="index">
+        <p><strong>{{ index + 1 }}. {{ item.title }}</strong>{{ item.content }}</p>
+      </template>
     </InfoDialog>
   </div>
 </template>
