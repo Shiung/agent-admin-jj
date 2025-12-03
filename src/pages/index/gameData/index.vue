@@ -9,7 +9,7 @@ import { useGameStore } from '@/stores/game'
 const gameStore = useGameStore()
 
 const activeTab = ref(2)
-const tabs = [{ label: '月報', value: 2 }, { label: '日報', value: 1 }]
+const tabs = [{ label: '月报', value: 2 }, { label: '日报', value: 1 }]
 
 const currentMonth = computed(() => {
   if (activeTab.value === 1) return dayjs().format('YYYY-MM-DD')

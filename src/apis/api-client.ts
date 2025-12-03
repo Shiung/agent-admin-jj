@@ -56,7 +56,7 @@ apiClient.instance.interceptors.response.use(
     if (status === 401) {
       const userStore = useUserStore()
       userStore.logout()
-      showToast('登录逾期，請重新登录')
+      showToast('登录逾期，请重新登录')
     }
 
     // TODO 權限異常

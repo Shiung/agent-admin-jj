@@ -12,7 +12,7 @@ import { typeMapping } from './mapping'
 const globalStore = useGlobalStore()
 
 const activeTab = ref(0)
-const tabs = [{ label: '月報', value: 2 }, { label: '日報', value: 1 }]
+const tabs = [{ label: '月报', value: 2 }, { label: '日报', value: 1 }]
 // 显示说明弹窗
 const showInfo = ref(false)
 

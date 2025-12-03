@@ -41,10 +41,10 @@ const fetchCaptcha = async () => {
     }
 
     captchaCode.value = res.data.Data.Item
-    formData.value.ValidCode = '' // 清空輸入
+    formData.value.ValidCode = '' // 清空输入
     formData.value.KeyCode = res.data.Data.KeyCode
   } catch (err) {
-    console.error('取得驗證碼失敗', err)
+    console.error('取得验证码失败', err)
   }
 }
 
@@ -131,7 +131,7 @@ const handleVLogin = async () => {
     router.replace({ name: 'index' })
     showToast('登录成功！')
   } catch (error) {
-    console.error('登录失敗：', error)
+    console.error('登录失败：', error)
     showToast('登录失败，请检查帐号密码')
   } finally {
     loading.value = false
@@ -182,7 +182,7 @@ const togglePassword = () => showPassword.value = !showPassword.value
         <!-- 記住我＆忘記密碼 -->
         <div class="flex items-center justify-between text-sm mt-2">
           <van-checkbox v-model="formData.remember" shape="round" icon-size="16px">
-            記住我
+            记住我
           </van-checkbox>
           <!-- <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
               忘記密碼？

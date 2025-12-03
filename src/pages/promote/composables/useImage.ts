@@ -100,7 +100,7 @@ export default function useImage() {
         files: filesArray,
       })
     } catch (err) {
-      console.error('❌ 分享失敗', err)
+      console.error('❌ 分享失败', err)
     }
   }
 

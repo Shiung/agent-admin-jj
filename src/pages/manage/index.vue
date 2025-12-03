@@ -7,9 +7,9 @@ const route = useRoute()
 
 
 const ls: InstanceType<typeof SwitchTab>['$props']['tabs'] = [
-  { id: 'manageMember', title: '會員', to: { name: 'manageMember' }},
+  { id: 'manageMember', title: '会员', to: { name: 'manageMember' }},
   { id: 'manageAgent', title: '代理', to: { name: 'manageAgent' }},
-  { id: 'manageTeam', title: '團隊', to: { name: 'manageTeam' }},
+  { id: 'manageTeam', title: '团队', to: { name: 'manageTeam' }},
 ]
 
 const active = ref<InstanceType<typeof SwitchTab>['$props']['activeTab']>(ls.findIndex(l => l.id.toString() === route.name) ?? 0)

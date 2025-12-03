@@ -26,7 +26,7 @@ interface Props {
 const model = defineModel<string | number | null>('modelValue', { required: true })
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: '請選擇',
+  placeholder: '请选择',
   disabled: false,
   height: '2.5rem',
 })
