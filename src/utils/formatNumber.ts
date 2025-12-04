@@ -40,6 +40,18 @@ export const formatMoney = (value: string | number, fixed = 2, isDiv100 = true):
 }
 
 /**
+ * 格式化金额（除以100, 每三位加逗号）100000 => 1,000
+ * @param value 金额
+ * @param fixed 保留小数位数
+ * @param isDiv100 是否除以100
+ * @returns 格式化后的金额
+ */
+export const formatMoneyWithComma = (value: string | number, fixed = 2, isDiv100 = true): string => {
+  if (!value) return formatMoney(0, fixed).toString()
+  return formatMoney(value, fixed, isDiv100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+}
+
+/**
  * 格式化金额（除以100，带千分位）
  * @param value 金额
  * @param fixed 保留小数位数

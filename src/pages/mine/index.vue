@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { formatMoneyWithComma } from '@/utils/formatNumber'
+import API from '@/apis'
 import pkg from '../../../package.json'
 
 // 常用功能
@@ -65,9 +67,35 @@ const goProfile = () => {
   router.push({ name: 'mineProfile' })
 }
 
+const goWithdraw = () => {
+  router.push({ name: 'withdrawPage' })
+}
+
+const goRecharge = () => {
+  router.push({ name: 'rechargePage' })
+}
+
+const commissionWalletBalance = ref<number>(0)
+const fetchOverview = async () => {
+  const res = await API.finance.getCommissionOverview()
+  if (res.data.Code !== 200) return
+  commissionWalletBalance.value = res.data.Data.Available
+}
+
+const creditWalletBalance = ref<number>(0)
+const fetchAccountBalance = async () => {
+  const res = await API.finance.getAccountBalance()
+  if (res.data.Code !== 200) return
+  creditWalletBalance.value = res.data.Data.Items.Credit
+}
+
 const handleMenuClick = () => {
 }
 
+onMounted(() => {
+  fetchOverview()
+  fetchAccountBalance()
+})
 </script>
 
 <template>
@@ -87,10 +115,17 @@ const handleMenuClick = () => {
     </div>
 
     <!-- 我的錢包 -->
-    <div class="px-3 pt-2 pb-3 bg-white rounded-2xl shadow-sm mx-3 mt-2">
-      <h2 class="text-base font-semibold text-neutral-basic mb-3">
-        我的钱包
-      </h2>
+    <div class="flex items-center justify-between gap-2 mx-3 mt-2 p-3 bg-white rounded-2xl shadow-[-0.5px_0.5px_3px_0px_rgba(0,0,0,0.15)]">
+      <div class="flex-1 min-w-0 px-3 py-2 bg-bg-floor-1-2 rounded-2xl">
+        <div class="text-xs leading-5 text-neutral-basic">佣金钱包</div>
+        <div class="text-xl leading-7 truncate font-semibold text-primary-normal">{{ formatMoneyWithComma(commissionWalletBalance) }}</div>
+        <van-button type="primary" size="small" plain round class="w-full !font-semibold !bg-bg-floor-1-2" @click="goWithdraw">提现</van-button>
+      </div>
+      <div class="flex-1 min-w-0 px-3 py-2 bg-bg-floor-1-2 rounded-2xl">
+        <div class="text-xs leading-5 text-neutral-basic">额度钱包</div>
+        <div class="text-xl leading-7 truncate font-semibold text-primary-normal">{{ formatMoneyWithComma(creditWalletBalance) }}</div>
+        <van-button type="primary" size="small" plain round class="w-full !font-semibold !bg-bg-floor-1-2" @click="goRecharge">充值</van-button>
+      </div>
     </div>
 
     <!-- 常用功能 -->

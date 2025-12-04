@@ -21,6 +21,7 @@ interface Props {
   options: DropdownOption[]
   placeholder?: string
   disabled?: boolean
+  menuClass?: string
 }
 
 const model = defineModel<string | number | null>('modelValue', { required: true })
@@ -52,11 +53,11 @@ watchEffect(() => emit('change', model.value))
     <SelectTrigger class="dropdown-button" :class="attrs.class">
       <SelectValue :placeholder="placeholder">
         <slot name="prefix" />
-        <p class="whitespace-nowrap overflow-hidden text-ellipsis">{{ displayText }}</p>
+        <p class="whitespace-nowrap overflow-hidden text-ellipsis" :class="[props.placeholder === displayText && 'text-neutral2-fourth']">{{ displayText }}</p>
         <slot name="suffix" />
       </SelectValue>
     </SelectTrigger>
-    <SelectContent class="dropdown-menu">
+    <SelectContent class="dropdown-menu" :class="[props.menuClass || '']">
       <SelectGroup>
         <SelectItem
           v-for="option in options"

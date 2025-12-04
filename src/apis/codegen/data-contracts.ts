@@ -1,3 +1,5 @@
+export type * from './Finance/type.d.ts'
+
 export interface LoginFormData {
   Username: string
   Password: string
@@ -59,6 +61,32 @@ export interface UserInfo {
 export interface IsLoginResponse {
   Code: number
   Data: UserInfo | null
+  Msg: string
+  Id: string
+}
+
+export interface SendPhoneVerifyCodeQuery {
+  DeviceId: string
+  OpType: number
+  Number: string
+}
+
+export interface SendPhoneVerifyCodeResponse {
+  Code: number
+  Data: string
+  Msg: string
+  Id: string
+}
+
+export interface SendEmailVerifyCodeQuery {
+  DeviceId: string
+  OpType: number
+  Email: string
+}
+
+export interface SendEmailVerifyCodeResponse {
+  Code: number
+  Data: string
   Msg: string
   Id: string
 }
@@ -254,6 +282,91 @@ export interface ConfigInfoResponse {
   Data: ConfigInfoData
   Msg: string
   Id: string
+}
+
+export interface SystemConfigRequest {
+  Domain: string
+}
+
+export interface SystemConfigResponse {
+  Code: number
+  Data: SystemConfigData
+  Msg: string
+  Id: string
+}
+
+export interface SystemConfigData {
+  /** 手機號註冊開關 開=1, 關=0 */
+  PhoneRegister: number
+  /** 手機號驗證開關 開=1, 關=0 */
+  PhoneVerify: number
+  /** 手機號綁定開關 開=1, 關=0 */
+  PhoneBind: number
+  /** 郵箱註冊開關 開=1, 關=0 */
+  EmailRegister: number
+  /** 郵箱驗證開關 開=1, 關=0 */
+  EmailVerify: number
+  /** 郵箱綁定開關 開=1, 關=0 */
+  EmailBind: number
+  /** 谷歌驗證開關 開=1, 關=0 */
+  GoogleVerify: number
+  /** 谷歌綁定開關 開=1, 關=0 */
+  GoogleBind: number
+  /** 彈窗開關 開=1, 關=0 */
+  PupUp: number
+  /** 提示介面文本 */
+  Tips: string
+  AgentId: number
+}
+
+export interface AccountInfoResponse {
+  Code: number
+  Data: AccountInfoData
+  Msg: string
+  Id: string
+}
+
+export interface AccountInfoData {
+  Ip: string
+  Address: string
+  Country: number
+  Username: string
+  /** 真實姓名 */
+  RealName: string
+  Phone: string
+  Email: string
+  GoogleSecret: string
+  QQ: string
+  PrivatePassword: string
+  /** 是否設置私人密碼 1:是 2:否 */
+  IsSetPrivatePassword: number
+  Name: string
+  CreateTime: number
+  IsAllowOtherDeviceLogin: number
+  LoginType: number
+  TimeFreeVerification: number
+  AccountLevel: number
+  /** 代理層級 1:單層代理，2:單層團隊代理，3:多層代理 */
+  AccountType: number
+  CommissionTemplateId: number
+  CommissionMultiTemplateId: number
+  CommissionRateStr: string
+  CommissionRate: {
+    Level: number
+    LevelName: string
+    ActiveNum: number
+    SumWinLose: number
+    CommissionRate: number
+  }[]
+  SettlementType: number
+  ParentAdminId: number
+  ParentUsername: string
+  /** 佣金設定生效日，空字串不顯示 */
+  CommissionActiveDate: string
+  /** 設定生效前的佣金比例，空字串不顯示 */
+  LastCommissionRate: string
+  /** 設定生效前佣金結算週期，1:日結 2:週結 3:月結，0不顯示 */
+  LastSettlementType: number
 }
 
 export interface NetcashdashboardInfoV2Response {
