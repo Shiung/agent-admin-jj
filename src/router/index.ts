@@ -106,6 +106,36 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/report/finance/game-record',
+    name: 'financeGameRecord',
+    component: () => import('@/pages/report/finance/gameRecord.vue'),
+  },
+  {
+    path: '/report/finance/game-order-detail',
+    name: 'financeGameOrderDetail',
+    component: () => import('@/pages/report/finance/gameOrderDetail.vue'),
+  },
+  {
+    path: '/report/finance/deposit-withdraw-record',
+    name: 'financeDepositWithdrawRecord',
+    component: () => import('@/pages/report/finance/depositWithdrawRecord.vue'),
+  },
+  {
+    path: '/report/finance/bonus-record',
+    name: 'financeBonusRecord',
+    component: () => import('@/pages/report/finance/bonusRecord.vue'),
+  },
+  {
+    path: '/report/finance/deposit-record',
+    name: 'financeDepositRecord',
+    component: () => import('@/pages/report/finance/depositRecord.vue'),
+  },
+  {
+    path: '/report/finance/deposit-withdraw-fee-record',
+    name: 'financeDepositWithdrawFeeRecord',
+    component: () => import('@/pages/report/finance/depositWithdrawFeeRecord.vue'),
+  },
+  {
     path: '/mine',
     name: 'mine',
     component: () => import('@/pages/mine/index.vue'),
