@@ -7,7 +7,7 @@ import Dropdown from '@/components/Dropdown/index.vue'
 import apis from '@/apis'
 import dayjs from 'dayjs'
 import type { PaymentSummaryData, PlayerRechargeList, PlayerWithdrawList } from '@/apis/codegen/data-contracts'
-import { formatMoneyWithCommas, formatNumberWithCommas } from '@/utils/formatNumber'
+import { formatMoneyWithCommas } from '@/utils/formatNumber'
 
 const router = useRouter()
 const route = useRoute()
@@ -162,7 +162,7 @@ const withdrawStatusMap: Record<string, number> = {
 }
 
 // 充值状态反向映射：API参数 -> 状态标识（用于显示）
-const depositStatusToType: Record<number, string> = {
+const depositStatusToType: Record<number, 'completed' | 'failed' | 'primary' | 'cancelled'> = {
   1: 'primary',      // 处理中
   2: 'completed',    // 充值完成
   3: 'failed',       // 充值失败
@@ -172,7 +172,7 @@ const depositStatusToType: Record<number, string> = {
 }
 
 // 提现状态反向映射：API参数 -> 状态标识（用于显示）
-const withdrawStatusToType: Record<number, string> = {
+const withdrawStatusToType: Record<number, 'completed' | 'failed' | 'primary' | 'cancelled'> = {
   1: 'primary',      // 待处理
   2: 'completed',    // 已出款
   3: 'failed',       // 退款驳回
@@ -518,7 +518,7 @@ const handleDepositWithdrawClick = (record: any) => {
             shape="round"
             background="transparent"
             clearable
-            :left-icon="null"
+            left-icon=""
             @search="handleSearch"
             @keyup.enter="handleSearch"
           >
@@ -564,9 +564,8 @@ const handleDepositWithdrawClick = (record: any) => {
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="currentList.length === 0" class="record-list-empty">
-        <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-        <span class="empty-text">暂无数据</span>
+      <div v-else-if="currentList.length === 0" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
+        <empty />
       </div>
 
       <!-- 充提列表 -->
@@ -661,29 +660,6 @@ const handleDepositWithdrawClick = (record: any) => {
   align-items: center;
   padding: 60px 0;
   min-height: 300px;
-}
-
-/* 空状态 */
-.record-list-empty {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
-  gap: 16px;
-}
-
-.empty-icon {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-}
-
-.empty-text {
-  font-size: 14px;
-  color: var(--color-neutral2-tertiary);
-  font-weight: 400;
 }
 
 .record-list-container {

@@ -21,6 +21,12 @@ import type {
   RechargeListResponse,
   WithdrawListQuery,
   WithdrawListResponse,
+  PayRecordsQuery,
+  PayRecordsResponse,
+  WithdrawRecordsQuery,
+  WithdrawRecordsResponse,
+  PayMoneyWithdrawFeeDetailsQuery,
+  PayMoneyWithdrawFeeDetailsResponse,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -330,6 +336,69 @@ export class Admin<SecurityDataType = unknown> {
   ) =>
     this.http.request<WithdrawListResponse, any>({
       path: '/admin/netcashplayergame/commonWithdrawlist',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 充值手续费记录列表
+   *
+   * @tags Admin
+   * @name PayRecords
+   * @request GET:/admin/netcashreportcenter/payrecords
+   * @secure
+   */
+  getPayRecords = (
+    query: PayRecordsQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PayRecordsResponse, any>({
+      path: '/admin/netcashreportcenter/payrecords',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 提现手续费记录列表
+   *
+   * @tags Admin
+   * @name WithdrawRecords
+   * @request GET:/admin/netcashreportcenter/withdrawrecords
+   * @secure
+   */
+  getWithdrawRecords = (
+    query: WithdrawRecordsQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<WithdrawRecordsResponse, any>({
+      path: '/admin/netcashreportcenter/withdrawrecords',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 充提手续费总计详情
+   *
+   * @tags Admin
+   * @name PayMoneyWithdrawFeeDetails
+   * @request GET:/admin/netcashreportcenter/paymoneywithdrawfeedetails
+   * @secure
+   */
+  getPayMoneyWithdrawFeeDetails = (
+    query: PayMoneyWithdrawFeeDetailsQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PayMoneyWithdrawFeeDetailsResponse, any>({
+      path: '/admin/netcashreportcenter/paymoneywithdrawfeedetails',
       method: "GET",
       query: query,
       secure: true,

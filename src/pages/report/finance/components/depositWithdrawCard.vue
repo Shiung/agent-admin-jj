@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
 
-interface Record {
+interface DepositWithdrawRecord {
   orderNo: string
-  status: 'completed' | 'failed'
+  status: 'completed' | 'failed' | 'primary' | 'cancelled'
   username: string
   vipLevel: string
   applyAmount: number
@@ -15,7 +15,7 @@ interface Record {
 }
 
 interface Props {
-  record: Record
+  record: DepositWithdrawRecord
   type: 'deposit' | 'withdraw'
   isDepositWithdrawFee: boolean
 }
@@ -35,13 +35,13 @@ const copyOrderNo = (orderNo: string) => {
   navigator.clipboard.writeText(orderNo)
   showToast({
     message: '复制成功',
-    position: 'center',
+    position: 'middle',
     zIndex: 10000,
   })
 }
 
 // 状态标签配置（只负责返回文本和样式类）
-const getStatusConfig = (status: string, type: string) => {
+const getStatusConfig = (status: string, type: string): { text: string; class: string } => {
   const depositConfigs: Record<string, { text: string; class: string }> = {
     completed: { text: '充值完成', class: 'status-completed' },
     failed: { text: '充值失败', class: 'status-failed' },
@@ -57,7 +57,7 @@ const getStatusConfig = (status: string, type: string) => {
   }
 
   const configs = type === 'deposit' ? depositConfigs : withdrawConfigs
-  return configs[status] || configs.failed
+  return configs[status] || configs.failed || { text: '未知状态', class: 'status-failed' }
 }
 </script>
 
@@ -69,7 +69,7 @@ const getStatusConfig = (status: string, type: string) => {
           <span class="username">{{ record.username }}</span>
           <span class="vip-badge">{{ record.vipLevel }}</span>
         </div>
-        <div class="status-tag" :class="getStatusConfig(record.status, type).class">
+        <div v-if="!isDepositWithdrawFee" class="status-tag" :class="getStatusConfig(record.status, type).class">
           {{ getStatusConfig(record.status, type).text }}
         </div>
       </div>
@@ -90,11 +90,11 @@ const getStatusConfig = (status: string, type: string) => {
             />
           </div>
         </li>
-        <li class="detail-item">
+        <li v-if="!isDepositWithdrawFee" class="detail-item">
           <span class="detail-label">{{ type === 'deposit' ? '申请充值' : '申请提现' }}</span>
           <span class="detail-value">{{ formatMoneyWithCommas(record.applyAmount, 2, true) }}</span>
         </li>
-        <li class="detail-item">
+        <li v-if="isDepositWithdrawFee" class="detail-item">
           <span class="detail-label">{{ type === 'deposit' ? '实际充值' : '实际提现' }}</span>
           <span class="detail-value">{{ formatMoneyWithCommas(record.actualAmount, 2, true) }}</span>
         </li>

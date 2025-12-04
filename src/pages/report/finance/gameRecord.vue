@@ -5,8 +5,8 @@ import FinanceCard from './components/financeCard.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
 import dayjs from 'dayjs'
 import apis from '@/apis'
-import type { ReportCenterFinanceDetailData, PlayerGameDailyData } from '@/apis/codegen/data-contracts'
-import { formatMoneyWithCommas, formatNumberWithCommas } from '@/utils/formatNumber'
+import type { ReportCenterFinanceDetailData } from '@/apis/codegen/data-contracts'
+import { formatMoneyWithCommas } from '@/utils/formatNumber'
 
 const router = useRouter()
 const route = useRoute()
@@ -301,9 +301,8 @@ const handleGameClick = (gameName: string) => {
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="!financeDetailData || gameList.length === 0" class="game-list-empty">
-        <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-        <span class="empty-text">暂无数据</span>
+      <div v-else-if="!financeDetailData || gameList.length === 0" :style="{ minHeight: 'calc(100vh - 306px)' }" class="flex-1 flex items-center">
+        <empty />
       </div>
 
       <!-- 游戏列表 -->
@@ -383,29 +382,6 @@ const handleGameClick = (gameName: string) => {
   align-items: center;
   padding: 60px 0;
   min-height: 300px;
-}
-
-/* 空状态 */
-.game-list-empty {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
-  gap: 16px;
-}
-
-.empty-icon {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-}
-
-.empty-text {
-  font-size: 14px;
-  color: var(--color-neutral2-tertiary);
-  font-weight: 400;
 }
 
 /* 筛选器横向滚动容器 */

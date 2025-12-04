@@ -29,7 +29,7 @@ const copyOrderNo = (orderNo: string) => {
   navigator.clipboard.writeText(orderNo)
   showToast({
     message: '复制成功',
-    position: 'center',
+    position: 'middle',
     zIndex: 10000, // 确保在 popup 之上显示
   })
 }

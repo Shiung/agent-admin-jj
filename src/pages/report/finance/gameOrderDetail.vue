@@ -291,7 +291,7 @@ const getOddsTypeString = (type: string | undefined): string => {
 const getGameName = (gameId: string | number | undefined): string => {
   if (!gameId) return '-'
   const gameIdStr = String(gameId)
-  return gamesMapping.value[gameIdStr].gameName || '-'
+  return gamesMapping.value[gameIdStr] || '-'
 }
 
 // 解析订单详情数据
@@ -594,7 +594,7 @@ const copyOrderNo = (orderNo: string) => {
   navigator.clipboard.writeText(orderNo)
   showToast({
     message: '复制成功',
-    position: 'center',
+    position: 'middle',
     zIndex: 10000, // 确保在 popup 之上显示
   })
 }
@@ -702,9 +702,8 @@ const copyOrderNo = (orderNo: string) => {
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="!gameDetailData || orderList.length === 0" class="order-list-empty">
-        <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-        <span class="empty-text">暂无数据</span>
+      <div v-else-if="!gameDetailData || orderList.length === 0" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
+        <empty />
       </div>
 
       <!-- 订单列表 -->
@@ -786,9 +785,8 @@ const copyOrderNo = (orderNo: string) => {
 
         <!-- 投注详情 -->
         <!-- 空状态 -->
-        <div v-if="!orderDetailData" class="bet-details-empty">
-          <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-          <span class="empty-text">尚无资料</span>
+        <div v-if="!orderDetailData" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
+          <empty />
         </div>
 
         <!-- 数据内容 -->
@@ -910,29 +908,6 @@ const copyOrderNo = (orderNo: string) => {
   align-items: center;
   padding: 60px 0;
   min-height: 300px;
-}
-
-/* 空状态 */
-.order-list-empty {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
-  gap: 16px;
-}
-
-.empty-icon {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-}
-
-.empty-text {
-  font-size: 14px;
-  color: var(--color-neutral2-tertiary);
-  font-weight: 400;
 }
 
 /* 自定义 van-search 样式 */
@@ -1208,29 +1183,6 @@ const copyOrderNo = (orderNo: string) => {
 .game-time {
   font-size: 12px;
   color: var(--color-neutral-basic);
-}
-
-/* 投注详情 - 空状态 */
-.bet-details-empty {
-  background: white;
-  padding: 60px 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  gap: 16px;
-}
-
-.empty-icon {
-  width: 6.25rem;
-  height: 6.25rem;
-  object-fit: contain;
-}
-
-.empty-text {
-  font-size: 14px;
-  color: var(--color-neutral-secondary);
 }
 
 /* 投注详情 */

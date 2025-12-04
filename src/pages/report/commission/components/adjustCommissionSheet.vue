@@ -46,7 +46,7 @@ const validateAmount = (value: string) => {
 
   // 验证小数点后最多2位
   const decimalMatch = value.match(/\.(\d+)$/)
-  if (decimalMatch && decimalMatch[1].length > 2) return false
+  if (decimalMatch && decimalMatch[1] && decimalMatch[1].length > 2) return false
 
   return true
 }
