@@ -1,16 +1,39 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FinanceCard from './components/financeCard.vue'
 import DepositWithdrawCard from './components/depositWithdrawCard.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
-import { formatMoneyWithCommas, formatNumberWithCommas } from '@/utils/formatNumber'
+import { formatMoneyWithCommas } from '@/utils/formatNumber'
+import apis from '@/apis'
+import dayjs from 'dayjs'
+import type { PayRecordItem, WithdrawRecordItem } from '@/apis/codegen/data-contracts'
 
 const router = useRouter()
 const route = useRoute()
 
 // 结算时间选择（从 URL query 初始化，实现页面间连动）
 const selectedDate = ref((route.query.date as string) || '本月')
+
+// 时间范围转换函数
+const getTimeRange = (dateValue: string) => {
+  const now = dayjs()
+  let startDate, endDate
+
+  if (dateValue === '本月') {
+    startDate = now.startOf('month')
+    endDate = now.endOf('month')
+  } else {
+    // 格式如 "2025-01"
+    startDate = dayjs(dateValue).startOf('month')
+    endDate = dayjs(dateValue).endOf('month')
+  }
+
+  return {
+    BeginTime: startDate.unix(),
+    EndTime: endDate.unix(),
+  }
+}
 
 // 日期选项
 const dateOptions = computed(() => {
@@ -38,97 +61,88 @@ const sortType = ref('账变时间降序')
 const sortOptions = [
   { label: '账变时间降序', value: '账变时间降序' },
   { label: '账变时间升序', value: '账变时间升序' },
-  { label: '手续费降序', value: '手续费降序' },
-  { label: '手续费升序', value: '手续费升序' },
+  // { label: '账变金额降序', value: '账变金额降序' },
+  // { label: '账变金额升序', value: '账变金额升序' },
 ]
+
+// 排序映射：UI显示 -> API参数
+const sortMap: Record<string, string> = {
+  '账变时间降序': '-transaction_time',
+  '账变时间升序': 'transaction_time',
+  // '账变金额降序': '-amount',
+  // '账变金额升序': 'amount'
+}
 
 // 加载数据
 const loading = ref(true) // 初始为 true，避免进入页面时先显示空状态
+const currentPage = ref(1)
+const pageSize = ref(20)
 
-// 充值手续费汇总数据
-const depositFeeSummary = computed(() => {
-  // TODO: 替换为 API 数据
+// 充值类型映射表：Key -> Name
+const payTypeMap = ref<Record<number, string>>({})
+
+// 充值手续费原始数据
+const payRecordsData = ref<PayRecordItem[]>([])
+
+// 提现手续费原始数据
+const withdrawRecordsData = ref<WithdrawRecordItem[]>([])
+
+// 手续费总计数据（从 API 获取）
+const feeTotal = ref({ TotalPayFee: 0, TotalWithdrawFee: 0 })
+
+// 手续费总计数据（根据当前Tab显示）
+const feeSummaryData = computed(() => {
+   return [
+      [
+        { label: '充值手续费', value: formatMoneyWithCommas(feeTotal.value.TotalPayFee, 2, true) },
+        { label: '提现手续费', value: formatMoneyWithCommas(feeTotal.value.TotalWithdrawFee, 2, true) }
+      ]
+    ]
+})
+
+// 格式化充值手续费记录
+const formatPayRecord = (item: PayRecordItem) => {
+  const payTypeName = item.PayType ? (payTypeMap.value[item.PayType] || `支付方式${item.PayType}`) : '-'
+
   return {
-    SumPayMoneyFee: 123456.78,
-    SumWithdrawMoneyFee: 1234,
+    orderNo: item.OrderId || '-',
+    status: 'completed' as const, // 手续费记录都是已完成的
+    username: item.LoginAccount || '-',
+    vipLevel: 'VIP0', // API 未返回 VIP 等级
+    applyAmount: item.Amount || 0,
+    actualAmount: (item.Amount || 0) - (item.Fee || 0), // 实际金额 = 充值金额 - 手续费
+    depositType: payTypeName,
+    depositRate: item.FeeRate ? `${(item.FeeRate / 10)}%` : '0%', // 千分比转百分比
+    depositFee: item.Fee || 0,
+    time: item.TransactionTime ? dayjs.unix(item.TransactionTime).format('YYYY-MM-DD HH:mm:ss') : '-',
+    rawData: item
   }
-})
+}
 
-// 提现手续费汇总数据
-const withdrawFeeSummary = computed(() => {
-  // TODO: 替换为 API 数据
+// 格式化提现手续费记录
+const formatWithdrawRecord = (item: WithdrawRecordItem) => {
   return {
-    SumPayMoneyFee: 123456.78,
-    SumWithdrawMoneyFee: 1234,
+    orderNo: item.OrderId || '-',
+    status: 'completed' as const, // 手续费记录都是已完成的
+    username: item.LoginAccount || '-',
+    vipLevel: 'VIP0', // API 未返回 VIP 等级
+    applyAmount: item.Amount || 0,
+    actualAmount: (item.Amount || 0) - (item.Fee || 0), // 实际金额 = 提现金额 - 手续费
+    depositType: item.WithdrawType ? `提现类型${item.WithdrawType}` : '-',
+    depositRate: item.FeeRate ? `${(item.FeeRate / 10)}%` : '0%', // 千分比转百分比
+    depositFee: item.Fee || 0,
+    time: item.TransactionTime ? dayjs.unix(item.TransactionTime).format('YYYY-MM-DD HH:mm:ss') : '-',
+    rawData: item
   }
-})
-
-// 当前显示的汇总数据
-const currentSummary = computed(() => {
-  return activeTab.value === 0 ? depositFeeSummary.value : withdrawFeeSummary.value
-})
-
-// 充值手续费列表
-// TODO: 替换为 API 数据
-const depositFeeList = [
-  {
-    orderNo: '23210654065406546515605604',
-    status: 'completed',
-    username: 'darren200',
-    vipLevel: 'VIP0',
-    applyAmount: 10000,
-    actualAmount: 9900,
-    depositType: '银行卡转账',
-    depositRate: '1%',
-    depositFee: 100,
-    time: '2025-12-14 14:40:21'
-  },
-  {
-    orderNo: '23210654065406546515605605',
-    status: 'completed',
-    username: 'john123',
-    vipLevel: 'VIP1',
-    applyAmount: 5000,
-    actualAmount: 4950,
-    depositType: '支付宝',
-    depositRate: '1%',
-    depositFee: 50,
-    time: '2025-12-14 13:20:15'
-  },
-]
-
-// 提现手续费列表
-// TODO: 替换为 API 数据
-const withdrawFeeList = [
-  {
-    orderNo: '23210654065406546515605606',
-    status: 'completed',
-    username: 'mary456',
-    vipLevel: 'VIP2',
-    applyAmount: 20000,
-    actualAmount: 19800,
-    depositType: '银行卡',
-    depositRate: '1%',
-    depositFee: 200,
-    time: '2025-12-14 16:30:45'
-  },
-  {
-    orderNo: '23210654065406546515605607',
-    status: 'completed',
-    username: 'peter789',
-    vipLevel: 'VIP0',
-    applyAmount: 3000,
-    actualAmount: 2970,
-    depositType: '银行卡',
-    depositRate: '1%',
-    depositFee: 30,
-    time: '2025-12-14 15:10:30'
-  },
-]
+}
 
 // 当前显示的列表
 const currentList = computed(() => {
-  return activeTab.value === 0 ? depositFeeList : withdrawFeeList
+  if (activeTab.value === 0) {
+    return payRecordsData.value.map(formatPayRecord)
+  } else {
+    return withdrawRecordsData.value.map(formatWithdrawRecord)
+  }
 })
 
 // 当前类型
@@ -136,13 +150,135 @@ const currentType = computed(() => {
   return activeTab.value === 0 ? 'deposit' : 'withdraw'
 })
 
+// 获取充值类型列表（用于映射）
+const fetchRechargeTypeList = async () => {
+  try {
+    const response = await apis.config.getRechargeTypeList()
+
+    if (response.data.Code === 200 && response.data.Data) {
+      // 将数组转换为 Key -> Name 的映射表
+      const mapping: Record<number, string> = {}
+      response.data.Data.forEach(item => {
+        mapping[item.Key] = item.Name
+      })
+      payTypeMap.value = mapping
+    }
+  } catch (error) {
+    console.error('获取充值类型列表失败:', error)
+  }
+}
+
+// 获取手续费总计
+const fetchFeeTotal = async () => {
+  try {
+    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+
+    const response = await apis.admin.getPayMoneyWithdrawFeeDetails({
+      Page: 1,
+      PageSize: 1,
+      BeginTime,
+      EndTime
+    })
+
+    if (response.data.Code === 200 && response.data.Data) {
+      feeTotal.value = response.data.Data.Total || { TotalPayFee: 0, TotalWithdrawFee: 0 }
+    }
+  } catch (error) {
+    console.error('获取手续费总计失败:', error)
+  }
+}
+
+// 获取充值手续费记录
+const fetchPayRecords = async (isRefreshing = false) => {
+  try {
+    if (!isRefreshing) {
+      loading.value = true
+    }
+    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+
+    const response = await apis.admin.getPayRecords({
+      Page: currentPage.value,
+      PageSize: pageSize.value,
+      BeginTime,
+      EndTime,
+      LoginAccount: searchKeyword.value || undefined,
+      Sort: sortMap[sortType.value]
+    })
+
+    if (response.data.Code === 200 && response.data.Data) {
+      payRecordsData.value = response.data.Data.Items || []
+    } else {
+      showToast({
+        message: response.data.Msg || '加载失败',
+        position: 'bottom',
+      })
+    }
+  } catch (error) {
+    console.error('获取充值手续费记录失败:', error)
+    showToast({
+      message: '加载失败，请稍后重试',
+      position: 'bottom',
+    })
+  } finally {
+    if (!isRefreshing) {
+      loading.value = false
+    }
+  }
+}
+
+// 获取提现手续费记录
+const fetchWithdrawRecords = async (isRefreshing = false) => {
+  try {
+    if (!isRefreshing) {
+      loading.value = true
+    }
+    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+
+    const response = await apis.admin.getWithdrawRecords({
+      Page: currentPage.value,
+      PageSize: pageSize.value,
+      BeginTime,
+      EndTime,
+      LoginAccount: searchKeyword.value || undefined,
+      Sort: sortMap[sortType.value]
+    })
+
+    if (response.data.Code === 200 && response.data.Data) {
+      withdrawRecordsData.value = response.data.Data.Items || []
+    } else {
+      showToast({
+        message: response.data.Msg || '加载失败',
+        position: 'bottom',
+      })
+    }
+  } catch (error) {
+    console.error('获取提现手续费记录失败:', error)
+    showToast({
+      message: '加载失败，请稍后重试',
+      position: 'bottom',
+    })
+  } finally {
+    if (!isRefreshing) {
+      loading.value = false
+    }
+  }
+}
+
+// 获取当前Tab的列表
+const fetchCurrentList = async (isRefreshing = false) => {
+  if (activeTab.value === 0) {
+    await fetchPayRecords(isRefreshing)
+  } else {
+    await fetchWithdrawRecords(isRefreshing)
+  }
+}
+
 // 下拉刷新
 const refreshing = ref(false)
 const onRefresh = async () => {
-  // TODO: 重新获取数据
-  setTimeout(() => {
-    refreshing.value = false
-  }, 1000)
+  currentPage.value = 1
+  await Promise.all([fetchFeeTotal(), fetchCurrentList(true)])
+  refreshing.value = false
 }
 
 import { useSticky } from '@/composables/useSticky'
@@ -167,7 +303,8 @@ const handleBack = () => {
 // 搜索处理
 const handleSearch = () => {
   console.log('搜索会员账号:', searchKeyword.value)
-  // TODO: 实现搜索逻辑
+  currentPage.value = 1
+  fetchCurrentList()
 }
 
 // 点击订单卡片
@@ -176,11 +313,33 @@ const handleOrderClick = (order: any) => {
   // TODO: 跳转到订单详情或执行其他操作
 }
 
-// 模拟加载
-onMounted(() => {
-  setTimeout(() => {
-    loading.value = false
-  }, 500)
+// 监听筛选条件变化
+watch([selectedDate, sortType], ([newDate]) => {
+  currentPage.value = 1
+  fetchFeeTotal() // 更新手续费总计
+  fetchCurrentList()
+  // 更新 URL query 参数（不添加历史记录）
+  router.replace({
+    name: 'financeDepositWithdrawFeeRecord',
+    query: {
+      ...route.query,
+      date: newDate
+    }
+  })
+})
+
+// 监听 Tab 切换
+watch(activeTab, () => {
+  currentPage.value = 1
+  sortType.value = '账变时间降序'
+  fetchCurrentList()
+})
+
+// 页面挂载时加载数据
+onMounted(async () => {
+  await fetchRechargeTypeList() // 先加载充值类型映射表
+  fetchFeeTotal() // 加载手续费总计
+  fetchCurrentList()
 })
 </script>
 
@@ -205,16 +364,11 @@ onMounted(() => {
       <!-- 手续费总计卡片 -->
       <div class="px-3 py-2 pt-[56px]">
         <FinanceCard
-           class="shadow-sm"
+          class="shadow-sm"
           title=""
           :show-arrow="false"
           :show-background-color="false"
-          :data="[
-            [
-              { label: '充值手续费', value: formatMoneyWithCommas(currentSummary.SumPayMoneyFee, 2, true) },
-              { label: '提现手续费', value: formatNumberWithCommas(currentSummary.SumWithdrawMoneyFee, 0, true) }
-            ]
-          ]"
+          :data="feeSummaryData"
         />
       </div>
      <!-- Tabs + 搜索和筛选器（sticky 固定） -->
@@ -239,7 +393,7 @@ onMounted(() => {
             shape="round"
             background="transparent"
             clearable
-            :left-icon="null"
+            left-icon=""
             @search="handleSearch"
             @keyup.enter="handleSearch"
           >
@@ -270,16 +424,15 @@ onMounted(() => {
       </div>
 
       <!-- Loading 状态 -->
-      <div v-if="loading" class="fee-list-loading">
+      <div v-if="loading" class="record-list-loading">
         <van-loading size="32px" vertical>
           <template #default>加载中...</template>
         </van-loading>
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="currentList.length === 0" class="fee-list-empty">
-        <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-        <span class="empty-text">暂无数据</span>
+      <div v-else-if="currentList.length === 0" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
+        <empty />
       </div>
 
       <!-- 手续费记录列表 -->
@@ -366,6 +519,15 @@ onMounted(() => {
 /* 用於吸頂定位的佔位元素 */
 .filter-bar-placeholder {
   /* 高度由JS動態設定 */
+}
+
+/* Loading 状态 */
+.record-list-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 0;
+  min-height: 300px;
 }
 
 .record-list-container {

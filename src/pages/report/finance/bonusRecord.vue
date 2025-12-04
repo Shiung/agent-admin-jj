@@ -183,7 +183,7 @@ const handleBonusClick = (record: any) => {
             shape="round"
             background="transparent"
             clearable
-            :left-icon="null"
+            left-icon=""
             @search="handleSearch"
             @keyup.enter="handleSearch"
           >

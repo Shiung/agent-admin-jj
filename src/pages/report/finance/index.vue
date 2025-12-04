@@ -341,9 +341,8 @@ const handleCardClick = (cardName: string) => {
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="!financeData" class="finance-list-empty">
-        <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-        <span class="empty-text">暂无数据</span>
+      <div v-else-if="!financeData" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
+        <empty />
       </div>
 
       <!-- 财务记录列表 -->
@@ -449,26 +448,4 @@ const handleCardClick = (cardName: string) => {
   min-height: 300px;
 }
 
-/* 空状态 */
-.finance-list-empty {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
-  gap: 16px;
-}
-
-.empty-icon {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-}
-
-.empty-text {
-  font-size: 14px;
-  color: var(--color-neutral2-tertiary);
-  font-weight: 400;
-}
 </style>

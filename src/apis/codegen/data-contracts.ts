@@ -1113,3 +1113,132 @@ export interface WithdrawListResponse {
   Msg: string
   Id: string
 }
+
+// ==================== 充值/提现手续费记录相关 ====================
+
+// 充值手续费记录查询参数
+export interface PayRecordsQuery {
+  Page?: number // 分页页数
+  PageSize?: number // 分页笔数
+  BeginTime: number // 开始时间（Unix时间戳）
+  EndTime: number // 结束时间（Unix时间戳）
+  LoginAccount?: string // 会员账号
+  Sort?: string // 排序字段(transaction_time:交易时间, amount:金额)，前面带正负号代表排序方式
+}
+
+// 充值手续费记录明细
+export interface PayRecordItem {
+  Amount: number // 充值金额（分）
+  Fee: number // 手续费（分）
+  FeeRate: number // 费率
+  LoginAccount: string // 会员账号
+  OrderId: string // 订单号
+  PayType: number // 支付方式
+  PlayerId: number // 玩家ID
+  TransactionTime: number // 交易时间（Unix时间戳）
+}
+
+// 充值手续费总计
+export interface PayRecordsTotal {
+  TotalAmount: number // 总充值金额（分）
+  TotalFee: number // 总手续费（分）
+}
+
+// 充值手续费记录数据
+export interface PayRecordsData {
+  Items: PayRecordItem[]
+  Pagination: Pagination
+  Total: PayRecordsTotal
+}
+
+// 充值手续费记录响应
+export interface PayRecordsResponse {
+  Code: number
+  Data: PayRecordsData
+  Msg: string
+  Id: string
+}
+
+// 提现手续费记录查询参数
+export interface WithdrawRecordsQuery {
+  Page?: number // 分页页数
+  PageSize?: number // 分页笔数
+  BeginTime: number // 开始时间（Unix时间戳）
+  EndTime: number // 结束时间（Unix时间戳）
+  LoginAccount?: string // 会员账号
+  Sort?: string // 排序字段(transaction_time:交易时间, amount:金额)，前面带正负号代表排序方式
+}
+
+// 提现手续费记录明细
+export interface WithdrawRecordItem {
+  Amount: number // 提现金额（分）
+  Fee: number // 手续费（分）
+  FeeRate: number // 费率
+  LoginAccount: string // 会员账号
+  OrderId: string // 订单号
+  PayType: number // 支付方式
+  PlayerId: number // 玩家ID
+  TransactionTime: number // 交易时间（Unix时间戳）
+  WithdrawType: number // 提现类型
+}
+
+// 提现手续费总计
+export interface WithdrawRecordsTotal {
+  TotalAmount: number // 总提现金额（分）
+  TotalFee: number // 总手续费（分）
+}
+
+// 提现手续费记录数据
+export interface WithdrawRecordsData {
+  Items: WithdrawRecordItem[]
+  Pagination: Pagination
+  Total: WithdrawRecordsTotal
+}
+
+// 提现手续费记录响应
+export interface WithdrawRecordsResponse {
+  Code: number
+  Data: WithdrawRecordsData
+  Msg: string
+  Id: string
+}
+
+// ==================== 充提手续费总计相关 ====================
+
+// 充提手续费总计查询参数
+export interface PayMoneyWithdrawFeeDetailsQuery {
+  Page?: number // 分页页数
+  PageSize?: number // 分页笔数
+  BeginTime: number // 开始时间（Unix时间戳）
+  EndTime: number // 结束时间（Unix时间戳）
+}
+
+// 充提手续费日报明细
+export interface PayMoneyWithdrawFeeItem {
+  PayMoney: number // 充值金额（分）
+  PayMoneyFee: number // 充值手续费（分）
+  ReportDay: string // 日报
+  ReportDayTime: number // 日报时间（Unix时间戳）
+  WithdrawMoney: number // 提现金额（分）
+  WithdrawMoneyFee: number // 提现手续费（分）
+}
+
+// 充提手续费总计
+export interface PayMoneyWithdrawFeeTotal {
+  TotalPayFee: number // 充值手续费总计（分）
+  TotalWithdrawFee: number // 提现手续费总计（分）
+}
+
+// 充提手续费详情数据
+export interface PayMoneyWithdrawFeeDetailsData {
+  Items: PayMoneyWithdrawFeeItem[]
+  Total: PayMoneyWithdrawFeeTotal
+}
+
+// 充提手续费详情响应
+export interface PayMoneyWithdrawFeeDetailsResponse {
+  Code: number
+  Data: PayMoneyWithdrawFeeDetailsData
+  Msg: string
+  Id: string
+}

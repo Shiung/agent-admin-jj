@@ -227,6 +227,8 @@ const agentList = computed<AgentData[]>(() => {
         activeUsers: currentMonth.ActivityUserNum || 0,
         // 佣金比例
         commissionRate: currentMonth.CommissionRate ? formatCommissionRate(currentMonth.CommissionRate) : null,
+        // 发放时间（团队视图使用空字符串，因为团队视图不显示发放时间）
+        releaseDate: '',
         // 保存完整数据用于详情弹窗
         fullData: {
           currentMonth,
@@ -637,9 +639,8 @@ const handleReleaseConfirm = async () => {
       </div>
 
       <!-- 空状态 -->
-      <div v-else-if="!props.commissionData" class="agent-list-empty">
-        <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-        <span class="empty-text">暂无数据</span>
+      <div v-else-if="!props.commissionData" :style="{ minHeight: 'calc(100vh - 408px)' }" class="flex-1 flex items-center">
+        <empty />
       </div>
 
       <!-- 数据内容 -->
@@ -783,15 +784,13 @@ const handleReleaseConfirm = async () => {
       </div>
 
       <!-- 空状态（下级视图） -->
-      <div v-else-if="props.viewType === 2 && agentList.length === 0" class="agent-list-empty">
-        <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-        <span class="empty-text">暂无数据</span>
+      <div v-else-if="props.viewType === 2 && agentList.length === 0" class="flex-1 flex items-center">
+        <empty />
       </div>
 
       <!-- 空状态（团队视图） -->
-      <div v-else-if="props.viewType === 1 && agentList.length === 0" class="agent-list-empty">
-        <img src="/static/images/promote/empty.png" alt="暂无数据" class="empty-icon" />
-        <span class="empty-text">暂无数据</span>
+      <div v-else-if="props.viewType === 1 && agentList.length === 0" class="flex-1 flex items-center">
+        <empty />
       </div>
 
       <!-- 团队视图：简化卡片（只显示当月数据） -->
@@ -824,7 +823,7 @@ const handleReleaseConfirm = async () => {
             <template #title>
               <div class="team-simple-grid">
                 <div class="team-text-card">当期佣金</div>
-                <div class="team-text-card font-semibold">{{ formatMoneyWithCommas(agent.commission) }}</div>
+                <div class="team-text-card font-semibold">{{ formatMoneyWithCommas(agent.commission || 0) }}</div>
               </div>
             </template>
           </van-cell>
@@ -882,8 +881,8 @@ const handleReleaseConfirm = async () => {
             <template #title>
               <div class="cell-grid">
                 <div class="team-text-card">应发佣金</div>
-                <div class="team-text-card">{{ formatMoneyWithCommas(agent.payableCommission.lastMonth) }}</div>
-                <div class="team-text-card font-semibold">{{ formatMoneyWithCommas(agent.payableCommission.currentMonth) }}</div>
+                <div class="team-text-card">{{ formatMoneyWithCommas(agent.payableCommission?.lastMonth || 0) }}</div>
+                <div class="team-text-card font-semibold">{{ formatMoneyWithCommas(agent.payableCommission?.currentMonth || 0) }}</div>
               </div>
             </template>
           </van-cell>
@@ -893,8 +892,8 @@ const handleReleaseConfirm = async () => {
             <template #title>
               <div class="cell-grid">
                 <div class="team-text-card">已发佣金</div>
-                <div class="team-text-card">{{ formatMoneyWithCommas(agent.paidCommission.lastMonth) }}</div>
-                <div class="team-text-card font-semibold">{{ formatMoneyWithCommas(agent.paidCommission.currentMonth) }}</div>
+                <div class="team-text-card">{{ formatMoneyWithCommas(agent.paidCommission?.lastMonth || 0) }}</div>
+                <div class="team-text-card font-semibold">{{ formatMoneyWithCommas(agent.paidCommission?.currentMonth || 0) }}</div>
               </div>
             </template>
           </van-cell>
@@ -904,8 +903,8 @@ const handleReleaseConfirm = async () => {
             <template #title>
               <div class="cell-grid">
                 <div class="team-text-card">活跃会员</div>
-                <div class="team-text-card">{{ agent.activeUsers.lastMonth }}</div>
-                <div class="team-text-card font-semibold">{{ agent.activeUsers.currentMonth }}</div>
+                <div class="team-text-card">{{ typeof agent.activeUsers === 'object' ? agent.activeUsers?.lastMonth : '-' }}</div>
+                <div class="team-text-card font-semibold">{{ typeof agent.activeUsers === 'object' ? agent.activeUsers?.currentMonth : agent.activeUsers }}</div>
               </div>
             </template>
           </van-cell>
@@ -915,8 +914,8 @@ const handleReleaseConfirm = async () => {
             <template #title>
               <div class="cell-grid">
                 <div class="team-text-card">佣金比例</div>
-                <div class="team-text-card">{{ agent.commissionRate.lastMonth || '-' }}</div>
-                <div class="team-text-card font-semibold">{{ agent.commissionRate.currentMonth || '-' }}</div>
+                <div class="team-text-card">{{ typeof agent.commissionRate === 'object' ? (agent.commissionRate?.lastMonth || '-') : '-' }}</div>
+                <div class="team-text-card font-semibold">{{ typeof agent.commissionRate === 'object' ? (agent.commissionRate?.currentMonth || '-') : (agent.commissionRate || '-') }}</div>
               </div>
             </template>
           </van-cell>
@@ -1630,29 +1629,6 @@ const handleReleaseConfirm = async () => {
   align-items: center;
   padding: 60px 0;
   min-height: 300px;
-}
-
-/* 空状态样式 */
-.agent-list-empty {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
-  gap: 16px;
-}
-
-.empty-icon {
-  width: 120px;
-  height: 120px;
-  object-fit: contain;
-}
-
-.empty-text {
-  font-size: 14px;
-  color: var(--color-neutral2-tertiary);
-  font-weight: 400;
 }
 
 /* 确认弹窗样式 */

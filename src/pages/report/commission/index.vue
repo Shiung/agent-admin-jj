@@ -134,8 +134,13 @@ const fetchCommissionData = async (skipLoading = false) => {
       loadingPersonalData.value = true
     }
 
+    // 将选中的月份转换为开始和结束的 Unix 时间戳
+    const startDate = dayjs(selectedDate.value).startOf('month')
+    const endDate = dayjs(selectedDate.value).endOf('month')
+
     const res = await API.report.getReportCenterCommission({
-      ReportMonth: selectedDate.value, // 格式: YYYY-MM
+      ReportBeginTime: startDate.unix(),
+      ReportEndTime: endDate.unix(),
     })
 
     if (res.data.Code !== 200) return
@@ -266,8 +271,9 @@ const fetchTeamAgentList = async (skipLoading = false) => {
 
     const data = res.data.Data
 
-    // 直接使用API返回的Data数组，已经包含了CurrentMonth和LastMonth的对比格式
-    teamAgentList.value = data.Data || []
+    // 直接使用API返回的CurrentMonth数组，已经包含了CurrentMonth和LastMonth的对比格式
+    // 注意：实际API返回的数据结构与TypeScript接口定义不完全匹配
+    teamAgentList.value = (data as any).Data || data.CurrentMonth || []
 
     // 团队API没有返回分页信息，使用数组长度作为总数
     teamPagination.value.total = teamAgentList.value.length
