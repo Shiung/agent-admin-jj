@@ -11,6 +11,11 @@ export const useGameStore = defineStore('game', () => {
     return JSON.parse(allGameType?.Value ?? '{}') as Record<string, string>
   })
 
+    const gamesMapping = computed(() => {
+    const games = solidConfig.value.GameSetting.find((item) => item.Type === 'games')
+    return JSON.parse(games?.Value ?? '{}') as Record<string, string>
+  })
+
   const fetchSolidConfig = async () => {
     const res = await API.game.getSolidConfig()
     if (res.data.Code !== 200) return
@@ -20,7 +25,7 @@ export const useGameStore = defineStore('game', () => {
   return {
     solidConfig,
     allGameTypeMapping,
-  
+    gamesMapping,
     fetchSolidConfig,
   }
 })
