@@ -20,8 +20,8 @@ const trasPushType = (type: PromotionlinkListV2ResponseData['PushType']) => {
     case 0: return '游戏-首页'
     case 1: return '游戏-直播页'
     case 2: return '纯直播'
-    case 3: return '首页（无直播'
-    case 4: return '纯直播（登录后游戏-直播页'
+    case 3: return '首页（无直播)'
+    case 4: return '纯直播（登录后游戏-直播页)'
     case 5: return '游戏-杯赛页'
     default: return type
   }
