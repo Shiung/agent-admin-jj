@@ -47,7 +47,7 @@ const closeInfoSheet = () => {
 
       <!-- 右侧：装饰图标 -->
       <div class="relative">
-        <img src="/static/images/common/commission_sum_card.png" alt="佣金总计"
+        <img src="/static/images/common/commissionWalletIcon.png" alt="佣金总计"
           class="h-[76px] w-[124px]" />
       </div>
     </div>

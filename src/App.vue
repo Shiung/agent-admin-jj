@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { RouterView, useRoute, useRouter } from 'vue-router'
+import { useGlobalStore } from '@/stores/global'
 import { useUserStore } from '@/stores/user'
 import HeaderBar from '@/components/HeaderBar/index.vue'
 import TabBar from '@/components/TabBar/index.vue'
 
 const route = useRoute()
 const router = useRouter()
+const globalStore = useGlobalStore()
 const userStore = useUserStore()
 
 onMounted(async () => {
+  globalStore.fetchSystemConfig()
+
   if (!userStore.token) return
 
   try {

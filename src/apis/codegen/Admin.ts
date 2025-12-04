@@ -7,6 +7,9 @@ import type {
   PromotionmaterialsListallRequest,
   PromotionmaterialsListallResponse,
   ConfigInfoResponse,
+  SystemConfigRequest,
+  SystemConfigResponse,
+  AccountInfoResponse,
   NetcashdashboardInfoV2Query,
   NetcashdashboardInfoV2Response,
   CompareGameDataQuery,
@@ -51,6 +54,32 @@ export class Admin<SecurityDataType = unknown> {
   ) =>
     this.http.request<ConfigInfoResponse, any>({
       path: '/admin/config/info',
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /** 取得通用配置 */ 
+  getSystemConfig = (
+    query: SystemConfigRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<SystemConfigResponse, any>({
+      path: '/api/showtheme/config',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+
+  /** 取得個人資料 */
+  getAccountInfo = (
+    params: RequestParams = {},
+  ) =>
+    this.http.request<AccountInfoResponse, any>({
+      path: '/admin/personalcenter/info',
       method: "GET",
       secure: true,
       format: "json",

@@ -153,6 +153,40 @@ const routes: RouteRecordRaw[] = [
     name: 'commissionDetail',
     component: () => import('@/pages/commission-detail/index.vue'),
   },
+  {
+    path: '/withdraw',
+    name: 'withdraw',
+    component: () => import('@/pages/finance/withdraw/index.vue'),
+    children: [
+      {
+        path: '',
+        name: 'withdrawPage',
+        component: () => import('@/pages/finance/withdraw/withdraw.vue'),
+      },
+      {
+        path: 'withdrawRecord',
+        name: 'withdrawRecord',
+        component: () => import('@/pages/finance/withdraw/withdrawRecord.vue'),
+      },
+    ]
+  },
+  {
+    path: '/recharge',
+    name: 'recharge',
+    component: () => import('@/pages/finance/recharge/index.vue'),
+    children: [
+      {
+        path: '',
+        name: 'rechargePage',
+        component: () => import('@/pages/finance/recharge/recharge.vue'),
+      },
+      {
+        path: 'rechargeRecord',
+        name: 'rechargeRecord',
+        component: () => import('@/pages/finance/recharge/rechargeRecord.vue'),
+      },
+    ]
+  },
 ]
 
 const router = createRouter({

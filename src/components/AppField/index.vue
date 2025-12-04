@@ -88,12 +88,25 @@ useMutationObserver(
     font-weight: 400;
     color: var(--color-neutral-basic);
     line-height: 24px;
+    
+    &.van-field__label--required::before  {
+      display: none;  
+    }
+
+    &.van-field__label--required::after {
+      content: "*";
+      color: var(--color-error-normal);
+    }
   }
 
   :deep(.van-field__body) {
     padding: 12px;
     border-radius: 9999px;
     border: 1px solid var(--color-neutral2-seventh);
+
+    .van-field__button {
+      margin: -2rem 0;
+    }
   }
 
   :deep(.van-field__control) {
@@ -103,6 +116,17 @@ useMutationObserver(
 
     &::placeholder {
       color: var(--color-neutral2-fourth);
+    }
+  }
+
+  &.van-field--disabled {
+    :deep(.van-field__value) {
+      .van-field__body {
+        background-color: var(--color-neutral2-seventh);
+        .van-field__control {
+          -webkit-text-fill-color: var(--color-neutral-basic)
+        }
+      }
     }
   }
 

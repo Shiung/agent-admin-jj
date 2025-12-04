@@ -18,7 +18,7 @@ const props = defineProps<Props>()
 
       <!-- 右侧：装饰图标 -->
       <div class="relative">
-        <img src="/static/images/common/finance_sum_card.png" alt="总盈利"
+        <img src="/static/images/common/creditWalletIcon.png" alt="总盈利"
           class="h-[76px] w-[124px]" />
       </div>
     </div>
