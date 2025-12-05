@@ -6,11 +6,13 @@ const slots = useSlots()
 
 interface Props {
   title: string
+  autoBack?: boolean
   showDetail?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   title: '',
+  autoBack: true,
   showDetail: false
 })
 
@@ -23,7 +25,7 @@ const router = useRouter()
 
 const handleBack = () => {
   emit('back')
-  router.back()
+  if (props.autoBack) router.back()
 }
 
 const handleDetailClick = () => {

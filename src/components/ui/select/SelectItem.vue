@@ -12,7 +12,7 @@ import {
 } from "reka-ui"
 import { cn } from '@/utils/className'
 
-const props = defineProps<SelectItemProps & { class?: HTMLAttributes["class"] }>()
+const props = defineProps<SelectItemProps & { class?: HTMLAttributes["class"] } & { hiddenCheck?: boolean }>()
 
 const delegatedProps = reactiveOmit(props, "class")
 
@@ -30,7 +30,7 @@ const forwardedProps = useForwardProps(delegatedProps)
       )
     "
   >
-    <span class="absolute right-2 flex size-3.5 items-center justify-center">
+    <span v-if="!props.hiddenCheck" class="absolute right-2 flex size-3.5 items-center justify-center">
       <SelectItemIndicator>
         <Check class="ml-2 size-4" />
       </SelectItemIndicator>

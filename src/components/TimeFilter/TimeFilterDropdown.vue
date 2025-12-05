@@ -1,0 +1,216 @@
+<script setup lang="ts">
+import { ref, computed, useAttrs } from 'vue'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import dayjs from 'dayjs'
+import Big from 'big.js'
+
+const attrs = useAttrs()
+
+interface Props {
+  height?: string
+  placeholder?: string
+  disabled?: boolean
+  title?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  placeholder: '請選擇',
+  disabled: false,
+  height: '1.5rem',
+  title: '',
+})
+
+// 有些地方不會有type
+const model = defineModel<{ startTime: number; endTime: number }>('modelValue', { required: true })
+
+// 日期區間180天
+const minDate = ref(dayjs().subtract(180, 'day').toDate())
+const maxDate = ref(dayjs().toDate())
+
+const showDatePicker = ref(false)
+const customTimeRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 0 })
+const selectedOption = ref<any>(null)
+
+// 時間區間
+const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
+
+const timeRangeOptions = ref([
+  { label: '今日', startTime: timestampToSecond(dayjs().startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
+  { label: '昨日', startTime: timestampToSecond(dayjs().subtract(1, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().subtract(1, 'day').endOf('day').valueOf()) },
+  { label: '近7日', startTime: timestampToSecond(dayjs().subtract(7, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
+  { label: '近14日', startTime: timestampToSecond(dayjs().subtract(14, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
+  { label: '本月', startTime: timestampToSecond(dayjs().startOf('month').valueOf()), endTime: timestampToSecond(dayjs().endOf('month').valueOf()) },
+  { label: '上月', startTime: timestampToSecond(dayjs().subtract(1, 'month').startOf('month').valueOf()), endTime: timestampToSecond(dayjs().subtract(1, 'month').endOf('month').valueOf()) },
+  { label: '自定义', action: () => { showDatePicker.value = true }, startTime: computed(() => customTimeRange.value.startTime), endTime: computed(() => customTimeRange.value.endTime) }
+])
+
+const displayText = computed(() => {
+  console.log(model.value)
+  if (!model.value) return props.placeholder || '請選擇'
+  
+  const timeItem = timeRangeOptions.value.find(item => item.startTime === model.value.startTime && item.endTime === model.value.endTime)
+  const displayTime = timeItem?.action ? `${dayjs(model.value.startTime * 1000).format('YYYY-MM-DD')} 至 ${dayjs(model.value.endTime * 1000).format('YYYY-MM-DD')}` : timeItem?.label
+
+  if (!props.title) return displayTime
+  return `${props.title} | ${displayTime}`
+})
+
+const handleSelectChange = (item: any) => {
+  if (!item) return
+  if (item.action) return item.action()
+  model.value = { startTime: item.startTime, endTime: item.endTime }
+}
+
+const handleDatePickerConfirm = (value: [number, number]) => {
+  const data = { startTime: timestampToSecond(dayjs(value[0] || 0).valueOf()), endTime: timestampToSecond(dayjs(value[1] || 0).valueOf()) }
+  customTimeRange.value = data
+  model.value = { ...data }
+  showDatePicker.value = false
+}
+
+</script>
+
+<template>
+  <Select v-model="selectedOption" :disabled="disabled" @update:modelValue="handleSelectChange">
+    <SelectTrigger class="dropdown-button" :class="attrs.class">
+      <SelectValue :placeholder="placeholder">
+        <slot name="prefix" />
+        <p class="whitespace-nowrap overflow-hidden text-ellipsis">{{ displayText }}</p>
+        <slot name="suffix" />
+      </SelectValue>
+    </SelectTrigger>
+    <SelectContent class="dropdown-menu min-w-auto">
+      <SelectGroup>
+        <SelectItem
+          v-for="option in timeRangeOptions"
+          :key="`${option.label}-${option.startTime}-${option.endTime}`"
+          :value="option"
+          :class="['dropdown-item', { 'is-selected': model?.startTime === option.startTime && model?.endTime === option.endTime }]"
+          hiddenCheck
+        >
+          <p class="whitespace-nowrap overflow-hidden text-ellipsis">{{ option.label }}</p>
+        </SelectItem>
+      </SelectGroup>
+    </SelectContent>
+  </Select>
+
+  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" type="range" @confirm="handleDatePickerConfirm" />
+</template>
+
+<style lang="scss" scoped>
+.dropdown-button {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  width: auto;
+  height: v-bind(height);
+  padding: .75rem .5rem;
+  background: var(--color-bg-floor-1-2);
+  border: 0px solid var(--color-primary-normal);
+  border-radius: 6.25rem;
+  font-size: 0.75rem;
+  color: var(--color-neutral2-basic);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-button:hover:not(.is-disabled) {
+  border-width: 0px;
+  box-shadow: none;
+  background: var(--color-bg-floor-1-3);
+}
+
+.dropdown-button[data-state="open"] {
+  border-width: 0px;
+  box-shadow: none;
+}
+
+.dropdown-button[data-disabled="true"] {
+  background: var(--color-bg-floor-1-2);
+  color: var(--color-neutral2-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* RWD 響應式 */
+@media (max-width: 640px) {
+  .dropdown-button {
+    height: v-bind(height);
+    padding: .75rem .5rem;
+    font-size: .75rem;
+  }
+}
+
+.dropdown-menu {
+  background: var(--color-white);
+  border: 1px solid var(--color-neutral2-seventh);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* max-height: 16rem; */
+  --reka-popper-available-height: 16rem;
+  & > [role="presentation"] {
+    min-width: auto;
+    padding: 0;
+  }
+}
+
+/* 滾動條樣式 */
+.dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+  background: var(--color-neutral2-seventh);
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background: var(--color-neutral2-seventh);
+  border-radius: 3px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral2-seventh);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.625rem 0.75rem;
+  font-size: 0.75rem;
+  color: var(--color-neutral2-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-item:hover {
+  background: transparent;
+}
+
+.dropdown-item.is-selected {
+  background: transparent;
+  color: var(--color-primary-normal);
+  font-weight: 500;
+}
+
+/* RWD 響應式 */
+@media (max-width: 640px) {
+  .dropdown-item {
+    padding: .75rem .5rem;
+    font-size: .75rem;
+  }
+
+  .dropdown-menu {
+    max-height: 60vh;
+  }
+}
+</style>
