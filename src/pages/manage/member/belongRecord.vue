@@ -12,6 +12,6 @@
       <van-image fit="contain" src="./static/images/manage/belong_bg.png" class="w-1/3" />
     </div>
 
-    <SearchBar />
+    <!-- <SearchBar /> -->
   </div>
 </template>
