@@ -210,9 +210,14 @@ const fetchData = async (page: number = 0) => {
         <div class="space-y-2 px-3">
           <UnitCard class=" border border-primary-50 shadow-none">
             <template #header>
-              <div class="text-sm font-semibold text-neutral2-basic">
-                场馆总计
-                <van-icon name="info" class="text-primary-normal" />
+              <div class="flex items-center space-x-1">
+                <span class="text-sm font-semibold text-neutral2-basic">场馆总计</span>
+                <AppTooltip content-side="bottom" >
+                  <van-icon name="info" class="text-primary-normal" />
+                  <template #content>
+                    <span>数据仅统计「已结算」的订单</span>
+                  </template>
+                </AppTooltip>
               </div>
             </template>
             <div class="flex items-center justify-between py-3">
