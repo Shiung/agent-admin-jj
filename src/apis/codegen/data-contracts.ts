@@ -517,6 +517,14 @@ export interface ReportChartItem {
 }
 
 // ==================== 报表 - 佣金 API ====================
+export interface PutNetcashmultiRequest {
+  AdminId: number // 代理ID
+  Password: string // 密碼
+  ConfirmPassword: string // 確認密碼
+  Name: string // 名稱
+  CommissionRate: string // 佣金比例（單費率為數值，多費率為JSON格式保存不同的場館類型分成）
+  Remark: string // 備註
+}
 
 export interface ReportCenterCommissionQuery {
   ReportBeginTime: number // Unix 时间戳
@@ -1405,6 +1413,197 @@ export interface HelpCenterListData {
   Sort: number
   Tag: string
   UpdateTime: number
+}
+
+export interface PutNetcashmultiResponse {
+  Code: number
+  Data: Record<string, any>
+  Msg: string
+  Id: string
+}
+
+export interface PostNetcashmultiRequest {
+  Username: string // 代理帳號
+  Password: string // 密碼
+  ConfirmPassword: string // 確認密碼
+  Name: string // 名稱
+  CommissionRate: string // 佣金比例（單費率為數值，多費率為JSON格式保存不同的場館類型分成）
+  Remark: string // 備註
+}
+
+export interface PostNetcashmultiResponse {
+  Code: number
+  Data: Record<string, any>
+  Msg: string
+  Id: string
+}
+
+export interface GetNetcashmultiInfoV2Response {
+  Code: number
+  Data: GetNetcashmultiInfoV2Data
+  Msg: string
+  Id: string
+}
+
+export interface GetNetcashmultiInfoV2Data {
+  AccountLevel: number // 代理層級
+  CommissionRate: string // 佣金比例
+  DownLineAgents: number // 下級代理數
+  DownLineMembers: number // 會員數
+  Username: string // 代理账号
+}
+
+export interface NetcashmultiListQuery {
+  Page: number // 页码
+  PageSize: number // 每页条数
+  Sort: string // 排序 前面帶正負號代表排序方式。ex: -CreateTime, +Members,支援參數: AccountLevel, CreateTime, Members
+  Username: string // 代理账号
+  AccountLevel: number // 代理層級
+  AdminId: number // 代理ID
+  CreateTimeBegin: number // 创建时间开始
+  CreateTimeEnd: number // 创建时间结束
+}
+
+export interface GetNetcashmultiListResponse {
+  Code: number
+  Data: NetcashmultiListData
+  Msg: string
+  Id: string
+}
+
+export interface Pagination {
+  CurrPage: number // 当前页码
+  MaxCount: number // 总数
+  MaxPageCount: number // 总页数
+  PageSize: number // 每页条数
+}
+
+export interface NetcashmultiListData {
+  Items: NetcashmultiListItem[]
+  Pagination: Pagination
+}
+
+export interface NetcashmultiListItem {
+  AccountLevel: number,
+  AdminId: number,
+  CommissionRate: string,
+  CreateTime: number,
+  Members: number,
+  Name: string,
+  ParentTree: string,
+  Remark: string,
+  Username: string
+}
+
+export interface NetcashmultiSearchAdminQuery {
+  Username: string // 代理账号
+  AccountLevel: number // 代理層級
+}
+
+export interface GetNetcashmultiSearchAdminResponse {
+  Code: number
+  Data: NetcashmultiSearchAdminData
+  Msg: string
+  Id: string
+}
+
+export interface NetcashmultiSearchAdminData {
+  Items: NetcashmultiSearchAdminItem[]
+}
+
+export interface NetcashmultiSearchAdminItem {
+  AdminId: number,
+  Username: string
+}
+
+export interface GetNetcashmultiTreeResponse {
+  Code: number
+  Data: NetcashmultiTreeData
+  Msg: string
+  Id: string
+}
+
+export interface NetcashmultiTreeData {
+  MultiAgentTree: NetcashmultiTreeItem
+}
+
+export interface NetcashmultiTreeItem {
+  AccountLevel: number,
+  AdminId: number,
+  Children: NetcashmultiTreeItem[],
+  CommissionRate: string,
+  SumWinLose: number,
+  Username: string
+}
+
+export interface GetNetcashteamInfoResponse {
+  Code: number
+  Data: GetNetcashteamInfoData
+  Msg: string
+  Id: string
+}
+
+
+export interface GetNetcashteamInfoData {
+  ActiveMembers: number,
+  CreateTime: number,
+  Deleted: number,
+  Deputys: number,
+  Id: number,
+  Members: number,
+  Remark: string,
+  TeamName: string,
+  Type: number,
+  Username: string
+}
+
+export interface NetcashteamListV2Query {
+  Page: number // 页码
+  PageSize: number // 每页条数
+  Sort: string // 排序(示例: 按照渠道正向排序 'ChannelId'，按照渠道反向排序 '-ChannelId')。如果為空，默認按照Id反向排序
+  JoinTeamTimeBegin: number // 开始时间
+  JoinTeamTimeEnd: number // 结束时间
+  AdminId: number // 代理ID
+}
+
+export interface NetcashteamListV2Data {
+  Items: NetcashteamListV2Item[]
+  Pagination: Pagination
+}
+
+export interface NetcashteamListV2Item {
+  ActiveMembers: number,
+  AdminId: number,
+  JoinTeamTime: number,
+  Members: number,
+  Username: string
+}
+
+export interface GetNetcashteamListV2Response {
+  Code: number
+  Data: NetcashteamListV2Data
+  Msg: string
+  Id: string
+}
+
+export interface NetcashteamSearchQuery {
+  Username: string // 代理账号
+}
+
+export interface NetcashteamSearchData {
+  Items: NetcashteamSearchItem[]
+}
+
+export interface NetcashteamSearchItem {
+  AdminId: number,
+  Username: string
+}
+
+export interface GetNetcashteamSearchResponse {
+  Code: number
+  Data: NetcashteamSearchData
+  Msg: string
+  Id: string
 }
 
 export interface HelpCenterListResponse {

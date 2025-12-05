@@ -58,16 +58,21 @@ const routes: RouteRecordRaw[] = [
       {
         path: 'agent',
         name: 'manageAgent',
-        component: () => import('@/pages/manage/agent.vue'),
+        component: () => import('@/pages/manage/agent/index.vue'),
         meta: {
           showTabBar: true,
           showHeaderBar: true,
         },
       },
       {
+        path: 'agent/orgChart',
+        name: 'agentOrgChart',
+        component: () => import('@/pages/manage/agent/orgChart.vue'),
+      },
+      {
         path: 'team',
         name: 'manageTeam',
-        component: () => import('@/pages/manage/team.vue'),
+        component: () => import('@/pages/manage/team/index.vue'),
         meta: {
           showTabBar: true,
           showHeaderBar: true,

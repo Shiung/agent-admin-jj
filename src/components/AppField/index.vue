@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, useAttrs, useSlots } from 'vue'
+import { ref, useSlots } from 'vue'
 import type { FieldInstance, FieldProps } from 'vant'
 import { useMutationObserver } from '@vueuse/core'
 
@@ -30,7 +30,6 @@ const emit = defineEmits<{
   (e: 'update:modelValue', value: FieldProps['modelValue'] | undefined): void
 }>()
 
-const attrs = useAttrs()
 const slots = useSlots()
 
 const fieldRef = ref<FieldInstance | null>(null)
@@ -49,7 +48,7 @@ useMutationObserver(
 </script>
 
 <template>
-  <van-field ref="fieldRef" v-bind="props" v-on="attrs" class="app-field" :class="{ 'app-field--error': hasError }"
+  <van-field ref="fieldRef" v-bind="props" class="app-field" :class="{ 'app-field--error': hasError }"
     :model-value="modelValue" @update:model-value="val => emit('update:modelValue', val)">
     <template v-if="slots.label" #label>
       <slot name="label" />
