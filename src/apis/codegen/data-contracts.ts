@@ -1395,7 +1395,6 @@ export interface PayMoneyWithdrawFeeDetailsResponse {
   Msg: string
   Id: string
 }
-
 export interface HelpCenterListData {
   AdminId: number
   Content: string
@@ -1421,3 +1420,7 @@ export interface LoginSettingRequest {
   PrivatePassword: string // 私人密码
   TimeFreeVerification: number // 免验证时间，单位:分钟
 }
+
+export type * from './Playermanage/types'
+export type * from './NetCashPlayerGame/types'
+export type * from './ApiConfig/types'
