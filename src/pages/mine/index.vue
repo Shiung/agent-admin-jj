@@ -11,22 +11,18 @@ const SHORTCUTS = [
   {
     key: 'fundDetail',
     title: '资金明细',
-    // icon: `./static/images/mine/icon-fund.png`,
   },
   {
     key: 'agentDeposit',
     title: '代理代存',
-    // icon: `./static/images/mine/icon-deposit.png`,
   },
   {
     key: 'agentTransfer',
     title: '代理转帐',
-    // icon: `./static/images/mine/icon-transfer.png`,
   },
   {
     key: 'commissionQuota',
     title: '佣金转额度',
-    // icon: `./static/images/mine/icon-quota.png`,
   },
 ]
 
@@ -35,22 +31,26 @@ const MENUS = [
   {
     key: 'withdrawAccount',
     title: '提现帐号',
-    icon: 'user-o',
+  },
+  {
+    key: 'betRecord',
+    title: '注单记录',
+  },
+  {
+    key: 'memberDeposit',
+    title: '会员充值',
   },
   {
     key: 'security',
     title: '安全设置',
-    icon: 'shield-o',
   },
   {
     key: 'help',
     title: '帮助',
-    icon: 'question-o',
   },
   {
     key: 'version',
     title: '版本号',
-    icon: 'setting-o',
     isVersion: true,
   },
 ]
@@ -61,7 +61,8 @@ const userStore = useUserStore()
 const agentAccount = computed(() => {
   return userStore.userInfo?.Admin?.Username || ''
 })
-const lastLoginIp = ''
+
+const accountInfo = computed(() => userStore.accountInfo)
 
 const goProfile = () => {
   router.push({ name: 'mineProfile' })
@@ -89,12 +90,15 @@ const fetchAccountBalance = async () => {
   creditWalletBalance.value = res.data.Data.Items.Credit
 }
 
-const handleMenuClick = () => {
+const handleMenuClick = (key: string) => {
+  router.push({ name: key })
 }
 
-onMounted(() => {
+
+onMounted(async () => {
   fetchOverview()
   fetchAccountBalance()
+  await userStore.fetchAccountInfo()
 })
 </script>
 
@@ -108,7 +112,7 @@ onMounted(() => {
           {{ agentAccount }}
         </p>
         <p class="text-sm text-neutral-secondary">
-          最近登录 {{ lastLoginIp }}
+          最近登录 {{ accountInfo?.Ip }}
         </p>
       </div>
       <van-icon name="arrow" size="24" class="text-neutral2-tertiary" />
@@ -129,18 +133,27 @@ onMounted(() => {
     </div>
 
     <!-- 常用功能 -->
-    <div class="px-3 pt-2 pb-3 bg-white rounded-2xl border border-neutral2-seventh mx-3 mt-4">
-      <h2 class="text-base font-semibold text-neutral-basic mb-3">
-        常用功能
-      </h2>
+    <div class="px-3 py-3 bg-white rounded-2xl border border-neutral2-seventh mx-3 mt-4">
+      <div class="flex items-center justify-between gap-2">
+        <div
+          v-for="item in SHORTCUTS"
+          :key="item.key"
+          class="flex-1 flex flex-col items-center cursor-pointer"
+        >
+          <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+            <van-image :src="`./static/images/mine/${item.key}.svg`" size="24"/>
+          </div>
+          <span class="text-sm text-neutral-basic text-center">{{ item.title }}</span>
+        </div>
+      </div>
     </div>
 
     <!-- 設置列表 -->
     <div class="px-3 py-2">
       <div v-for="item in MENUS" :key="item.key"
         class="flex items-center px-3 h-12 border-b border-dashed border-neutral2-sixth last:border-b-0"
-        @click="handleMenuClick()">
-        <van-icon :name="item.icon" size="24" class="text-neutral-basic mr-2" />
+        @click="handleMenuClick(item.key)">
+        <van-image :src="`./static/images/mine/${item.key}.svg`" size="24" class="pr-3" />
         <span class="flex-1 text-sm text-neutral-basic">
           {{ item.title }}
         </span>

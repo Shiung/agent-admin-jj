@@ -91,6 +91,37 @@ export interface SendEmailVerifyCodeResponse {
   Id: string
 }
 
+export interface MineResponse {
+  Code: number
+  Data: string
+  Msg: string
+}
+
+export interface PhoneVerifyResponse {
+  Code: number
+  Data: string
+  Msg: string
+  id?: string
+  errorCode?: string
+  message?: string
+}
+
+export interface EmailVerifyResponse {
+  Code: number
+  Data: string
+  Msg: string
+}
+
+export interface GoogleValidResponseData {
+  QrCode: string
+  Secret: string
+}
+export interface GoogleCodeResponse {
+  Code: number
+  Data: GoogleValidResponseData | null
+  Msg: string
+}
+
 export interface CompareCommissionResponse {
   Code: number
   Data: CompareCommissionResponseData
@@ -329,6 +360,7 @@ export interface AccountInfoResponse {
 export interface AccountInfoData {
   Ip: string
   Address: string
+  Count: number // 登录次数
   Country: number
   Username: string
   /** 真實姓名 */
@@ -367,6 +399,14 @@ export interface AccountInfoData {
   LastCommissionRate: string
   /** 設定生效前佣金結算週期，1:日結 2:週結 3:月結，0不顯示 */
   LastSettlementType: number
+}
+
+export interface CommissionRateItem {
+  Level: number // 层级
+  LevelName: string // 层级名称
+  ActiveNum: number // 活跃人数
+  SumWinLose: number // 输赢金额，单位:分
+  CommissionRate: number // 佣金比例
 }
 
 export interface NetcashdashboardInfoV2Response {
@@ -1354,4 +1394,30 @@ export interface PayMoneyWithdrawFeeDetailsResponse {
   Data: PayMoneyWithdrawFeeDetailsData
   Msg: string
   Id: string
+}
+
+export interface HelpCenterListData {
+  AdminId: number
+  Content: string
+  CreateAdminId: number
+  CreateTime: number
+  Deleted: number
+  Id: number
+  Sort: number
+  Tag: string
+  UpdateTime: number
+}
+
+export interface HelpCenterListResponse {
+  Code: number
+  Data: { Items: Array<HelpCenterListData> }
+  Msg: string
+  Id: string
+}
+
+export interface LoginSettingRequest {
+  LoginType: number // 登录类型，1:允许，0:禁止
+  IsAllowOtherDeviceLogin: number // 是否允许其他设备登录，1:允许，0:不允许
+  PrivatePassword: string // 私人密码
+  TimeFreeVerification: number // 免验证时间，单位:分钟
 }

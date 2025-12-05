@@ -13,6 +13,7 @@ export const useUserStore = defineStore('user', () => {
   const token = ref<string | null>(localStorage.getItem('userToken') || null)
   const userInfo = ref<Record<string, any> | null>(null)
   const accountInfo = ref<AccountInfoData | null>(null)
+  const googleSecretCode = ref<{ Secret?: string; QrCode?: string } | null>(null)
 
   /** 是否為單層代理（AccountType: 1=单层代理,2=多层代理-单费率,3=多层代理-多费率(目前無3)） */
   const isSingleAgent = computed(() => userInfo.value?.NetCashAccount.AccountType === 1)
@@ -97,6 +98,7 @@ export const useUserStore = defineStore('user', () => {
     isSingleAgent,
     hasTeam,
     productPackages,
+    googleSecretCode,
     setToken,
     logout,
     fetchIsLogin,
