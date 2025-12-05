@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type SwitchTab from '@/components/SwitchTab/index.vue'
 
 const route = useRoute()
 
+const rootRouteLs = ['manageMember', 'manageAgent', 'manageTeam']
 
 const ls: InstanceType<typeof SwitchTab>['$props']['tabs'] = [
   { id: 'manageMember', title: '会员', to: { name: 'manageMember' }},
@@ -14,11 +15,16 @@ const ls: InstanceType<typeof SwitchTab>['$props']['tabs'] = [
 
 const active = ref<InstanceType<typeof SwitchTab>['$props']['activeTab']>(ls.findIndex(l => l.id.toString() === route.name) ?? 0)
 
+const isTabAlive = computed(() => {
+  const routeName = route.name
+  return rootRouteLs.some((l) => l === routeName)
+})
+
 </script>
 
 <template>
   <div class="min-h-full flex flex-col flex-1">
-    <switch-tab v-model:active-tab="active" :tabs="ls" class="px-3" />
+    <switch-tab v-if="isTabAlive" v-model:active-tab="active" :tabs="ls" class="px-3" />
     <router-view />
   </div>
 </template>

@@ -27,12 +27,33 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'member',
-        name: 'manageMember',
         component: () => import('@/pages/manage/member.vue'),
-        meta: {
-          showTabBar: true,
-          showHeaderBar: true,
-        },
+        children: [
+          { 
+            path: '',
+            name: 'manageMember',
+            component: () => import('@/pages/manage/member/index.vue'),
+            meta: {
+              showTabBar: true,
+              showHeaderBar: true,
+            },
+          },
+          {
+            path: ':id',
+            name: 'manageMemberDetail',
+            component: () => import('@/pages/manage/member/detail/index.vue')
+          },
+          {
+            path: 'belongApply',
+            name: 'manageMemberBelongApply',
+            component: () => import('@/pages/manage/member/belongApply.vue')
+          },
+          {
+            path: 'belongRecord',
+            name: 'manageMemberBelongRecord',
+            component: () => import('@/pages/manage/member/belongRecord.vue')
+          }
+        ]
       },
       {
         path: 'agent',
