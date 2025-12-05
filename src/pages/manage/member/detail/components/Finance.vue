@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, inject, defineComponent, h, computed, onMounted } from 'vue'
+import { ref, inject, defineComponent, h, computed } from 'vue'
 import { cn } from '@/utils/className'
 import dayjs from 'dayjs'
 import { formatSignedMoney, formatMoney } from '@/utils/formatNumber'
@@ -49,10 +49,6 @@ const UnitBlock = defineComponent(
       }
     })
 
-    onMounted(() => {
-      console.log('init unit')
-    })
-
     return () => h('div', { class: cn(attrs?.class ?? '', returnVal.value.color)}, returnVal.value.text ?? '')
   }, {
     props: ['type', 'val'],
@@ -70,7 +66,15 @@ const onRefresh = async () => {
 
 <template>
   <div class="px-4">
-    finance
+    <div class="flex items-center justify-between">
+      <div>filters</div>
+      <AppTooltip content-side="bottom" >
+        <van-icon name="info" class="text-primary-normal" />
+        <template #content>
+          <span>数据仅统计「已结算」、「充值完成」、「已出款」的订单</span>
+        </template>
+      </AppTooltip>
+    </div>
     <van-pull-refresh v-model="refreshing" @refresh="onRefresh">
       <div class="mt-1 rounded-2xl border px-3 [&>div:not(:first-of-type)]:border-t [&>div:not(:first-of-type)]:border-neutral2-sixth">
         <div v-for="l in ls" :key="l.id" class="flex items-center justify-between py-2">

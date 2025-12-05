@@ -9,6 +9,7 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AppField: typeof import('./src/components/AppField/index.vue')['default']
+    AppTooltip: typeof import('./src/components/AppTooltip/index.vue')['default']
     BottomPopup: typeof import('./src/components/BottomPopup/index.vue')['default']
     Carousel: typeof import('./src/components/carousel/Carousel.vue')['default']
     CarouselContent: typeof import('./src/components/carousel/CarouselContent.vue')['default']
@@ -38,6 +39,10 @@ declare module 'vue' {
     SelectValue: typeof import('./src/components/ui/select/SelectValue.vue')['default']
     SwitchTab: typeof import('./src/components/SwitchTab/index.vue')['default']
     TabBar: typeof import('./src/components/TabBar/index.vue')['default']
+    Tooltip: typeof import('./src/components/ui/tooltip/Tooltip.vue')['default']
+    TooltipContent: typeof import('./src/components/ui/tooltip/TooltipContent.vue')['default']
+    TooltipProvider: typeof import('./src/components/ui/tooltip/TooltipProvider.vue')['default']
+    TooltipTrigger: typeof import('./src/components/ui/tooltip/TooltipTrigger.vue')['default']
     VanButton: typeof import('vant/es')['Button']
     VanCheckbox: typeof import('vant/es')['Checkbox']
     VanDivider: typeof import('vant/es')['Divider']
