@@ -16,6 +16,9 @@ import type {
   CompareGameDataResponse,
   ReportsChartsQuery,
   ReportsChartsResponse,
+  MineResponse,
+  HelpCenterListResponse,
+  LoginSettingRequest,
   GameDetailQuery,
   GameDetailResponse,
   PaymentSummaryQuery,
@@ -60,7 +63,7 @@ export class Admin<SecurityDataType = unknown> {
       ...params,
     });
 
-  /** 取得通用配置 */ 
+  /** 取得通用配置 */
   getSystemConfig = (
     query: SystemConfigRequest,
     params: RequestParams = {},
@@ -432,6 +435,174 @@ export class Admin<SecurityDataType = unknown> {
       query: query,
       secure: true,
       format: "json",
+      ...params,
+    });
+
+  /**
+   * 更新真實姓名
+   *
+   * @tags Admin
+   * @name UpdateRealName
+   * @request POST:/admin/accountlogin/realname
+   * @secure
+   */
+  updateRealName = (
+    data: { RealName: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/realname',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新代理昵稱
+   *
+   * @tags Admin
+   * @name UpdateName
+   * @request POST:/admin/accountlogin/name
+   * @secure
+   */
+  updateName = (
+    data: { Name: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/name',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新手機號
+   *
+   * @tags Admin
+   * @name UpdatePhone
+   * @request POST:/admin/accountlogin/phone
+   * @secure
+   */
+  updatePhone = (
+    data: { Phone: string; VerifyCode: string, AreaCode: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/phone',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新郵箱
+   *
+   * @tags Admin
+   * @name UpdateEmail
+   * @request POST:/admin/accountlogin/email
+   * @secure
+   */
+  updateEmail = (
+    data: { Email: string; VerifyCode: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/email',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新谷歌驗證
+   *
+   * @tags Admin
+   * @name UpdateGoogleCode
+   * @request POST:/admin/accountlogin/google
+   * @secure
+   */
+  updateGoogleCode = (
+    data: { Username: string; Code: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/google',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新QQ
+   *
+   * @tags Admin
+   * @name UpdateQQ
+   * @request POST:/admin/personalcenter/
+   * @secure
+   */
+  updateQQ = (
+    data: { QQ: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/personalcenter/',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 幫助中心列表
+   *
+   * @tags Admin
+   * @name GetHelpList
+   * @request GET:/admin/helpcenter/list
+   * @secure
+   */
+  getHelpList = (
+    query: { Page: number; PageSize: number },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<HelpCenterListResponse, any>({
+      path: '/admin/helpcenter/list',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+
+  /**
+   * 更新登录设置
+   *
+   * @tags Admin
+   * @name UpdateLoginSetting
+   * @request POST:/admin/accountlogin/loginsetting
+   * @secure
+   */
+  updateLoginSetting = (
+    data: LoginSettingRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/loginsetting',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
       ...params,
     });
 }
