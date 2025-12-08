@@ -91,7 +91,7 @@ const handleDatePickerConfirm = (value: [number, number]) => {
     <div>{{ displayText }}</div>
     <van-icon :class="['w-2 h-2 ml-1 -mt-1 transform transition-all', { 'rotate-180 text-primary-normal mt-0': show }]" name="./static/images/manage/arrow-down.svg" />
   </div>
-  <van-action-sheet v-model:show="show" title="时间筛选">
+  <van-action-sheet v-model:show="show" title="时间筛选" teleport="body">
     <div class="px-4 py-3 flex flex-col gap-6">
       <!-- 有typeList才顯示 -->
       <div v-if="typeList">
@@ -134,7 +134,7 @@ const handleDatePickerConfirm = (value: [number, number]) => {
       </div>
     </div>
   </van-action-sheet>
-  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" type="range" @confirm="handleDatePickerConfirm" />
+  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" type="range" teleport="body" @confirm="handleDatePickerConfirm" />
 </template>
 
 <style scoped>
