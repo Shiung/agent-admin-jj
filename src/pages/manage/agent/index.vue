@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import dayjs from 'dayjs'
 import Big from 'big.js'
 import apis from '@/apis'
@@ -144,6 +144,18 @@ const netcashmultiListQuery = ref<NetcashmultiListQuery>({
 // 代理列表
 const agentList = ref<NetcashmultiListItem[]>([])
 
+// 偵測 Remark 是否被截斷
+const remarkRefs = ref<(HTMLElement | null)[]>([])
+const isRemarkTruncated = ref<boolean[]>([])
+
+const checkTruncation = () => {
+  nextTick(() => {
+    isRemarkTruncated.value = remarkRefs.value.map(el => {
+      if (!el) return false
+      return el.scrollWidth > el.clientWidth
+    })
+  })
+}
 const fetchNetcashmultiList = async () => {
   loading.value = true
   // finished.value = false
@@ -169,6 +181,7 @@ const fetchNetcashmultiList = async () => {
 
   agentList.value = netcashmultiListQuery.value.Page === 1 ? items : [...agentList.value, ...items]
   loading.value = false
+  checkTruncation()
 
   if ((res.data.Data.Items?.length || 0) < netcashmultiListQuery.value.PageSize) finished.value = true
 
@@ -264,11 +277,20 @@ onMounted(() => {
           </div>
         </div>
         <template #footer>
-          <div class="flex items-center justify-between">
-            <div>
-              <span class="font-semibold text-sm text-neutral2-basic">{{ item.Remark }}</span>
+          <div class="flex items-center justify-between gap-2">
+            <div class="remark-container flex-1 min-w-0 flex items-center gap-1">
+              <span 
+                :ref="(el) => remarkRefs[idx] = el as HTMLElement"
+                class="remark-text font-semibold text-sm text-neutral2-basic whitespace-nowrap overflow-hidden text-ellipsis"
+              >{{ item.Remark }}</span>
+              <AppTooltip content-side="top" v-if="isRemarkTruncated[idx]">
+                <van-icon name="info" class="text-primary-normal" />
+                <template #content>
+                  <span>{{ item.Remark }}</span>
+                </template>
+              </AppTooltip>
             </div>
-            <div>
+            <div class="whitespace-nowrap flex-shrink-0">
               <span class="text-sm text-neutral2-secondary">{{ dayjs(item.CreateTime).format('YYYY-MM-DD HH:mm') }}</span>
             </div>
           </div>
