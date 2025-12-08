@@ -68,8 +68,8 @@ export default function useProvider() {
   }
 
   const fetchPlayerDetail = async (
-    startTime: number = dayjs().startOf('day').unix(),
-    endTime: number = dayjs().endOf('day').unix()
+    startTime: number = dayjs().startOf('month').unix(),
+    endTime: number = dayjs().endOf('month').unix()
   ) => {
     const playerId = route.params.id
     if (!playerId) return

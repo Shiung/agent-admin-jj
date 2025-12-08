@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ref, inject, defineComponent, h, computed } from 'vue'
+import { ref, inject, defineComponent, h, computed, onMounted, watchEffect } from 'vue'
 import { cn } from '@/utils/className'
 import dayjs from 'dayjs'
 import { formatSignedMoney, formatMoney } from '@/utils/formatNumber'
 import { ProviderActionSymbol, ProviderStateSymbol } from '../composables/useProvider'
+import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 
 const refreshing = ref(false)
+const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
+  startTime: dayjs().startOf('month').unix(),
+  endTime: dayjs().endOf('month').unix()
+})
 
 const state = inject(ProviderStateSymbol)!
 const { fetchPlayerDetail } = inject(ProviderActionSymbol)!
@@ -58,16 +63,22 @@ const UnitBlock = defineComponent(
 
 const onRefresh = async () => {
   if (typeof fetchPlayerDetail !== 'function') return
-  await fetchPlayerDetail()
+  await fetchPlayerDetail(selectTime.value.startTime, selectTime.value.endTime)
   refreshing.value = false
 }
+
+watchEffect(() => {
+  onRefresh()
+})
 
 </script>
 
 <template>
   <div class="px-4">
     <div class="flex items-center justify-between">
-      <div>filters</div>
+      <div>
+        <TimeFilterDropdown v-model="selectTime" title="统计时间" />
+      </div>
       <AppTooltip content-side="bottom" >
         <van-icon name="info" class="text-primary-normal" />
         <template #content>

@@ -1,21 +1,40 @@
 <script setup lang="ts">
-import { computed, defineComponent, ref, h, onMounted, watch } from 'vue'
+import { computed, defineComponent, ref, h, onMounted, watch, watchEffect } from 'vue'
 import UnitCard from '../components/UnitCard.vue'
 import { useRouter } from 'vue-router'
 import type SearchBar from '@/components/SearchBar/index.vue'
 
+import { useUserStore } from '@/stores/user'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 import { cn } from '@/utils/className'
 import API from '@/apis'
 import dayjs from 'dayjs'
 import { formatSignedMoney, formatNumber, formatMoney } from '@/utils/formatNumber'
+import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 
+const userStore = useUserStore()
 const router = useRouter()
 const infinityRef = ref<InfinityExposeType>()
 
 // const itemLs = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Items']>([])
 const totalInfo = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Total'] | null>(null)
 const pageInfo = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Pagination'] | null>(null)
+
+const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
+  startTime: dayjs().startOf('month').unix(),
+  endTime: dayjs().endOf('month').unix()
+})
+
+const sortOptions = ref([
+  { value: '-CreateTime', label: '注册时间降序' },
+  { value: '+CreateTime', label: '注册时间升序' },
+  { value: '-LastTime', label: '最后登录时间降序' },
+  { value: '+LastTime', label: '最后登录时间升序' },
+  { value: '-WinLose', label: '盈利降序' },
+  { value: '+WinLose', label: '盈利升序' },
+])
+
+const selectedSort = ref(sortOptions.value[0]?.value ?? '-CreateTime')
 
 const info = computed(() => ([
   { title: '总会员数', amount: formatNumber(pageInfo.value?.MaxCount ?? 0) },
@@ -55,19 +74,15 @@ const searchPlayerLs = async () => {
 }
 
 const fetchData = async (page: number = 0) => {
-  const todayStart = dayjs().startOf('day').unix()
-  const todayEnd = dayjs().endOf('day').unix()
-  
-  const query = {
-    ReportTimeBegin: todayStart,
-    ReportTimeEnd: todayEnd,
-    PageSize: pageInfo.value?.PageSize ?? 10,
-    Page: page,
-    ...(searchSelected.value && { PlayerId: Number(searchSelected.value.id) })
-  }
-
   try {
-    const res = await API.playerManage.getPlayerListv2(query)
+    const res = await API.playerManage.getPlayerListv2({
+      ReportTimeBegin: selectTime.value.startTime,
+      ReportTimeEnd: selectTime.value.endTime,
+      PageSize: pageInfo.value?.PageSize ?? 10,
+      Sort: selectedSort.value,
+      Page: page,
+      ...(searchSelected.value && { PlayerId: Number(searchSelected.value.id) })
+    })
     
     // itemLs.value = res.data.Data.Items
     totalInfo.value = res.data.Data.Total
@@ -83,13 +98,18 @@ const fetchData = async (page: number = 0) => {
   }
 }
 
-watch(searchSelected, () => {
+watch([searchSelected, selectTime, selectedSort], () => {
   infinityRef.value?.fetchData()
 })
 
 onMounted(() => {
   searchPlayerLs()
 })
+
+watchEffect(() => {
+  console.log('==>', userStore.productPackages)
+})
+
 </script>
 
 <template>
@@ -120,9 +140,9 @@ onMounted(() => {
         <SearchBar placeholder="会员账号" class="flex-1" v-model:selected="searchSelected" :search-ls="searchLs" />
       </div>
   
-      <div class="flex items-center [&>div]:text-neutral2-basic [&>div]:bg-bg-floor-1-2">
-        <div>统计时间｜本月 </div>
-        <div>注册时间降序</div>
+      <div class="flex items-center space-x-1">
+        <TimeFilterDropdown v-model:model-value="selectTime" title="统计时间"></TimeFilterDropdown>
+        <Filled v-model:model-value="selectedSort" :options="sortOptions" />
       </div>
     </div>
 

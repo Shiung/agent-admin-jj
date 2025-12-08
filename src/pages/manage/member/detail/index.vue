@@ -41,10 +41,6 @@ const showDate = (ts: number | string | null | undefined) => {
 
 const { states } = useProvider()
 
-watchEffect(() => {
-  console.log('states', states.playerInfo)
-})
-
 </script>
 
 <template>
