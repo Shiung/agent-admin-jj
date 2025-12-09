@@ -9,28 +9,54 @@ const route = useRoute()
 const router = useRouter()
 
 // Tab 配置
-const tabs = ['佣金', '财务', '代理']
-const activeTab = ref(0)
+type TabId = 'commission' | 'finance' | 'agent'
+
+const tabs: { id: TabId; name: string }[] = [
+  { id: 'commission', name: '佣金' },
+  { id: 'finance', name: '财务' },
+  { id: 'agent', name: '代理' }
+]
+
+const defaultTabId: TabId = 'commission'
+const activeTab = ref<TabId>(defaultTabId) // 默认选中第一个 tab
 
 // 记录已访问过的 tab，用于实现懒加载
-const visitedTabs = ref<Set<number>>(new Set([0])) // 默认第一个 tab 已访问
+const visitedTabs = ref<Set<string>>(new Set([activeTab.value]))
 
 // 从路由查询参数中恢复 activeTab
 onMounted(() => {
-  const tabIndex = route.query.tab ? Number(route.query.tab) : 0
-  if (tabIndex >= 0 && tabIndex < tabs.length) {
-    activeTab.value = tabIndex
-    visitedTabs.value.add(tabIndex)
+  // 只有當路由是 report 主頁面時才處理 tab 切換
+  if (route.name === 'report') {
+    const tabId = (route.query.tab as TabId) || defaultTabId
+    const tab = tabs.find(t => t.id === tabId)
+    if (tab) {
+      activeTab.value = tab.id
+      visitedTabs.value.add(tab.id)
+    }
   }
 })
 
+// 監聽路由變化，處理瀏覽器返回按鈕
+watch(() => route.query.tab, (newTabId) => {
+  if (route.name === 'report' && newTabId) {
+    const tab = tabs.find(t => t.id === newTabId)
+    if (tab) {
+      activeTab.value = tab.id
+      visitedTabs.value.add(tab.id)
+    }
+  }
+}, { immediate: true })
+
 // 当 activeTab 改变时，更新路由查询参数并记录已访问的 tab
 watch(activeTab, (newTab) => {
-  visitedTabs.value.add(newTab)
-  router.replace({
-    name: 'report',
-    query: { tab: newTab }
-  })
+  // 只有當路由是 report 主頁面時才更新路由
+  if (route.name === 'report') {
+    visitedTabs.value.add(newTab)
+    router.replace({
+      name: 'report',
+      query: { tab: newTab }
+    })
+  }
 })
 </script>
 
@@ -38,14 +64,14 @@ watch(activeTab, (newTab) => {
   <div class="bg-white">
     <van-tabs class="report-tabs" v-model:active="activeTab" color="var(--color-primary-normal)"
       title-active-color="var(--color-white)" title-inactive-color="var(--color-neutral-secondary)" type="card">
-      <van-tab v-for="(tab, index) in tabs" :key="index" :title="tab" />
+      <van-tab v-for="tab in tabs" :key="tab.id" :name="tab.id" :title="tab.name" />
     </van-tabs>
 
     <!-- 使用 v-if 懒加载 + v-show 控制显示，每个 tab 只在第一次访问时挂载 -->
     <div class="tab-content">
-      <CommissionPage v-if="visitedTabs.has(0)" v-show="activeTab === 0" />
-      <FinancePage v-if="visitedTabs.has(1)" v-show="activeTab === 1" />
-      <AgentPage v-if="visitedTabs.has(2)" v-show="activeTab === 2" />
+      <CommissionPage v-if="visitedTabs.has('commission')" v-show="activeTab === 'commission'" />
+      <FinancePage v-if="visitedTabs.has('finance')" v-show="activeTab === 'finance'" />
+      <AgentPage v-if="visitedTabs.has('agent')" v-show="activeTab === 'agent'" />
     </div>
   </div>
 </template>

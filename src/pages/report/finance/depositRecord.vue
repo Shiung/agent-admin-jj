@@ -1,21 +1,36 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FinanceCard from './components/financeCard.vue'
 import DepositCard from './components/depositCard.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import dayjs from 'dayjs'
+import apis from '@/apis'
+import type { AgentApplyGoldItem } from '@/apis/codegen/data-contracts'
+import { formatMoneyWithCommas } from '@/utils/formatNumber'
 
 const router = useRouter()
 const route = useRoute()
 
-// 代存数据
-// TODO: 替换为 API 数据
-const depositData = {
-  quotaDeposit: 4312343,
-  quotaDepositRebate: 34,
-  commissionDeposit: 4312343,
-  commissionDepositRebate: 34
-}
+// API Data
+const depositSummary = ref({
+  CommissionAmount: 0,
+  CommissionFeedback: 0,
+  CreditAmount: 0,
+  CreditFeedback: 0
+})
+const depositRecords = ref<AgentApplyGoldItem[]>([])
+
+// Pagination and Loading
+const loading = ref(false)
+const finished = ref(false)
+const refreshing = ref(false)
+const currentPage = ref(1)
+const pageSize = 10
+const totalCount = ref(0)
+
+// Error Handling
+const error = ref(false)
 
 // Tab 切换
 const activeTab = ref(0)
@@ -41,73 +56,49 @@ const dateOptions = computed(() => {
   return options
 })
 
+// 计算开始时间和结束时间 (Unix timestamp)
+const beginTime = computed(() => {
+  if (selectedDate.value === '本月') {
+    return dayjs().startOf('month').unix()
+  } else {
+    return dayjs(selectedDate.value).startOf('month').unix()
+  }
+})
+const endTime = computed(() => {
+  if (selectedDate.value === '本月') {
+    return dayjs().endOf('month').unix()
+  } else {
+    return dayjs(selectedDate.value).endOf('month').unix()
+  }
+})
+
 // 排序选择
 const sortType = ref('账变时间降序')
 const sortOptions = [
   { label: '账变时间降序', value: '账变时间降序' },
   { label: '账变时间升序', value: '账变时间升序' },
+  { label: '代存金额降序', value: '代存金额降序' },
+  { label: '代存金额升序', value: '代存金额升序' }
 ]
 
-// 代存列表
-// TODO: 替换为 API 数据
-const depositList = [
-  {
-    orderNo: '23210654065406546515605604',
-    username: 'darren200',
-    vipLevel: 'VIP0',
-    depositAmount: 2999,
-    flowMultiplier: 1,
-    depositRebate: 26,
-    depositFee: 2999,
-    topUpType: '代存',
-    notes: '备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注',
-    transactionTime: '2025-12-14 14:40:21'
-  },
-  {
-    orderNo: '23210654065406546515605604',
-    username: 'darren200',
-    vipLevel: 'VIP0',
-    depositAmount: 2999,
-    flowMultiplier: 1,
-    depositRebate: 26,
-    depositFee: 2999,
-    topUpType: '代存',
-    notes: '备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注',
-    transactionTime: '2025-12-14 14:40:21'
-  },
-    {
-    orderNo: '23210654065406546515605604',
-    username: 'darren200',
-    vipLevel: 'VIP0',
-    depositAmount: 2999,
-    flowMultiplier: 1,
-    depositRebate: 26,
-    depositFee: 2999,
-    topUpType: '代存',
-    notes: '备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注',
-    transactionTime: '2025-12-14 14:40:21'
-  },
-    {
-    orderNo: '23210654065406546515605604',
-    username: 'darren200',
-    vipLevel: 'VIP0',
-    depositAmount: 2999,
-    flowMultiplier: 1,
-    depositRebate: 26,
-    depositFee: 2999,
-    topUpType: '代存',
-    notes: '备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注备注',
-    transactionTime: '2025-12-14 14:40:21'
-  },
-]
+// 映射排序类型到 API 参数
+const currentSortType = computed(() => {
+  switch (sortType.value) {
+    case '账变时间降序':
+      return '-update_time'
+    case '账变时间升序':
+      return 'update_time'
+    case '代存金额降序':
+      return '-amount'
+    case '代存金额升序':
+      return 'amount'
+    default:
+      return '-update_time'
+  }
+})
 
-// 下拉刷新
-const refreshing = ref(false)
-const onRefresh = () => {
-  setTimeout(() => {
-    refreshing.value = false
-  }, 1000)
-}
+// 映射 tab 到 WalletType
+const currentWalletType = computed(() => activeTab.value === 0 ? 2 : 1) // 0: 额度代存 (WalletType 2), 1: 佣金代存 (WalletType 1)
 
 import { useSticky } from '@/composables/useSticky'
 
@@ -115,8 +106,8 @@ const containerRef = ref<HTMLElement | null>(null)
 
 const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
   containerRef,
-  tabQueryIndex: 'none', // 此頁面不基於 tab 顯示，給一個不會匹配的值
-  stickyTop: 44 // 吸頂時距離頂部的距離
+  tabQueryIndex: 'none',
+  stickyTop: 44
 })
 
 // 返回
@@ -130,15 +121,126 @@ const handleBack = () => {
 
 // 搜索处理
 const handleSearch = () => {
-  console.log('搜索会员账号:', searchKeyword.value)
-  // TODO: 实现搜索逻辑
+  resetAndFetchData()
 }
 
 // 点击代存卡片
-const handleDepositClick = (record: any) => {
+const handleDepositClick = (record: AgentApplyGoldItem) => {
   console.log('点击代存记录:', record)
   // TODO: 跳转到详情或显示弹窗
 }
+
+// 转换代存记录为卡片所需格式
+const formatDepositRecord = (record: AgentApplyGoldItem) => ({
+  orderNo: record.OrderId,
+  username: record.LoginAccount,
+  vipLevel: `VIP${record.VipLevel || 0}`,
+  depositAmount: (record.Amount || 0) / 100,
+  flowMultiplier: record.WithdrawWaterMultiply,
+  depositRebate: (record.CreditBonus || 0) / 100,
+  depositFee: (record.CreditFee || 0) / 100,
+  topUpType: record.TransferType === 2 ? '代存' : '代存-红利',
+  notes: record.Remarks,
+  transactionTime: dayjs.unix(record.ProcessingTime).format('YYYY-MM-DD HH:mm:ss')
+})
+
+// 获取代存总计数据
+const fetchDepositSummary = async () => {
+  try {
+    const response = await apis.admin.getAgentApplyGoldSummary({
+      BeginTime: beginTime.value,
+      EndTime: endTime.value
+    })
+    if (response.data.Code === 200) {
+      depositSummary.value = response.data.Data
+    } else {
+      showToast({ message: response.data.Msg || '获取总计数据失败', position: 'bottom' })
+    }
+  } catch (err) {
+    console.error('获取代存总计数据失败:', err)
+    showToast({ message: '获取总计数据异常', position: 'bottom' })
+  }
+}
+
+// 获取代存列表数据
+const fetchDepositList = async () => {
+  loading.value = true
+  error.value = false
+  try {
+    const response = await apis.admin.getAgentApplyGold({
+      Page: currentPage.value,
+      PageSize: pageSize,
+      LoginAccount: searchKeyword.value || undefined,
+      BeginTime: beginTime.value,
+      EndTime: endTime.value,
+      WalletType: currentWalletType.value,
+      Sort: currentSortType.value
+    })
+
+    if (response.data.Code === 200) {
+      const newRecords = response.data.Data.Items || []
+      // 第一页时替换数据，否则追加
+      if (currentPage.value === 1) {
+        depositRecords.value = newRecords
+      } else {
+        depositRecords.value = depositRecords.value.concat(newRecords)
+      }
+      const pagination = response.data?.Data?.Pagination
+      totalCount.value = pagination?.MaxCount ?? 0
+
+      if (depositRecords.value.length >= totalCount.value) {
+        finished.value = true
+      } else {
+        currentPage.value++
+      }
+    } else {
+      error.value = true
+      showToast({ message: response.data.Msg || '获取列表数据失败', position: 'bottom' })
+    }
+  } catch (err) {
+    error.value = true
+    console.error('获取代存列表数据异常:', err)
+    showToast({ message: '获取列表数据异常', position: 'bottom' })
+  } finally {
+    loading.value = false
+    refreshing.value = false
+  }
+}
+
+// 重置分页并重新获取数据 (keepData: 是否保留现有数据)
+const resetAndFetchData = (keepData = false) => {
+  currentPage.value = 1
+  if (!keepData) {
+    depositRecords.value = []
+  }
+  finished.value = false
+  error.value = false
+  fetchDepositSummary()
+  fetchDepositList()
+}
+
+// 刷新处理 (保留现有数据)
+const onRefresh = async () => {
+  refreshing.value = true
+  resetAndFetchData(true)
+}
+
+// 滚动到底部加载更多
+const onLoad = () => {
+  if (!finished.value && !loading.value) {
+    fetchDepositList()
+  }
+}
+
+// Watchers
+watch([activeTab, selectedDate, sortType], () => {
+  resetAndFetchData()
+})
+
+onMounted(() => {
+  resetAndFetchData()
+})
+
 </script>
 
 <template>
@@ -160,7 +262,7 @@ const handleDepositClick = (record: any) => {
       class="deposit-record-pull-refresh"
     >
       <!-- 代存总计卡片 -->
-      <div class="px-3 py-2 pt-[54px]">
+      <div class="px-3 pb-2 pt-[54px]">
         <FinanceCard
           class="shadow-sm"
           title=""
@@ -168,12 +270,12 @@ const handleDepositClick = (record: any) => {
           :show-background-color="false"
           :data="[
             [
-              { label: '额度代存', value: depositData.quotaDeposit.toLocaleString() },
-              { label: '额度代存回馈', value: depositData.quotaDepositRebate.toString() }
+              { label: '额度代存', value: formatMoneyWithCommas(depositSummary.CreditAmount, 2, true) },
+              { label: '额度代存回馈', value: formatMoneyWithCommas(depositSummary.CreditFeedback, 2, true) }
             ],
             [
-              { label: '佣金代存', value: depositData.commissionDeposit.toLocaleString() },
-              { label: '佣金代存回馈', value: depositData.commissionDepositRebate.toString() }
+              { label: '佣金代存', value: formatMoneyWithCommas(depositSummary.CommissionAmount, 2, true) },
+              { label: '佣金代存回馈', value: formatMoneyWithCommas(depositSummary.CommissionFeedback, 2, true) }
             ]
           ]"
         />
@@ -203,6 +305,7 @@ const handleDepositClick = (record: any) => {
             clearable
             left-icon=""
             @search="handleSearch"
+            @clear="handleSearch"
             @keyup.enter="handleSearch"
           >
             <template #right-icon>
@@ -232,14 +335,31 @@ const handleDepositClick = (record: any) => {
       </div>
 
       <!-- 代存列表 -->
-      <div class="record-list-container">
-        <DepositCard
-          v-for="(record, index) in depositList"
-          :key="index"
-          :record="record"
-          @click="handleDepositClick(record)"
-        />
-      </div>
+      <van-list
+        v-model:loading="loading"
+        :finished="finished"
+        :error="error"
+        error-text="请求失败"
+        @load="onLoad"
+        :class="{ 'hide-list-loading': refreshing }"
+        :style="depositRecords.length === 0 ? { height: 'calc(100vh - 340px)', display: 'flex'} : {}"
+      >
+        <div v-if="depositRecords.length > 0" class="record-list-container">
+          <DepositCard
+            v-for="record in depositRecords"
+            :key="record.OrderId"
+            :record="formatDepositRecord(record)"
+            @click="handleDepositClick(record)"
+          />
+        </div>
+        <div
+          v-else-if="finished || refreshing"
+          class="flex flex-1 w-full items-center justify-center"
+        >
+          <empty />
+        </div>
+      </van-list>
+
     </van-pull-refresh>
   </div>
 </template>
@@ -322,6 +442,28 @@ const handleDepositClick = (record: any) => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+/* van-list loading 居中 */
+:deep(.van-list__loading) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+}
+/* van-list error-text 居中 */
+:deep(.van-list__error-text) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+}
+
+/* 下拉刷新时隐藏 van-list loading */
+.hide-list-loading :deep(.van-list__loading) {
+  display: none;
 }
 
 /* 自定义 van-search 样式 */
