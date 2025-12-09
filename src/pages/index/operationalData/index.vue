@@ -170,8 +170,8 @@ const generateDayChartsData = (res: ReportChartItems) => {
 const generateMonthChartsData = (res: ReportChartItems) => {
   return Object.keys(res).map((key: string) => {
     const data = res[key as keyof ReportChartItems]?.length ? res[key as keyof ReportChartItems] : [{ ReportMonth: dayjs().subtract(1, 'month').format('MM'), ParamName: paramMapping.value[key as keyof typeof paramMapping.value] as keyof typeof typeMapping || '', ParamValue: '0' }]
-    // 如果data[0]有值，則取data[0].ReportMonth的月份，否則取當前月份的前一個月份
-    const lastMonth = Number(dayjs().subtract(1, 'month').format('MM'))
+    // 如果data[0]有值，則取data[0].ReportMonth的月份，否則取當前月份
+    const lastMonth = Number(dayjs().format('MM'))
     return {
       name: typeMapping[data[0]?.ParamName as keyof typeof typeMapping],
       // 取當前月份的前6個月份
