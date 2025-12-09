@@ -27,26 +27,52 @@ const routes: RouteRecordRaw[] = [
     children: [
       {
         path: 'member',
-        name: 'manageMember',
         component: () => import('@/pages/manage/member.vue'),
-        meta: {
-          showTabBar: true,
-          showHeaderBar: true,
-        },
+        children: [
+          { 
+            path: '',
+            name: 'manageMember',
+            component: () => import('@/pages/manage/member/index.vue'),
+            meta: {
+              showTabBar: true,
+              showHeaderBar: true,
+            },
+          },
+          {
+            path: ':id',
+            name: 'manageMemberDetail',
+            component: () => import('@/pages/manage/member/detail/index.vue')
+          },
+          {
+            path: 'belongApply',
+            name: 'manageMemberBelongApply',
+            component: () => import('@/pages/manage/member/belongApply.vue')
+          },
+          {
+            path: 'belongRecord',
+            name: 'manageMemberBelongRecord',
+            component: () => import('@/pages/manage/member/belongRecord.vue')
+          }
+        ]
       },
       {
         path: 'agent',
         name: 'manageAgent',
-        component: () => import('@/pages/manage/agent.vue'),
+        component: () => import('@/pages/manage/agent/index.vue'),
         meta: {
           showTabBar: true,
           showHeaderBar: true,
         },
       },
       {
+        path: 'agent/orgChart',
+        name: 'agentOrgChart',
+        component: () => import('@/pages/manage/agent/orgChart.vue'),
+      },
+      {
         path: 'team',
         name: 'manageTeam',
-        component: () => import('@/pages/manage/team.vue'),
+        component: () => import('@/pages/manage/team/index.vue'),
         meta: {
           showTabBar: true,
           showHeaderBar: true,
@@ -106,6 +132,36 @@ const routes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/report/finance/game-record',
+    name: 'financeGameRecord',
+    component: () => import('@/pages/report/finance/gameRecord.vue'),
+  },
+  {
+    path: '/report/finance/game-order-detail',
+    name: 'financeGameOrderDetail',
+    component: () => import('@/pages/report/finance/gameOrderDetail.vue'),
+  },
+  {
+    path: '/report/finance/deposit-withdraw-record',
+    name: 'financeDepositWithdrawRecord',
+    component: () => import('@/pages/report/finance/depositWithdrawRecord.vue'),
+  },
+  {
+    path: '/report/finance/bonus-record',
+    name: 'financeBonusRecord',
+    component: () => import('@/pages/report/finance/bonusRecord.vue'),
+  },
+  {
+    path: '/report/finance/deposit-record',
+    name: 'financeDepositRecord',
+    component: () => import('@/pages/report/finance/depositRecord.vue'),
+  },
+  {
+    path: '/report/finance/deposit-withdraw-fee-record',
+    name: 'financeDepositWithdrawFeeRecord',
+    component: () => import('@/pages/report/finance/depositWithdrawFeeRecord.vue'),
+  },
+  {
     path: '/mine',
     name: 'mine',
     component: () => import('@/pages/mine/index.vue'),
@@ -119,9 +175,113 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/mine/profile.vue'),
   },
   {
+    path: '/mine/nickname',
+    name: 'mineNickname',
+    component: () => import('@/pages/mine/nickname.vue'),
+  },
+  {
+    path: '/mine/realName',
+    name: 'mineRealName',
+    component: () => import('@/pages/mine/realname.vue'),
+  },
+  {
+    path: '/mine/phone',
+    name: 'minePhone',
+    component: () => import('@/pages/mine/phone.vue'),
+  },
+  {
+    path: '/mine/email',
+    name: 'mineEmail',
+    component: () => import('@/pages/mine/email.vue'),
+  },
+  {
+    path: '/mine/googleCode',
+    name: 'mineGoogleCode',
+    component: () => import('@/pages/mine/googleCode.vue'),
+  },
+  {
+    path: '/mine/googleCodeVerify',
+    name: 'mineGoogleCodeVerify',
+    component: () => import('@/pages/mine/googleCodeVerify.vue'),
+  },
+  {
+    path: '/mine/qq',
+    name: 'mineQQ',
+    component: () => import('@/pages/mine/qq.vue'),
+  },
+  {
+    path: '/mine/security',
+    name: 'security',
+    component: () => import('@/pages/mine/security/index.vue'),
+  },
+  {
+    path: '/mine/help',
+    name: 'help',
+    component: () => import('@/pages/mine/help/index.vue'),
+  },
+  {
+    path: '/mine/help/detail',
+    name: 'helpDetail',
+    component: () => import('@/pages/mine/help/detail.vue'),
+  },
+  {
+    path: '/mine/security/password',
+    name: 'password',
+    component: () => import('@/pages/mine/security/password.vue'),
+  },
+  {
+    path: '/mine/security/loginSetting',
+    name: 'loginSetting',
+    component: () => import('@/pages/mine/security/loginSetting.vue'),
+  },
+  {
+    path: '/mine/security/privatePassword',
+    name: 'privatePassword',
+    component: () => import('@/pages/mine/security/privatePassword.vue'),
+  },
+  {
+    path: '/mine/security/gesturePassword',
+    name: 'gesturePassword',
+    component: () => import('@/pages/mine/security/gesturePassword.vue'),
+  },
+  {
     path: '/commission-detail',
     name: 'commissionDetail',
     component: () => import('@/pages/commission-detail/index.vue'),
+  },
+  {
+    path: '/withdraw',
+    name: 'withdraw',
+    component: () => import('@/pages/finance/withdraw/index.vue'),
+    children: [
+      {
+        path: '',
+        name: 'withdrawPage',
+        component: () => import('@/pages/finance/withdraw/withdraw.vue'),
+      },
+      {
+        path: 'withdrawRecord',
+        name: 'withdrawRecord',
+        component: () => import('@/pages/finance/withdraw/withdrawRecord.vue'),
+      },
+    ]
+  },
+  {
+    path: '/recharge',
+    name: 'recharge',
+    component: () => import('@/pages/finance/recharge/index.vue'),
+    children: [
+      {
+        path: '',
+        name: 'rechargePage',
+        component: () => import('@/pages/finance/recharge/recharge.vue'),
+      },
+      {
+        path: 'rechargeRecord',
+        name: 'rechargeRecord',
+        component: () => import('@/pages/finance/recharge/rechargeRecord.vue'),
+      },
+    ]
   },
 ]
 

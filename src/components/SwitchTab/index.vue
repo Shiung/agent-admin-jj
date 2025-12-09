@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { computed, useAttrs, watchEffect, type VNode, type Component } from 'vue'
+import { computed, useAttrs, type VNode, type Component } from 'vue'
 import type { RouteLocationRaw } from 'vue-router'
 import type { TabsType } from 'vant'
 import { cn } from '@/utils/className'
+
+defineOptions({ inheritAttrs: false })
 
 const attrs = useAttrs()
 const activeTab = defineModel<number>('activeTab', { required: true })
@@ -28,14 +30,12 @@ const { opts, tabs } = defineProps<{
 }>()
 
 const options = computed(() => {
+  const isLine = opts?.type === 'line'
   return {
     ..._defaultOpt,
+    ...(isLine && { titleActiveColor: '--color-primary-normal' }),
     ...opts
   }
-})
-
-watchEffect(() => {
-  console.log('tabs', tabs, attrs.class)
 })
 
 </script>
@@ -48,7 +48,7 @@ watchEffect(() => {
       :title-active-color="`var(${options.titleActiveColor})`"
       :title-inactive-color="`var(${options.titleInactiveColor})`"
       :type="options.type"
-      swipeable
+      v-bind="{ swipeable: attrs.swipeable !== undefined }"
     >
       <van-tab v-for="tab in tabs" :key="tab.id" :title="tab.title" v-bind="tab.to ? { to: tab.to } : {}">
         <template v-if="tab.content && (typeof tab.content === 'string')" >{{ tab.content  }}</template>

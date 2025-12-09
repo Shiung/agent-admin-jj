@@ -7,15 +7,35 @@ import type {
   PromotionmaterialsListallRequest,
   PromotionmaterialsListallResponse,
   ConfigInfoResponse,
+  SystemConfigRequest,
+  SystemConfigResponse,
+  AccountInfoResponse,
   NetcashdashboardInfoV2Query,
   NetcashdashboardInfoV2Response,
   CompareGameDataQuery,
   CompareGameDataResponse,
   ReportsChartsQuery,
   ReportsChartsResponse,
+  MineResponse,
+  HelpCenterListResponse,
+  LoginSettingRequest,
+  GameDetailQuery,
+  GameDetailResponse,
+  PaymentSummaryQuery,
+  PaymentSummaryResponse,
+  RechargeListQuery,
+  RechargeListResponse,
+  WithdrawListQuery,
+  WithdrawListResponse,
+  PayRecordsQuery,
+  PayRecordsResponse,
+  WithdrawRecordsQuery,
+  WithdrawRecordsResponse,
+  PayMoneyWithdrawFeeDetailsQuery,
+  PayMoneyWithdrawFeeDetailsResponse,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
-// import { ContentType } from './http-client'
+import { ContentType } from './http-client'
 
 export class Admin<SecurityDataType = unknown> {
   http: HttpClient<SecurityDataType>;
@@ -37,6 +57,32 @@ export class Admin<SecurityDataType = unknown> {
   ) =>
     this.http.request<ConfigInfoResponse, any>({
       path: '/admin/config/info',
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /** 取得通用配置 */
+  getSystemConfig = (
+    query: SystemConfigRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<SystemConfigResponse, any>({
+      path: '/api/showtheme/config',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+
+  /** 取得個人資料 */
+  getAccountInfo = (
+    params: RequestParams = {},
+  ) =>
+    this.http.request<AccountInfoResponse, any>({
+      path: '/admin/personalcenter/info',
       method: "GET",
       secure: true,
       format: "json",
@@ -164,6 +210,399 @@ export class Admin<SecurityDataType = unknown> {
       secure: true,
       format: "json",
       query,
+      ...params,
+    });
+
+  /**
+   * 调整佣金
+   *
+   * @tags Admin
+   * @name AdjustCommission
+   * @request PUT:/admin/sendcommission/adjustmentcommission
+   * @secure
+   */
+  putAdjustCommission = (
+    data: {
+      Id: number // 资料id
+      UserName: string // 代理账号
+      CommissionTotal: number // 佣金总额
+      CommissionChangeAmount: number // 调整金额，单位:分
+      Remark: string // 调整原因
+      IsMulti: number // 多层费率类型0:不查看 1:多层单费率 2:多层多费率(默认:1)
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<any, any>({
+      path: '/admin/sendcommission/adjustmentcommission',
+      method: "PUT",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 一键发放佣金
+   *
+   * @tags Admin
+   * @name AgentOneKeySend
+   * @request POST:/admin/sendcommission/agentonekeysend
+   * @secure
+   */
+  postAgentOneKeySend = (
+    data: {
+      Ids: string // 资料id数组，以逗号分隔
+      IsDeduct: number // 是否抵扣欠款(1:要抵扣欠款)(默认:0)
+      IsMulti: number // 多层费率类型0:不查看 1:多层单费率 2:多层多费率(默认:1)
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<any, any>({
+      path: '/admin/sendcommission/agentonekeysend',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 单个发放佣金
+   *
+   * @tags Admin
+   * @name AgentSendCommission
+   * @request POST:/admin/sendcommission/agentsendcommission
+   * @secure
+   */
+  postAgentSendCommission = (
+    data: {
+      Id: number // 资料id
+      IsDeduct: number // 是否抵扣欠款(1:要抵扣欠款)(默认:0)
+      IsMulti: number // 多层费率类型0:不查看 1:多层单费率 2:多层多费率(默认:1)
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<any, any>({
+      path: '/admin/sendcommission/agentsendcommission',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 游戏注单详情
+   *
+   * @tags Admin
+   * @name GameDetail
+   * @request GET:/admin/netcashplayergame/gamedetail
+   * @secure
+   */
+  getGameDetail = (
+    query: GameDetailQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<GameDetailResponse, any>({
+      path: '/admin/netcashplayergame/gamedetail',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 充值/提现总计
+   *
+   * @tags Admin
+   * @name PaymentSummary
+   * @request GET:/admin/netcashreportcenter/finance/payment/summary
+   * @secure
+   */
+  getPaymentSummary = (
+    query: PaymentSummaryQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PaymentSummaryResponse, any>({
+      path: '/admin/netcashreportcenter/finance/payment/summary',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 充值记录列表
+   *
+   * @tags Admin
+   * @name RechargeList
+   * @request GET:/admin/netcashplayergame/commonRechargelist
+   * @secure
+   */
+  getRechargeList = (
+    query: RechargeListQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<RechargeListResponse, any>({
+      path: '/admin/netcashplayergame/commonRechargelist',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 提现记录列表
+   *
+   * @tags Admin
+   * @name WithdrawList
+   * @request GET:/admin/netcashplayergame/commonWithdrawlist
+   * @secure
+   */
+  getWithdrawList = (
+    query: WithdrawListQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<WithdrawListResponse, any>({
+      path: '/admin/netcashplayergame/commonWithdrawlist',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 充值手续费记录列表
+   *
+   * @tags Admin
+   * @name PayRecords
+   * @request GET:/admin/netcashreportcenter/payrecords
+   * @secure
+   */
+  getPayRecords = (
+    query: PayRecordsQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PayRecordsResponse, any>({
+      path: '/admin/netcashreportcenter/payrecords',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 提现手续费记录列表
+   *
+   * @tags Admin
+   * @name WithdrawRecords
+   * @request GET:/admin/netcashreportcenter/withdrawrecords
+   * @secure
+   */
+  getWithdrawRecords = (
+    query: WithdrawRecordsQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<WithdrawRecordsResponse, any>({
+      path: '/admin/netcashreportcenter/withdrawrecords',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 充提手续费总计详情
+   *
+   * @tags Admin
+   * @name PayMoneyWithdrawFeeDetails
+   * @request GET:/admin/netcashreportcenter/paymoneywithdrawfeedetails
+   * @secure
+   */
+  getPayMoneyWithdrawFeeDetails = (
+    query: PayMoneyWithdrawFeeDetailsQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PayMoneyWithdrawFeeDetailsResponse, any>({
+      path: '/admin/netcashreportcenter/paymoneywithdrawfeedetails',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 更新真實姓名
+   *
+   * @tags Admin
+   * @name UpdateRealName
+   * @request POST:/admin/accountlogin/realname
+   * @secure
+   */
+  updateRealName = (
+    data: { RealName: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/realname',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新代理昵稱
+   *
+   * @tags Admin
+   * @name UpdateName
+   * @request POST:/admin/accountlogin/name
+   * @secure
+   */
+  updateName = (
+    data: { Name: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/name',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新手機號
+   *
+   * @tags Admin
+   * @name UpdatePhone
+   * @request POST:/admin/accountlogin/phone
+   * @secure
+   */
+  updatePhone = (
+    data: { Phone: string; VerifyCode: string, AreaCode: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/phone',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新郵箱
+   *
+   * @tags Admin
+   * @name UpdateEmail
+   * @request POST:/admin/accountlogin/email
+   * @secure
+   */
+  updateEmail = (
+    data: { Email: string; VerifyCode: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/email',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新谷歌驗證
+   *
+   * @tags Admin
+   * @name UpdateGoogleCode
+   * @request POST:/admin/accountlogin/google
+   * @secure
+   */
+  updateGoogleCode = (
+    data: { Username: string; Code: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/google',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新QQ
+   *
+   * @tags Admin
+   * @name UpdateQQ
+   * @request POST:/admin/personalcenter/
+   * @secure
+   */
+  updateQQ = (
+    data: { QQ: string },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/personalcenter/',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 幫助中心列表
+   *
+   * @tags Admin
+   * @name GetHelpList
+   * @request GET:/admin/helpcenter/list
+   * @secure
+   */
+  getHelpList = (
+    query: { Page: number; PageSize: number },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<HelpCenterListResponse, any>({
+      path: '/admin/helpcenter/list',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+
+  /**
+   * 更新登录设置
+   *
+   * @tags Admin
+   * @name UpdateLoginSetting
+   * @request POST:/admin/accountlogin/loginsetting
+   * @secure
+   */
+  updateLoginSetting = (
+    data: LoginSettingRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/loginsetting',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
       ...params,
     });
 }

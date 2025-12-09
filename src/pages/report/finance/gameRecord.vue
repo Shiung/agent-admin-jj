@@ -1,0 +1,447 @@
+<script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import FinanceCard from './components/financeCard.vue'
+import Dropdown from '@/components/Dropdown/index.vue'
+import dayjs from 'dayjs'
+import apis from '@/apis'
+import type { ReportCenterFinanceDetailData } from '@/apis/codegen/data-contracts'
+import { formatMoneyWithCommas } from '@/utils/formatNumber'
+
+const router = useRouter()
+const route = useRoute()
+
+// 财务详情数据
+const financeDetailData = ref<ReportCenterFinanceDetailData | null>(null)
+
+// 游戏记录汇总数据
+const gameRecordData = computed(() => {
+  if (!financeDetailData.value) return {
+    totalProfit: 0,
+    venueFee: 0,
+    betAmount: 0,
+    validBet: 0
+  }
+
+  const total = financeDetailData.value.Total
+  return {
+    totalProfit: total.WinLoseGoldTotal, // 输赢总计
+    venueFee: total.ApiFeeTotal, // 场馆费
+    betAmount: total.BetGoldTotal, // 投注总额
+    validBet: total.ValidWaterTotal // 有效投注总额
+  }
+})
+
+// 结算时间选择（从 URL query 初始化，实现页面间连动）
+const selectedDate = ref((route.query.date as string) || '本月')
+
+// 日期选项
+const dateOptions = computed(() => {
+  const options = [{ label: '结算时间｜本月', value: '本月' }]
+  const now = new Date()
+  for (let i = 0; i < 12; i++) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const value = `${year}-${month}`
+    options.push({ label: value, value })
+  }
+  return options
+})
+
+// 排序选择
+const sortType = ref('总盈利降序')
+
+// 排序选项
+const sortOptions = [
+  { label: '总盈利降序', value: '总盈利降序' },
+  { label: '总盈利升序', value: '总盈利升序' },
+]
+
+// 排序映射：UI显示 -> API参数
+const sortMap: Record<string, string> = {
+  '总盈利降序': '-SumWinLoseGold',
+  '总盈利升序': 'SumWinLoseGold'
+}
+
+// 根据选择的日期获取时间戳范围
+const getTimeRange = (dateStr: string): { BeginTime: number; EndTime: number } => {
+  let startDate: dayjs.Dayjs
+  let endDate: dayjs.Dayjs
+
+  if (dateStr === '本月') {
+    startDate = dayjs().startOf('month')
+    endDate = dayjs().endOf('month')
+  } else {
+    startDate = dayjs(dateStr).startOf('month')
+    endDate = dayjs(dateStr).endOf('month')
+  }
+
+  return {
+    BeginTime: startDate.unix(),
+    EndTime: endDate.unix(),
+  }
+}
+
+// 加载数据
+const loading = ref(true) // 初始为 true，避免进入页面时先显示空状态
+const fetchFinanceDetail = async (isRefreshing = false) => {
+  try {
+    // 下拉刷新时不显示 loading（顶部已有刷新动画）
+    if (!isRefreshing) {
+      loading.value = true
+    }
+    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const response = await apis.report.getReportCenterFinanceDetail({
+      BeginTime,
+      EndTime,
+      Sort: sortMap[sortType.value] // 添加排序参数
+    })
+
+    if (response.data.Code === 200 && response.data.Data) {
+      financeDetailData.value = response.data.Data
+    } else {
+      showToast({
+        message: response.data.Msg || '加载失败',
+        position: 'bottom',
+      })
+    }
+  } catch (error) {
+    console.error('获取财务详情失败:', error)
+    showToast({
+      message: '加载失败，请稍后重试',
+      position: 'bottom',
+    })
+  } finally {
+    if (!isRefreshing) {
+      loading.value = false
+    }
+  }
+}
+
+// 格式化游戏列表数据
+const gameList = computed(() => {
+  if (!financeDetailData.value || !financeDetailData.value.Items) return []
+
+  // 后端已经处理排序，直接使用返回的数据
+  return financeDetailData.value.Items.map(item => ({
+    id: item.GameType,
+    name: item.GameType,
+    data: [
+      [
+        {
+          label: '总盈利',
+          value: item.SumWinLoseGold,
+          isMoney: true
+        },
+        {
+          label: '场馆费',
+          value: formatMoneyWithCommas(item.ApiFeeTotal, 2, true)
+        }
+      ],
+      [
+        {
+          label: '投注金额',
+          value: formatMoneyWithCommas(item.SumBetGold, 2, true)
+        },
+        {
+          label: '有效投注',
+          value: formatMoneyWithCommas(item.SumValidWater, 2, true)
+        }
+      ]
+    ]
+  }))
+})
+
+// 下拉刷新
+const refreshing = ref(false)
+const onRefresh = async () => {
+  await fetchFinanceDetail(true) // 传入 true 表示是下拉刷新
+  refreshing.value = false
+}
+
+// 监听日期和排序变化，并更新 URL query
+watch([selectedDate], ([newDate]) => {
+  fetchFinanceDetail()
+  // 更新 URL query 参数（不添加历史记录）
+  router.replace({
+    name: 'financeGameRecord',
+    query: {
+      ...route.query,
+      date: newDate
+    }
+  })
+})
+
+// 页面挂载时加载数据
+onMounted(() => {
+  fetchFinanceDetail()
+})
+
+import { useSticky } from '@/composables/useSticky'
+
+const containerRef = ref<HTMLElement | null>(null)
+
+const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
+  containerRef,
+  tabQueryIndex: 'none', // 此頁面不基於 tab 顯示，給一個不會匹配的值
+  stickyTop: 44 // 吸頂時距離頂部的距離
+})
+
+// 返回
+const handleBack = () => {
+  const tab = route.query.tab || '1'
+  router.push({
+    name: 'report',
+    query: { tab, date: selectedDate.value } // 传递日期参数回主页面
+  })
+}
+
+// 控制说明气泡显示
+const showInfoPopover = ref(false)
+
+// 点击游戏卡片
+const handleGameClick = (gameName: string) => {
+  console.log('点击游戏:', gameName)
+
+  // 跳转到游戏注单详情页，传递日期参数
+  const tab = route.query.tab || '1'
+  router.push({
+    name: 'financeGameOrderDetail',
+    query: {
+      game: gameName,
+      tab,
+      date: selectedDate.value // 传递日期参数实现连动
+    }
+  })
+}
+</script>
+
+<template>
+  <div class="game-record-container" ref="containerRef">
+    <!-- 头部导航 -->
+    <div class="fixed-header">
+      <div class="flex items-center justify-between h-11 px-3 bg-white">
+        <van-icon name="arrow-left" size="24" @click="handleBack" />
+        <span class="text-base font-semibold text-neutral-basic">游戏记录</span>
+        <div style="width: 24px;"></div>
+        <!-- 不确定UI会不会加回来 -->
+        <van-popover
+          v-if="false"
+          v-model:show="showInfoPopover"
+          placement="bottom-end"
+          :offset="[4, 6]"
+        >
+          <div class="popover-content">
+            以下数据仅统计「已结算、已完成、已出款」的订单
+          </div>
+          <template #reference>
+            <van-icon name="info" size="20" color="var(--color-primary-normal)" />
+          </template>
+        </van-popover>
+      </div>
+    </div>
+
+    <!-- 下拉刷新容器 -->
+    <van-pull-refresh
+      v-model="refreshing"
+      :disabled="pullRefreshDisabled"
+      @refresh="onRefresh"
+      class="game-record-pull-refresh"
+    >
+      <!-- 游戏记录总计卡片 -->
+      <div class="px-3 py-2 pt-[56px]">
+        <FinanceCard
+          class="shadow-sm"
+          title=""
+          :show-arrow="false"
+          :show-background-color="false"
+          :data="[
+            [
+              { label: '总盈利', value: gameRecordData.totalProfit, isMoney: true },
+              { label: '场馆费', value: formatMoneyWithCommas(gameRecordData.venueFee, 2, true) }
+            ],
+            [
+              { label: '投注金额', value: formatMoneyWithCommas(gameRecordData.betAmount, 2, true) },
+              { label: '有效投注', value: formatMoneyWithCommas(gameRecordData.validBet, 2, true) }
+            ]
+          ]"
+        />
+      </div>
+
+      <!-- 筛选器（sticky 固定） -->
+      <div>
+        <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
+        <div class="sticky-filter-bar px-3 py-2" :class="{ 'is-fixed': isFilterBarFixed }">
+          <div class="filter-scroll-container">
+            <!-- 结算时间 -->
+            <Dropdown
+              v-model="selectedDate"
+              :options="dateOptions"
+              height="1.5rem"
+              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
+            />
+
+            <!-- 排序方式 -->
+            <Dropdown
+              v-model="sortType"
+              :options="sortOptions"
+              height="1.5rem"
+              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading 状态 -->
+      <div v-if="loading" class="game-list-loading">
+        <van-loading size="32px" vertical>
+          <template #default>加载中...</template>
+        </van-loading>
+      </div>
+
+      <!-- 空状态 -->
+      <div v-else-if="!financeDetailData || gameList.length === 0" :style="{ minHeight: 'calc(100vh - 306px)' }" class="flex-1 flex items-center">
+        <empty />
+      </div>
+
+      <!-- 游戏列表 -->
+      <div v-else class="game-list-container">
+        <FinanceCard
+          v-for="game in gameList"
+          :key="game.id"
+          :title="game.name"
+          :data="game.data"
+          @click="handleGameClick(game.name)"
+        />
+      </div>
+    </van-pull-refresh>
+  </div>
+</template>
+<style lang="scss" scoped>
+.game-record-container {
+  background-color: white;
+  padding-bottom: 2rem; /* 增加底部內邊距，避免內容被遮擋 */
+}
+
+/* Header 固定在顶部 */
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 30;
+  background-color: white;
+}
+
+.game-record-pull-refresh {
+  /* 移除內部滾動容器樣式 */
+  :deep(.van-pull-refresh__track) {
+    overflow: visible !important;
+  }
+  :deep(.van-pull-refresh__head) {
+    top: 44px;
+  }
+}
+
+/* 筛选栏固定 */
+.sticky-filter-bar {
+  position: relative;
+  z-index: 10;
+  background-color: white;
+  transition: all 0.3s;
+
+  &.is-fixed {
+    position: fixed;
+    top: 44px; /* Header 高度 h-11 = 44px */
+    left: 0;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* 用於吸頂定位的佔位元素 */
+.filter-bar-placeholder {
+  /* 高度由JS動態設定 */
+}
+
+.game-list-container {
+  flex: 1;
+  margin-top: 8px;
+  padding: 0 0.75rem;
+  padding-bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 2rem);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Loading 状态 */
+.game-list-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 0;
+  min-height: 300px;
+}
+
+/* 筛选器横向滚动容器 */
+.filter-scroll-container {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
+  }
+}
+
+/* 筛选器 Dropdown 样式 */
+.filter-dropdown {
+  flex: none;
+  scroll-snap-align: start;
+
+  :deep(.dropdown-button) {
+    border: none;
+    border-radius: 12px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    height: 1.5rem;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    white-space: nowrap;
+  }
+
+  :deep(.dropdown-button [data-placeholder]) {
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
+  :deep(.dropdown-button svg) {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-left: 0;
+  }
+}
+
+/* Popover 气泡样式 */
+.popover-content {
+  padding: 8px 12px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-neutral-basic);
+  max-width: 240px;
+}
+
+:deep(.van-popover__content) {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: -2px -2px -1px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.van-popover__arrow) {
+  margin-right: -7px;
+}
+</style>

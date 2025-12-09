@@ -4,6 +4,7 @@ import API from '@/apis'
 import { setHeaderToken } from '@/apis/api-client'
 import { useGlobalStore } from '@/stores/global'
 import { useGameStore } from '@/stores/game'
+import { type AccountInfoData } from '@/apis/codegen/data-contracts'
 
 export const useUserStore = defineStore('user', () => {
   const globalStore = useGlobalStore()
@@ -11,6 +12,8 @@ export const useUserStore = defineStore('user', () => {
 
   const token = ref<string | null>(localStorage.getItem('userToken') || null)
   const userInfo = ref<Record<string, any> | null>(null)
+  const accountInfo = ref<AccountInfoData | null>(null)
+  const googleSecretCode = ref<{ Secret?: string; QrCode?: string } | null>(null)
 
   /** 是否為單層代理（AccountType: 1=单层代理,2=多层代理-单费率,3=多层代理-多费率(目前無3)） */
   const isSingleAgent = computed(() => userInfo.value?.NetCashAccount.AccountType === 1)
@@ -37,6 +40,7 @@ export const useUserStore = defineStore('user', () => {
     // 登入後需要的初始化
     globalStore.fetchConfigInfo()
     gameStore.fetchSolidConfig()
+    fetchAccountInfo()
   })
 
   const setToken = (t: string | null) => {
@@ -80,15 +84,25 @@ export const useUserStore = defineStore('user', () => {
     return await fetchIsLogin()
   }
 
+  const fetchAccountInfo = async () => {
+    const res = await API.admin.getAccountInfo()
+    if (res.data.Code !== 200) return
+    accountInfo.value = res.data.Data
+    return res.data.Data
+  }
+
   return {
     token,
     userInfo,
+    accountInfo,
     isSingleAgent,
     hasTeam,
     productPackages,
+    googleSecretCode,
     setToken,
     logout,
     fetchIsLogin,
     ensureUser,
+    fetchAccountInfo
   }
 })
