@@ -3,7 +3,6 @@ import { computed } from 'vue'
 import { useGlobalStore } from '@/stores/global'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
-import { type BankList } from '@/apis/codegen/data-contracts'
 import { type WithdrawMoneyFormData } from '@/apis/codegen/data-contracts'
 import Big from 'big.js'
 import API from '@/apis'
@@ -80,16 +79,8 @@ const withDrawDetails = computed((): { key: string, label: string, value: string
   return []
 })
 
-const bankMapping = computed<Record<string, BankList>>(() => {
-  const list = globalStore.configInfo.BankList
-  if (!list) return {}
-  return list.reduce((acc, cur) => {
-    acc[cur.BankCode] = cur
-    return acc
-  }, {} as Record<string, BankList>)
-})
 const getBankName = (bankCode: string) => {
-  return bankMapping.value[bankCode]?.BankName ?? ''
+  return globalStore.bankMapping?.[bankCode]?.BankName ?? ''
 }
 
 const handleWithdrawCancel = () => {
