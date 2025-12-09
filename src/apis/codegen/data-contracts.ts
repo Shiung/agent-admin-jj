@@ -1620,6 +1620,25 @@ export interface LoginSettingRequest {
   TimeFreeVerification: number // 免验证时间，单位:分钟
 }
 
+export interface WithdrawAccountResponse {
+  Code: number
+  Data: WithdrawAccountData[]
+  Msg: string
+  Id: string
+}
+
+export interface WithdrawAccountData {
+  /** 提現帳號 */
+  AccountNum: string,
+  /** 銀行代號(銀行卡用) */
+  BankCode: string,
+  /** 帳號類型 */
+  Name: string,
+  /** 虛擬幣協議 */
+  Protocol: string
+  CreateTime: number,
+}
+
 export type * from './Playermanage/types'
 export type * from './NetCashPlayerGame/types'
 export type * from './ApiConfig/types'

@@ -38,7 +38,6 @@ const fetchWithdrawList = async () => {
   }
 }
 const handleChangeType = (item: ListItem) => {
-  console.log("🍊 selectPayTypeItem", item)
   selectPayTypeItem.value = item
   fetchAccountList()
   fetchAppliedAmount()
@@ -75,7 +74,6 @@ const fetchAccountList = async () => {
   }
 }
 const handleChangeAccount = (item: AccountListItem) => {
-  console.log("🍊 selectAccountItem", item)
   selectAccountItem.value = item
 }
 const handleDeleteAccount = async (item: AccountListItem) => {
@@ -138,7 +136,7 @@ const USDTRate = ref<number>(0)
 const fetchUSDTRate = async () => {
   if (!selectPayTypeItem.value?.PayType) return
   try {
-    const res = await API.finance.getUSDTRate({
+    const res = await API.finance.getWithdrawUSDTRate({
       AccountType: selectPayTypeItem.value.PayType
     })
     if (res.data.Code !== 200) return
@@ -190,6 +188,7 @@ const handleWithdrawSuccess = () => {
 }
 
 onMounted(() => {
+  allowMultipleToast()
   fetchWithdrawList()
 })
 </script>
@@ -241,23 +240,23 @@ onMounted(() => {
       </div>
       <div class="flex items-center mt-2 px-3 py-2 rounded-2xl bg-bg-floor-1-2">
         <van-image src="./static/images/common/lightBulb.png" fit="contain" class="w-5 h-5 mr-2" />
-        <div class="flex-1 flex flex-col gap-1">
-          <div class="flex items-center text-sm font-normal leading-6">
+        <div class="flex-1 flex flex-col gap-1 text-sm font-normal leading-6 text-neutral2-basic">
+          <div class="flex items-center">
             当日可提现佣金
             <span class="inline-block ml-2">
               (<span class="text-primary-normal">{{ formatMoneyWithComma((selectPayTypeItem?.MaxDailyAmount - appliedAmount), 2, false) }}</span>/{{ formatMoneyWithComma(selectPayTypeItem?.MaxDailyAmount, 2, false) }})
             </span>
             <van-image src="./static/images/common/circleReload.svg" fit="contain" class="w-4 h-4 ml-auto" @click="fetchAppliedAmount" />
           </div>
-          <div class="text-sm font-normal leading-6">
+          <div>
             单次限额
             <span class="inline-block ml-2 text-primary-normal">{{ formatMoneyWithComma(selectPayTypeItem?.MinAmount, 2, false) }}~{{ formatMoneyWithComma(selectPayTypeItem?.MaxAmount, 2, false) }}</span>
           </div>
-          <div v-if="selectPayTypeItem?.CurrencyName === 'USDT'" class="text-sm font-normal leading-6">
+          <div v-if="selectPayTypeItem?.CurrencyName === 'USDT'">
             参考汇率
             <span class="inline-block ml-2 text-primary-normal">{{ USDTRate }}</span>
             RMB
-            <span class="inline-block ml-2 text-primary-normal">≈</span>
+            <span class="inline-block ml-2">≈</span>
             <span class="inline-block ml-2 text-primary-normal">{{ formData.Amount ? formatMoneyWithComma((formData.Amount / USDTRate), 2, false) : 0 }}</span>
             USDT
           </div>
@@ -321,7 +320,7 @@ onMounted(() => {
       </div>
 
       <div class="mt-4 mx-4 mb-8">
-        <van-button type="primary" round block native-type="submit" :disabled="confirmDisabled" class="!text-base font-semibold gray-disabled">
+        <van-button type="primary" round block native-type="submit" :disabled="confirmDisabled" class="!h-12 !text-base font-semibold gray-disabled">
           确认
         </van-button>
       </div>

@@ -2,19 +2,19 @@
 export const getWithdrawTypeImage = (type: number | string) => {
   switch (parseInt(String(type))) {
     case 1001: // 普通银行卡
-      return "../../static/images/payTypeIcon/yl.png"
+      return "./static/images/payTypeIcon/yl.png"
     case 1002: // 普通支付宝
-      return "../../static/images/payTypeIcon/zfb.png"
+      return "./static/images/payTypeIcon/zfb.png"
     case 1003: // 普通支付宝
-      return "../../static/images/payTypeIcon/wy.png"
+      return "./static/images/payTypeIcon/wy.png"
     case 3: // USDT
-      return "../../static/images/payTypeIcon/btb.png"
+      return "./static/images/payTypeIcon/btb.png"
     case 6: //EBPay
-      return "../../static/images/payTypeIcon/ebpay.png"
+      return "./static/images/payTypeIcon/ebpay.png"
     case 11: //易币付
-      return "../../static/images/payTypeIcon/ybf.png"
+      return "./static/images/payTypeIcon/ybf.png"
     case 17: //DD
-      return "../../static/images/payTypeIcon/dd.png"
+      return "./static/images/payTypeIcon/dd.png"
     default:
       return ''
   }
@@ -125,15 +125,15 @@ export const getWithdrawName = (type: number | string) => {
 export const getRechargeTypeImage = (type: number | string) => {
   switch (parseInt(String(type))) {
     case 11: // USDT支付
-      return '../../static/images/payTypeIcon/btb.png'
+      return './static/images/payTypeIcon/btb.png'
     case 13: // USDT
-      return '../../static/images/payTypeIcon/btb.png'
+      return './static/images/payTypeIcon/btb.png'
     case 28: // EBPay
-      return '../../static/images/payTypeIcon/ebpay.png'
+      return './static/images/payTypeIcon/ebpay.png'
     case 35: // GDF
-      return '../../static/images/payTypeIcon/gdf.png'
+      return './static/images/payTypeIcon/gdf.png'
     case 40: // DD钱包
-      return '../../static/images/payTypeIcon/dd.png'
+      return './static/images/payTypeIcon/dd.png'
   }
 }
 

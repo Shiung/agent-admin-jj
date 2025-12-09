@@ -33,6 +33,7 @@ import type {
   WithdrawRecordsResponse,
   PayMoneyWithdrawFeeDetailsQuery,
   PayMoneyWithdrawFeeDetailsResponse,
+  WithdrawAccountResponse,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -603,6 +604,18 @@ export class Admin<SecurityDataType = unknown> {
       secure: true,
       body: data,
       type: ContentType.FormData,
+      ...params,
+    });
+
+  /** 取得提現帳號 */
+  getWithdrawAccount = (
+    params: RequestParams = {},
+  ) =>
+    this.http.request<WithdrawAccountResponse, any>({
+      path: '/admin/personalcenter/agentnetcashcard',
+      method: "GET",
+      secure: true,
+      format: "json",
       ...params,
     });
 }

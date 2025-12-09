@@ -54,10 +54,10 @@ const handleConfirm = () => {
       
       <!-- 按钮 -->
       <div class="flex gap-3 p-4">
-        <van-button type="primary" plain round class="flex-1 !text-base" @click="handleCancel">
+        <van-button type="primary" plain round class="flex-1 !h-12 !text-base" @click="handleCancel">
           {{ cancelText }}
         </van-button>
-        <van-button type="primary" round native-type="submit" class="flex-1 !text-base gray-disabled" :disabled="confirmDisabled" @click="handleConfirm">
+        <van-button type="primary" round native-type="submit" class="flex-1 !h-12 !text-base gray-disabled" :disabled="confirmDisabled" @click="handleConfirm">
           {{ confirmText }}
         </van-button>
       </div>

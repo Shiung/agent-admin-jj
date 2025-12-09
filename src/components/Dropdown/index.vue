@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs, watchEffect } from 'vue'
+import { computed, useAttrs, watch } from 'vue'
 import {
   Select,
   SelectContent,
@@ -13,7 +13,7 @@ const attrs = useAttrs()
 
 interface DropdownOption {
   label: string
-  value: string | number | null
+  value: string | number | null | ''
 }
 
 interface Props {
@@ -44,8 +44,9 @@ const displayText = computed(() => {
   return selectedOption.value?.label || props.placeholder
 })
 
-
-watchEffect(() => emit('change', model.value))
+watch(model, (newVal) => {
+  emit('change', newVal)
+})
 </script>
 
 <template>

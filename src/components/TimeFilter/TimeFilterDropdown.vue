@@ -69,7 +69,7 @@ const handleSelectChange = (item: any) => {
 }
 
 const handleDatePickerConfirm = (value: [number, number]) => {
-  const data = { startTime: timestampToSecond(dayjs(value[0] || 0).valueOf()), endTime: timestampToSecond(dayjs(value[1] || 0).valueOf()) }
+  const data = { startTime: timestampToSecond(dayjs(value[0] || 0).valueOf()), endTime: timestampToSecond(dayjs(value[1] || 0).endOf('day').valueOf()) }
   customTimeRange.value = data
   model.value = { ...data }
   showDatePicker.value = false
