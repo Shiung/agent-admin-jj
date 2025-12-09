@@ -13,8 +13,8 @@ import type {
   DeleteCryptoAccountResponse,
   AppliedAmountQuery,
   AppliedAmountResponse,
-  USDTRateQuery,
-  USDTRateResponse,
+  WithdrawUSDTRateQuery,
+  WithdrawUSDTRateResponse,
   DDBWalletConfigQuery,
   DDBWalletConfigResponse,
   DDBBalanceQuery,
@@ -30,7 +30,11 @@ import type {
   RechargeMoneyFormData,
   RechargeMoneyResponse,
   RechargeMoneyCancelFormData,
-  RechargeMoneyCancelResponse
+  RechargeMoneyCancelResponse,
+  RechargeRecordListQuery,
+  RechargeRecordListResponse,
+  RechargeUSDTRateFormData,
+  RechargeUSDTRateResponse
 } from '../data-contracts'
 import type { HttpClient, RequestParams } from '../http-client'
 import { ContentType } from '../http-client'
@@ -42,7 +46,7 @@ export class Finance<SecurityDataType = unknown> {
     this.http = http;
   }
 
-  /** ＝＝＝佣金錢包 - 提現 ＝＝＝  */
+  /** ＝＝＝佣金钱包 - 提现 ＝＝＝  */
   /** 佣金钱包概览 */
   getCommissionOverview = (
     params: RequestParams = {},
@@ -163,12 +167,12 @@ export class Finance<SecurityDataType = unknown> {
       ...params,
     })
   
-  /** 取得USDT匯率 */
-  getUSDTRate = (
-    query: USDTRateQuery,
+  /** 取得提现USDT汇率 */
+  getWithdrawUSDTRate = (
+    query: WithdrawUSDTRateQuery,
     params: RequestParams = {},
   ) =>
-    this.http.request<USDTRateResponse, any>({
+    this.http.request<WithdrawUSDTRateResponse, any>({
       path: '/admin/agentnetcashwithdraw/usdtrate',
       method: "GET",
       secure: true,
@@ -300,6 +304,34 @@ export class Finance<SecurityDataType = unknown> {
   ) =>
     this.http.request<RechargeMoneyCancelResponse, any>({
       path: '/admin/agentnetcashrecharge/cancelorder',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    })
+
+  /** 取得充值记录(检查充值订单也是这只) */
+  getRechargeRecordList = (
+    query: RechargeRecordListQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<RechargeRecordListResponse, any>({
+      path: '/admin/agentnetcashrecharge/rechargelist',
+      method: "GET",
+      secure: true,
+      query,
+      ...params,
+    })
+
+  /** 取得充值USDT汇率 */
+  getRechargeUSDTRate = (
+    data: RechargeUSDTRateFormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<RechargeUSDTRateResponse, any>({
+      path: '/admin/agentnetcashrecharge/usdtrate',
       method: "POST",
       body: data,
       secure: true,

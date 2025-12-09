@@ -1,16 +1,53 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
+import { storeToRefs } from 'pinia'
 import dayjs from 'dayjs'
+import Big from 'big.js'
 import AgentDataCard from './components/agentDataCard.vue'
 import AgentCard from './components/agentCard.vue'
 import AgentDetailSheet from './components/agentDetailSheet.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
+import apis from '@/apis'
+import type { HistoryItem, RealTimeItem, DownLineItem, MemberFinanceReportTotalItem } from '@/apis/codegen/data-contracts'
+import { formatMoneyWithCommas } from '@/utils/formatNumber'
 
 import { useSticky } from '@/composables/useSticky'
+import { useUserStore } from '@/stores/user'
 
-const route = useRoute()
 const agentContainerRef = ref<HTMLElement | null>(null)
+const userStore = useUserStore()
+
+// 从 store 获取下级代理相关数据
+const { subAgentList, currentAdminLevel, selfAdminId, maxSubAgentLevel, hasTeam, isMainLine } = storeToRefs(userStore)
+
+// API Data
+const reportSummary = ref<MemberFinanceReportTotalItem>({
+  SumAccountChangeSumNum: 0,
+  SumAgentCommissionSumNum: 0,
+  SumBetWaterMoney: 0,
+  SumFirstPayMoney: 0,
+  SumFirstPayNum: 0,
+  SumLogin: 0,
+  SumPayMergerMoney: 0,
+  SumPayMergerNum: 0,
+  SumRedSumNum: 0,
+  SumReg: 0,
+  SumTransBetMoney1: 0,
+  SumTransBetNum1: 0,
+  SumTransWinMoney1: 0,
+  SumWithdrawMoney: 0,
+  SumWithdrawNum: 0,
+  SumWithdrawPureNum: 0
+})
+const realtimeReportData = ref<RealTimeItem | null>(null)
+const realtimeAgentsReport = ref<DownLineItem[]>([])
+const historyReportList = ref<HistoryItem[]>([])
+
+// Loading状态
+const loading = ref(false)
+const finished = ref(false)
+const error = ref(false)
 
 // 提取吸顶逻辑到 composable
 const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
@@ -28,224 +65,596 @@ const switchBtns = [
 // 是否是历史模式
 const isHistoryMode = computed(() => viewType.value === 1)
 
-// 实时数据
-// TODO: 替换为 API 数据
-const realtimeData = {
-  date: dayjs().format('YYYY-MM-DD'),
-  totalProfit: 4312343,
-  betAmount: 4312343,
-  profitMargin: '4%',
-  firstDepositCount: 312343,
-  registerCount: 312343,
-  conversionRate: '4%'
+// 月报/日报切换（只在历史模式下有效）
+const reportType = ref(0)  // 0: 月报, 1: 日报
+
+// 计算 ReportType (API 参数: 1=日报, 2=月报)
+const currentReportType = computed<1 | 2>(() => reportType.value === 1 ? 1 : 2)
+
+const beginTime = computed(() => {
+  // 历史模式
+  if (isHistoryMode.value) {
+    // 月报：固定查询最近六个月，不含本月，格式 YYYY-MM
+    // 例如現在是 2025-12，則範圍為 2025-06 ~ 2025-11
+    if (reportType.value === 0) {
+      return dayjs().subtract(6, 'month').format('YYYY-MM')
+    }
+
+    // 日报：使用统计时间筛选（YYYY-MM-DD）
+    return statsBeginTime.value
+  }
+
+  // 实时模式根据报表类型
+  // reportType: 0=月报, 1=日报
+  // API ReportType: 1=日报, 2=月报
+  if (reportType.value === 1) {
+    // 日报：返回当天日期 YYYY-MM-DD
+    return dayjs().format('YYYY-MM-DD')
+  } else {
+    // 月报：返回当前月份 YYYY-MM
+    return dayjs().format('YYYY-MM')
+  }
+})
+
+const endTime = computed(() => {
+  // 历史模式
+  if (isHistoryMode.value) {
+    // 月报：固定查询最近六个月，结束为上个月 YYYY-MM（不含本月）
+    if (reportType.value === 0) {
+      return dayjs().subtract(1, 'month').format('YYYY-MM')
+    }
+
+    // 日报：使用统计时间筛选（YYYY-MM-DD，不含今日）
+    return statsEndTime.value
+  }
+
+  // 实时模式根据报表类型
+  // reportType: 0=月报, 1=日报
+  if (reportType.value === 1) {
+    // 日报：返回当天日期 YYYY-MM-DD
+    return dayjs().format('YYYY-MM-DD')
+  } else {
+    // 月报：返回当前月份 YYYY-MM
+    return dayjs().format('YYYY-MM')
+  }
+})
+
+// 数字转中文
+const numberToChinese = (num: number): string => {
+  const chineseNumbers = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+  if (num <= 10) {
+    return chineseNumbers[num] || String(num)
+  }
+  // 11-99 的处理
+  if (num < 20) {
+    const ones = chineseNumbers[num - 10] || String(num - 10)
+    return `十${ones}`
+  }
+  if (num < 100) {
+    const tens = Math.floor(num / 10)
+    const ones = num % 10
+    const tensChar = chineseNumbers[tens] || String(tens)
+    const onesChar = ones > 0 ? (chineseNumbers[ones] || String(ones)) : ''
+    return `${tensChar}十${onesChar}`
+  }
+  // 100 以上直接返回数字
+  return String(num)
 }
 
-// 历史数据
-// TODO: 替换为 API 数据
-const historyData = {
-  totalProfit: 4312343,
-  betAmount: 4312343,
-  profitMargin: '4%',
-  firstDepositCount: 312343,
-  registerCount: 312343,
-  conversionRate: '4%'
+// 计算盈余比例
+const calculateProfitMargin = (betAmount: number, winAmount: number) => {
+  if (betAmount === 0) return '0%'
+  const profit = betAmount - winAmount
+  const margin = (profit / betAmount) * 100
+  return `${margin.toFixed(2)}%`
 }
+
+// 计算转化率
+const calculateConversionRate = (firstPayNum: number, regNum: number) => {
+  if (regNum === 0) return '0%'
+  const rate = (firstPayNum / regNum) * 100
+  return `${rate.toFixed(2)}%`
+}
+
+// 实时数据
+const realtimeData = computed(() => {
+  const data = realtimeReportData.value || reportSummary.value
+  const totalProfit = (data.SumTransBetMoney1 - data.SumTransWinMoney1) / 100
+  return {
+    date: dayjs().format('YYYY-MM-DD'),
+    totalProfit: formatMoneyWithCommas(data.SumTransBetMoney1 - data.SumTransWinMoney1, 2, true),
+    betAmount: formatMoneyWithCommas(data.SumTransBetMoney1, 2, true),
+    profitMargin: calculateProfitMargin(data.SumTransBetMoney1, data.SumTransWinMoney1),
+    firstDepositCount: data.SumFirstPayNum.toLocaleString(),
+    registerCount: data.SumReg.toLocaleString(),
+    conversionRate: calculateConversionRate(data.SumFirstPayNum, data.SumReg),
+    totalProfitSign: totalProfit >= 0 ? '+' : ''
+  }
+})
+
+// 历史数据
+const historyData = computed(() => {
+  const data = reportSummary.value
+  const totalProfit = (data.SumTransBetMoney1 - data.SumTransWinMoney1) / 100
+  return {
+    totalProfit: formatMoneyWithCommas(data.SumTransBetMoney1 - data.SumTransWinMoney1, 2, true),
+    betAmount: formatMoneyWithCommas(data.SumTransBetMoney1, 2, true),
+    profitMargin: calculateProfitMargin(data.SumTransBetMoney1, data.SumTransWinMoney1),
+    firstDepositCount: data.SumFirstPayNum.toLocaleString(),
+    registerCount: data.SumReg.toLocaleString(),
+    conversionRate: calculateConversionRate(data.SumFirstPayNum, data.SumReg),
+    totalProfitSign: totalProfit >= 0 ? '+' : ''
+  }
+})
 
 // 搜索关键字
 const searchKeyword = ref('')
 
-// 代理筛选
-const agentFilter = ref('全部代理')
-const agentFilterOptions = [
-  { label: '全部代理', value: '全部代理' },
-  { label: '一级代理', value: '一级代理' },
-  { label: '二级代理', value: '二级代理' }
+// 代理类型判断（从 userStore 获取）
+// 'single': 单层代理, 'single_team_sub': 单层团队副线, 'single_team_main': 单层团队主线, 'multi': 多层代理
+const agentType = computed<'single' | 'single_team_sub' | 'single_team_main' | 'multi'>(() => {
+  if (userStore.isSingleAgent) {
+    // 单层代理
+    if (userStore.hasTeam) {
+      // 有团队，根据 isMainLine 判断主线/副线
+      if (userStore.isMainLine) {
+        return 'single_team_main'
+      } else {
+        return 'single_team_sub'
+      }
+    } else {
+      // 无团队
+      return 'single'
+    }
+  } else {
+    // 多层代理
+    return 'multi'
+  }
+})
+
+// 判断是否是多层代理
+const isMultiLevelAgent = computed(() => agentType.value === 'multi')
+
+// 判断是否显示筛选功能
+const showFilters = computed(() => {
+  if (isHistoryMode.value) {
+    // 历史模式：所有代理类型都显示筛选功能
+    // 单层代理、单层团队副线：日报时间筛选+产品包筛选
+    // 单层团队主线、多层代理：代理账号筛选+日报时间筛选+产品包筛选
+    return true
+  } else {
+    // 实时模式：
+    // 单层代理、单层团队副线：无筛选功能
+    if (agentType.value === 'single' || agentType.value === 'single_team_sub') {
+      return false
+    }
+    // 单层团队主线、多层代理：显示筛选功能
+    return true
+  }
+})
+
+// 排序方式（根据代理类型动态变化）
+const sortType = ref('')
+
+const sortOptions = computed(() => {
+  if (agentType.value === 'single_team_main') {
+    // 单层团队主线的排序
+    return [
+      { label: '新增时间降序', value: '新增时间降序' },
+      { label: '新增时间升序', value: '新增时间升序' },
+      { label: '总盈利降序', value: '总盈利降序' },
+      { label: '总盈利升序', value: '总盈利升序' }
+    ]
+  } else {
+    // 多层代理的排序
+    return [
+      { label: '代理层级降序', value: '代理层级降序' },
+      { label: '代理层级升序', value: '代理层级升序' },
+      { label: '总盈利降序', value: '总盈利降序' },
+      { label: '总盈利升序', value: '总盈利升序' }
+    ]
+  }
+})
+
+// 根据代理类型初始化排序
+watch(agentType, (newType) => {
+  if (newType === 'single_team_main') {
+    sortType.value = '新增时间降序'
+  } else if (newType === 'multi') {
+    sortType.value = '代理层级降序'
+  } else {
+    sortType.value = '总盈利降序'
+  }
+}, { immediate: true })
+
+// ==================== 代理账号筛选（实时 + 历史共用）====================
+
+// 代理账号筛选（'all' = 全部层级, number = AdminId）
+const selectedAgent = ref<'all' | number>('all')
+
+// 代理账号下拉选单选项（后端已将自身放在 index 0）
+const agentListOptions = computed(() => {
+  const options: Array<{ label: string; value: 'all' | number }> = []
+
+  // 实时模式：第一个选项是"全部层级"
+  if (!isHistoryMode.value) {
+    options.push({ label: '全部层级', value: 'all' })
+  }
+
+  // subAgentList 的第一个元素是自身
+  const selfAgent = subAgentList.value[0]
+  if (selfAgent) {
+    // 构建自身的标签
+    let selfLabel = selfAgent.Username
+
+    // 如果是单层代理有团队且是主线，显示"(主线)"
+    if (hasTeam.value && isMainLine.value) {
+      selfLabel += ' (主线)'
+    } else {
+      selfLabel += ' (自身)'
+    }
+
+    options.push({
+      label: selfLabel,
+      value: selfAgent.AdminId // 自身使用自己的 AdminId
+    })
+
+    // 其余是下级代理
+    for (let i = 1; i < subAgentList.value.length; i++) {
+      const agent = subAgentList.value[i]
+      if (agent) {
+        let label = agent.Username
+
+        // 多层代理需标注"代理层级"
+        if (isMultiLevelAgent.value) {
+          label = `${agent.Username} (${numberToChinese(agent.AccountLevel)}级)`
+        }
+
+        options.push({ label, value: agent.AdminId })
+      }
+    }
+  }
+
+  return options
+})
+
+// ==================== 统计时间筛选（历史模式专用）====================
+// 使用 TimeFilterDropdown 组件
+// 选项：近7日、近14日、自定义
+// 默认：近7日
+// 注意：历史数据的"近7日""近14日"不包含今天（到昨天）
+const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
+
+// 自定义时间范围（用于自定义选项）
+const customTimeRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 0 })
+const showDatePicker = ref(false)
+
+// 历史模式的时间选项（不包含今天）
+const historyTimeRangeOptions = [
+  {
+    label: '近7日',
+    startTime: timestampToSecond(dayjs().subtract(7, 'day').startOf('day').valueOf()),
+    endTime: timestampToSecond(dayjs().subtract(1, 'day').endOf('day').valueOf()) // 到昨天
+  },
+  {
+    label: '近14日',
+    startTime: timestampToSecond(dayjs().subtract(14, 'day').startOf('day').valueOf()),
+    endTime: timestampToSecond(dayjs().subtract(1, 'day').endOf('day').valueOf()) // 到昨天
+  },
+  {
+    label: '自定义',
+    action: () => { showDatePicker.value = true },
+    startTime: computed(() => customTimeRange.value.startTime),
+    endTime: computed(() => customTimeRange.value.endTime)
+  }
 ]
 
-// 排序方式
-const sortType = ref('总盈利降序')
-const sortOptions = [
-  { label: '总盈利降序', value: '总盈利降序' },
-  { label: '总盈利升序', value: '总盈利升序' }
-]
+const selectTimeRange = ref({
+  startTime: timestampToSecond(dayjs().subtract(7, 'day').startOf('day').valueOf()),
+  endTime: timestampToSecond(dayjs().subtract(1, 'day').endOf('day').valueOf()) // 默认近7日（到昨天）
+})
+
+// 计算统计时间的开始和结束时间（格式：YYYY-MM-DD）
+const statsBeginTime = computed(() => {
+  return dayjs(selectTimeRange.value.startTime * 1000).format('YYYY-MM-DD')
+})
+
+const statsEndTime = computed(() => {
+  return dayjs(selectTimeRange.value.endTime * 1000).format('YYYY-MM-DD')
+})
+
+// 产品包筛选
+const selectedProduct = ref<number | null>(null) // null 表示全部产品
+const productOptions = computed(() => {
+  return [
+    { label: '全部产品', value: null },
+    ...userStore.productPackages.map((pkg) => ({
+      label: pkg.PackageName,
+      value: pkg.PackageId,
+    }))
+  ]
+})
+
+// 时间选择器确认（用于自定义选项中的 van-calendar）
+const onConfirmDateRange = (values: Date | Date[]) => {
+  if (Array.isArray(values) && values.length === 2 && values[0] && values[1]) {
+    const data = {
+      startTime: timestampToSecond(dayjs(values[0]).valueOf()),
+      endTime: timestampToSecond(dayjs(values[1]).valueOf())
+    }
+    customTimeRange.value = data
+    selectTimeRange.value = { ...data }
+  }
+  showDatePicker.value = false
+}
+
+// 初始化下级代理列表并设置默认值
+const initSubAgentList = async () => {
+  await userStore.fetchSubAgentList()
+
+  // 设置初始默认值
+  if (isHistoryMode.value && selfAdminId.value !== null) {
+    // 历史模式：默认选择自身
+    selectedAgent.value = selfAdminId.value
+  }
+  // 实时模式已在 ref 初始化时默认为 'all'
+}
+
+// 转换下级代理数据为卡片格式
+const formatAgentData = (agent: DownLineItem) => {
+  const betAmount = (agent.SumTransBetMoney1 || 0) / 100
+  const winAmount = (agent.SumTransWinMoney1 || 0) / 100
+  const totalProfit = betAmount - winAmount
+
+  // 构建层级标签
+  let levelLabel = ''
+
+  // 如果是团队主线（单层代理有团队且是主线，且是自身）
+  if (hasTeam.value && isMainLine.value && agent.AdminId === selfAdminId.value) {
+    levelLabel = '(主线)'
+  } else if (hasTeam.value && isMainLine.value) {
+    // 团队主线的副线：不显示层级标签
+    levelLabel = ''
+  } else {
+    // 多层代理：显示层级
+    levelLabel = `${numberToChinese(agent.AccountLevel)}级代理`
+  }
+
+  return {
+    username: agent.Username,
+    level: levelLabel,
+    totalProfit: totalProfit,
+    betAmount: betAmount,
+    profitMargin: calculateProfitMargin(agent.SumTransBetMoney1, agent.SumTransWinMoney1),
+    firstDepositCount: agent.SumFirstPayNum || 0,
+    registerCount: agent.SumReg || 0,
+    conversionRate: calculateConversionRate(agent.SumFirstPayNum, agent.SumReg),
+    totalProfitSign: totalProfit >= 0 ? '+' : '',
+    rawData: agent
+  }
+}
 
 // 实时代理列表
-// TODO: 替换为 API 数据
-const realtimeAgentList = [
-  {
-    username: 'rdMulti01',
-    level: '一级代理',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-  {
-    username: 'rdMulti01',
-    level: '一级代理',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-    {
-    username: 'rdMulti01',
-    level: '一级代理',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-  {
-    username: 'rdMulti01',
-    level: '一级代理',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-    {
-    username: 'rdMulti01',
-    level: '一级代理',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-  {
-    username: 'rdMulti01',
-    level: '一级代理',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-    {
-    username: 'rdMulti01',
-    level: '一级代理',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-  {
-    username: 'rdMulti01',
-    level: '一级代理',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
+const realtimeAgentList = computed(() => {
+  return realtimeAgentsReport.value.map(formatAgentData)
+})
+
+// 历史代理列表格式化函数
+const formatHistoryData = (item: HistoryItem) => {
+  const betAmount = (item.SumTransBetMoney1 || 0) / 100
+  const winAmount = (item.SumTransWinMoney1 || 0) / 100
+  const totalProfit = betAmount - winAmount
+  const firstDepositCount = item.SumFirstPayNum || 0
+  const registerCount = item.SumReg || 0
+
+  return {
+    date: item.ReportMonth || item.ReportDay || '-',
+    totalProfit: totalProfit,
+    betAmount: betAmount,
+    profitMargin: calculateProfitMargin(betAmount * 100, winAmount * 100), // 传入分为单位
+    firstDepositCount: firstDepositCount,
+    registerCount: registerCount,
+    conversionRate: calculateConversionRate(firstDepositCount, registerCount),
+    rawData: item // 保存原始数据用于详情显示
   }
-]
+}
 
 // 历史代理列表
-// TODO: 替换为 API 数据
-const historyAgentList = [
-  {
-    date: '2025-10',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-  {
-    date: '2025-9',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-    {
-    date: '2025-10',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-  {
-    date: '2025-9',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-    {
-    date: '2025-10',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-  {
-    date: '2025-9',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },  {
-    date: '2025-10',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  },
-  {
-    date: '2025-9',
-    totalProfit: 4312343,
-    betAmount: 4312343,
-    profitMargin: '12%',
-    firstDepositCount: 312343,
-    registerCount: 312343,
-    conversionRate: '4%'
-  }
-]
+const historyAgentList = computed(() => {
+  return historyReportList.value.map(formatHistoryData)
+})
 
-// 当前显示的代理列表
-const agentList = computed(() => isHistoryMode.value ? historyAgentList : realtimeAgentList)
+// 计算需要查询的 AdminId 字符串
+const queryAdminIdStr = computed<string | undefined>(() => {
+  // 'all' 表示查询全部（自身+所有下级），不传 AdminId
+  if (selectedAgent.value === 'all') {
+    return undefined
+  }
+  // number 表示查询指定的代理（包括自身），传该 AdminId
+  return String(selectedAgent.value)
+})
+
+// 获取财务报表总计数据
+const fetchReportTotal = async () => {
+  try {
+    const response = await apis.admin.getMemberFinanceReportTotal({
+      BeginTime: beginTime.value,
+      EndTime: endTime.value,
+      ReportType: currentReportType.value,
+      SearchType: isHistoryMode.value ? 'old' : 'today',
+      PackageId: selectedProduct.value || undefined,
+      AdminId: queryAdminIdStr.value
+    })
+    if (response.data.Code === 200) {
+      reportSummary.value = response.data.Data.BannerItems
+    } else {
+      showToast({ message: response.data.Msg || '获取总计数据失败', position: 'bottom' })
+    }
+  } catch (err) {
+    console.error('获取财务报表总计失败:', err)
+    showToast({ message: '获取总计数据异常', position: 'bottom' })
+  }
+}
+
+// 获取财务报表列表数据
+const fetchReportList = async () => {
+  loading.value = true
+  error.value = false
+  try {
+    const response = await apis.admin.getMemberFinanceReport({
+      BeginTime: beginTime.value,
+      EndTime: endTime.value,
+      ReportType: currentReportType.value,
+      SearchType: isHistoryMode.value ? 'old' : 'today',
+      PackageId: selectedProduct.value || undefined,
+      AdminId: queryAdminIdStr.value
+    })
+
+    if (response.data.Code === 200) {
+      if (isHistoryMode.value) {
+        // 历史模式
+        historyReportList.value = response.data.Data.Items || []
+      } else {
+        // 实时模式
+        realtimeReportData.value = response.data.Data.TodayItems
+        realtimeAgentsReport.value = response.data.Data.AdminsReport || []
+      }
+      finished.value = true
+    } else {
+      error.value = true
+      showToast({ message: response.data.Msg || '获取列表数据失败', position: 'bottom' })
+    }
+  } catch (err) {
+    error.value = true
+    console.error('获取财务报表列表失败:', err)
+    showToast({ message: '获取列表数据异常', position: 'bottom' })
+  } finally {
+    loading.value = false
+    refreshing.value = false
+  }
+}
+
+// 获取所有数据
+const fetchAllData = () => {
+  fetchReportTotal()
+  fetchReportList()
+}
+
+// 原始代理列表（未过滤）
+const rawAgentList = computed(() => isHistoryMode.value ? historyAgentList.value : realtimeAgentList.value)
+
+// 过滤和排序后的代理列表
+const agentList = computed(() => {
+  let list = [...rawAgentList.value]
+
+  // 历史模式下不进行过滤（历史模式数据结构不同）
+  if (isHistoryMode.value) {
+    return list
+  }
+
+  // 以下逻辑仅适用于实时模式
+  // 1. 代理账号搜索过滤
+  if (searchKeyword.value.trim().length >= 1) {
+    list = list.filter(agent => {
+      const username = 'username' in agent ? agent.username : ''
+      return username?.toLowerCase().includes(searchKeyword.value.toLowerCase())
+    })
+  }
+
+  // 2. 排序
+  if (sortType.value) {
+    list.sort((a, b) => {
+      switch (sortType.value) {
+        // 单层团队主线的排序
+        case '新增时间降序':
+          // TODO: 需要 API 返回创建时间字段
+          return 0 // 暂时无法排序，需要 API 支持
+        case '新增时间升序':
+          return 0 // 暂时无法排序，需要 API 支持
+
+        // 多层代理的排序
+        case '代理层级降序':
+          if ('rawData' in a && 'rawData' in b && a.rawData && b.rawData) {
+            const aLevel = 'AccountLevel' in a.rawData ? a.rawData.AccountLevel : 0
+            const bLevel = 'AccountLevel' in b.rawData ? b.rawData.AccountLevel : 0
+            return aLevel - bLevel // 1级最高
+          }
+          return 0
+        case '代理层级升序':
+          if ('rawData' in a && 'rawData' in b && a.rawData && b.rawData) {
+            const aLevel = 'AccountLevel' in a.rawData ? a.rawData.AccountLevel : 0
+            const bLevel = 'AccountLevel' in b.rawData ? b.rawData.AccountLevel : 0
+            return bLevel - aLevel
+          }
+          return 0
+
+        // 通用：总盈利排序
+        case '总盈利降序':
+          return b.totalProfit - a.totalProfit
+        case '总盈利升序':
+          return a.totalProfit - b.totalProfit
+
+        default:
+          return 0
+      }
+    })
+  }
+
+  return list
+})
 
 // 下拉刷新
 const refreshing = ref(false)
 const onRefresh = () => {
-  setTimeout(() => {
-    refreshing.value = false
-  }, 1000)
+  refreshing.value = true
+  finished.value = false
+  error.value = false
+  fetchAllData()
 }
 
-// 搜索处理
-const handleSearch = () => {
-  console.log('搜索代理账号:', searchKeyword.value)
-  // TODO: 实现搜索逻辑
+// van-list 加载（此页面不需要分页，onLoad 留空即可）
+const onLoad = () => {
+  // 数据在 onMounted 和 watch 中获取，这里不需要做任何事
 }
+
+// 搜索处理（搜索已在 agentList computed 中自动处理）
+const handleSearch = () => {
+  // 搜索过滤已在 computed 中实现，这里不需要额外操作
+  // 保留此函数以支持点击搜索按钮的交互
+}
+
+// 监听切换事件
+watch([viewType, reportType], () => {
+  finished.value = false
+  error.value = false
+  fetchAllData()
+})
+
+// 监听模式切换，设置默认筛选值
+watch(isHistoryMode, (newIsHistoryMode) => {
+  if (newIsHistoryMode) {
+    // 切换到历史模式：默认选择自身
+    if (selfAdminId.value !== null) {
+      selectedAgent.value = selfAdminId.value
+    }
+  } else {
+    // 切换到实时模式：默认选择全部层级
+    selectedAgent.value = 'all'
+  }
+})
+
+// 监听筛选条件变化（实时 + 历史共用）
+watch([selectedAgent, selectTimeRange, selectedProduct], () => {
+  finished.value = false
+  error.value = false
+  fetchAllData()
+}, { deep: true })
+
+// 组件挂载时获取初始数据
+onMounted(async () => {
+  await initSubAgentList() // 获取下级代理列表并设置默认值
+  fetchAllData()
+})
 
 // 详情 sheet 状态
 const showDetailSheet = ref(false)
@@ -253,37 +662,95 @@ const currentAgentDetail = ref<any>(null)
 
 // 点击代理卡片
 const handleAgentClick = (agent: any) => {
-  // 只在实时模式下显示详情
+  const rawData = agent.rawData as DownLineItem | HistoryItem
+
+  // 计算平均首充金额
+  const avgFirstDeposit = rawData.SumFirstPayNum > 0
+    ? (rawData.SumFirstPayMoney || 0) / rawData.SumFirstPayNum / 100
+    : 0
+
   if (!isHistoryMode.value) {
-    // TODO: 根据 agent 数据获取完整详情
+    // 实时模式：显示代理详情
+    const downLineData = rawData as DownLineItem
     currentAgentDetail.value = {
       username: agent.username,
       level: agent.level,
       totalProfit: agent.totalProfit,
-      betUserCount: 2345,
+      betUserCount: downLineData.SumTransBetNum1 || 0,
       betAmount: agent.betAmount,
       profitMargin: agent.profitMargin,
       firstDepositCount: agent.firstDepositCount,
       conversionRate: agent.conversionRate,
       registerCount: agent.registerCount,
-      loginCount: 2345,
-      firstDepositAmount: 23456667,
-      avgFirstDeposit: 23456667,
-      depositCount: 2345,
-      depositAmount: 23456667,
-      withdrawCount: 2345,
-      withdrawAmount: 23456667,
-      winLossAdjustment: 23456667,
-      bonus: 23456667,
-      rebate: 23456667,
-      agentCommission: 23456667,
-      date: dayjs().format('YYYY-MM')
+      loginCount: downLineData.SumLogin || 0,
+      firstDepositAmount: (downLineData.SumFirstPayMoney || 0) / 100,
+      avgFirstDeposit: avgFirstDeposit,
+      depositCount: downLineData.SumPayMergerNum || 0,
+      depositAmount: (downLineData.SumPayMergerMoney || 0) / 100,
+      withdrawCount: downLineData.SumWithdrawNum || 0,
+      withdrawAmount: (downLineData.SumWithdrawMoney || 0) / 100,
+      winLossAdjustment: (downLineData.SumAccountChangeSumNum || 0) / 100,
+      bonus: (downLineData.SumRedSumNum || 0) / 100,
+      rebate: (downLineData.SumBetWaterMoney || 0) / 100,
+      agentCommission: (downLineData.SumAgentCommissionSumNum || 0) / 100,
+      date: downLineData.ReportMonth || downLineData.ReportDay || dayjs().format('YYYY-MM')
     }
-    showDetailSheet.value = true
   } else {
-    // 历史模式下可能跳转到其他页面
-    console.log('历史模式点击:', agent)
+    // 历史模式：显示日期/月份的汇总详情
+    const historyData = rawData as HistoryItem
+
+    // 根据 selectedAgent 获取代理信息
+    let agentName = '-'
+    let agentLevel = ''
+
+    if (selectedAgent.value === 'all') {
+      agentName = '全部层级'
+    } else if (typeof selectedAgent.value === 'number') {
+      // 从 subAgentList 中找到对应的代理
+      const agent = subAgentList.value.find(a => a.AdminId === selectedAgent.value)
+      if (agent) {
+        agentName = agent.Username
+
+        // 如果是团队主线（单层代理有团队且是主线，且是自身）
+        if (hasTeam.value && isMainLine.value && agent.AdminId === selfAdminId.value) {
+          agentLevel = '(主线)'
+        } else if (hasTeam.value && isMainLine.value) {
+          // 团队主线的副线：不显示层级标签
+          agentLevel = ''
+        } else {
+          // 多层代理：显示层级
+          agentLevel = `${numberToChinese(agent.AccountLevel)}级代理`
+        }
+      }
+    }
+
+    currentAgentDetail.value = {
+      // 历史模式显示当前选中的代理名称与层级
+      username: agentName,
+      level: agentLevel,
+      totalProfit: agent.totalProfit,
+      betUserCount: historyData.SumTransBetNum1 || 0,
+      betAmount: agent.betAmount,
+      profitMargin: agent.profitMargin,
+      firstDepositCount: agent.firstDepositCount,
+      conversionRate: agent.conversionRate,
+      registerCount: agent.registerCount,
+      loginCount: historyData.SumLogin || 0,
+      firstDepositAmount: (historyData.SumFirstPayMoney || 0) / 100,
+      avgFirstDeposit: avgFirstDeposit,
+      depositCount: historyData.SumPayMergerNum || 0,
+      depositAmount: (historyData.SumPayMergerMoney || 0) / 100,
+      withdrawCount: historyData.SumWithdrawNum || 0,
+      withdrawAmount: (historyData.SumWithdrawMoney || 0) / 100,
+      winLossAdjustment: (historyData.SumAccountChangeSumNum || 0) / 100,
+      bonus: (historyData.SumRedSumNum || 0) / 100,
+      rebate: (historyData.SumBetWaterMoney || 0) / 100,
+      agentCommission: (historyData.SumAgentCommissionSumNum || 0) / 100,
+      date: historyData.ReportMonth || historyData.ReportDay || '-'
+    }
   }
+
+  showDetailSheet.value = true
 }
 
 // 关闭详情 sheet
@@ -329,6 +796,7 @@ const closeDetailSheet = () => {
           class="shadow-sm"
           title="历史数据"
           :show-report-tabs="true"
+          v-model:report-type="reportType"
           :data="[
             [
               { label: '总盈利', value: `+${historyData.totalProfit.toLocaleString()}`, highlight: true },
@@ -345,12 +813,13 @@ const closeDetailSheet = () => {
       </div>
 
       <!-- 搜索和筛选器（sticky 固定） -->
-      <div>
+      <div v-if="showFilters">
         <!-- 占位元素（fixed 时避免内容跳动） -->
         <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }"></div>
         <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
-          <!-- 搜索框 -->
+          <!-- 实时模式：搜索框 -->
           <van-search
+            v-if="!isHistoryMode"
             v-model="searchKeyword"
             placeholder="代理账号"
             shape="round"
@@ -358,6 +827,7 @@ const closeDetailSheet = () => {
             clearable
             left-icon=""
             @search="handleSearch"
+            @clear="searchKeyword = ''"
             @keyup.enter="handleSearch"
           >
             <template #right-icon>
@@ -367,18 +837,39 @@ const closeDetailSheet = () => {
 
           <!-- 筛选条件行 -->
           <div class="filter-scroll-container">
-            <!-- 代理筛选 -->
+            <!-- 代理账号筛选（单层团队主线、多层代理显示） -->
             <Dropdown
-              v-model="agentFilter"
-              :options="agentFilterOptions"
+              v-if="agentType === 'single_team_main' || agentType === 'multi'"
+              v-model="selectedAgent"
+              :options="agentListOptions"
+              height="1.5rem"
+              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
+            />
+            <!-- 实时模式：排序方式 -->
+            <Dropdown
+              v-if="!isHistoryMode"
+              v-model="sortType"
+              :options="sortOptions"
               height="1.5rem"
               class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
 
-            <!-- 排序方式 -->
+            <!-- 历史模式：统计时间筛选（僅日報顯示） -->
+            <TimeFilterDropdown
+              v-if="isHistoryMode && reportType === 1"
+              v-model="selectTimeRange"
+              title="统计时间"
+              height="1.5rem"
+              :options="historyTimeRangeOptions"
+              :maxDate="new Date(dayjs().subtract(1, 'day').toDate())"
+              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
+            />
+
+            <!-- 历史模式：产品包筛选 -->
             <Dropdown
-              v-model="sortType"
-              :options="sortOptions"
+              v-if="isHistoryMode"
+              v-model="selectedProduct"
+              :options="productOptions"
               height="1.5rem"
               class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
@@ -386,16 +877,44 @@ const closeDetailSheet = () => {
         </div>
       </div>
 
+      <!-- 自定义时间选择器（TimeFilterDropdown 内部会使用） -->
+      <van-calendar
+        v-model:show="showDatePicker"
+        type="range"
+        :min-date="new Date(dayjs().subtract(180, 'day').toDate())"
+        :max-date="new Date(dayjs().subtract(1, 'day').toDate())"
+        :show-confirm="true"
+        confirm-text="确定"
+        confirm-disabled-text="日期超出范围"
+        @confirm="onConfirmDateRange"
+      />
+
       <!-- 代理列表 -->
-      <div class="agent-list-container">
-        <AgentCard
-          v-for="(agent, index) in agentList"
-          :key="index"
-          :agent="agent"
-          :is-history-mode="isHistoryMode"
-          @click="handleAgentClick(agent)"
-        />
-      </div>
+      <van-list
+        v-model:loading="loading"
+        :finished="finished"
+        :error="error"
+        error-text="请求失败"
+        @load="onLoad"
+        :class="{ 'hide-list-loading': refreshing }"
+        :style="agentList.length === 0 ? { height: 'calc(100vh - 450px)', display: 'flex'} : {}"
+      >
+        <div v-if="agentList.length > 0" class="agent-list-container">
+          <AgentCard
+            v-for="(agent, index) in agentList"
+            :key="index"
+            :agent="agent"
+            :is-history-mode="isHistoryMode"
+            @click="handleAgentClick(agent)"
+          />
+        </div>
+        <div
+          v-else-if="finished || refreshing"
+          class="flex flex-1 w-full items-center justify-center"
+        >
+          <empty />
+        </div>
+      </van-list>
     </van-pull-refresh>
 
     <!-- 悬浮按钮组 -->
@@ -457,6 +976,29 @@ const closeDetailSheet = () => {
 .agent-list-container {
   padding: 0 0.75rem;
   padding-bottom: 3rem;
+}
+
+/* van-list loading 居中 */
+:deep(.van-list__loading) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+}
+
+/* van-list error-text 居中 */
+:deep(.van-list__error-text) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
+  width: 100%;
+}
+
+/* 下拉刷新时隐藏 van-list loading */
+.hide-list-loading :deep(.van-list__loading) {
+  display: none !important;
 }
 
 /* 自定义 van-search 样式 */

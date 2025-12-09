@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import Big from 'big.js'
 import FinanceCard from './components/financeCard.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import dayjs from 'dayjs'
 import apis from '@/apis'
 import type { ReportCenterFinanceDetailData } from '@/apis/codegen/data-contracts'
@@ -32,22 +34,23 @@ const gameRecordData = computed(() => {
   }
 })
 
-// 结算时间选择（从 URL query 初始化，实现页面间连动）
-const selectedDate = ref((route.query.date as string) || '本月')
+// ==================== 结算时间筛选 ====================
+// 使用 TimeFilterDropdown 组件
+// 默认：本月（如果从上一页传递了参数则使用传递的时间）
+const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-// 日期选项
-const dateOptions = computed(() => {
-  const options = [{ label: '结算时间｜本月', value: '本月' }]
-  const now = new Date()
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const value = `${year}-${month}`
-    options.push({ label: value, value })
-  }
-  return options
+const selectTimeRange = ref({
+  startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+  endTime: timestampToSecond(dayjs().endOf('month').valueOf())
 })
+
+// 获取时间戳范围（用于 API 调用）
+const getTimeRange = (): { BeginTime: number; EndTime: number } => {
+  return {
+    BeginTime: selectTimeRange.value.startTime,
+    EndTime: selectTimeRange.value.endTime
+  }
+}
 
 // 排序选择
 const sortType = ref('总盈利降序')
@@ -64,25 +67,6 @@ const sortMap: Record<string, string> = {
   '总盈利升序': 'SumWinLoseGold'
 }
 
-// 根据选择的日期获取时间戳范围
-const getTimeRange = (dateStr: string): { BeginTime: number; EndTime: number } => {
-  let startDate: dayjs.Dayjs
-  let endDate: dayjs.Dayjs
-
-  if (dateStr === '本月') {
-    startDate = dayjs().startOf('month')
-    endDate = dayjs().endOf('month')
-  } else {
-    startDate = dayjs(dateStr).startOf('month')
-    endDate = dayjs(dateStr).endOf('month')
-  }
-
-  return {
-    BeginTime: startDate.unix(),
-    EndTime: endDate.unix(),
-  }
-}
-
 // 加载数据
 const loading = ref(true) // 初始为 true，避免进入页面时先显示空状态
 const fetchFinanceDetail = async (isRefreshing = false) => {
@@ -91,7 +75,7 @@ const fetchFinanceDetail = async (isRefreshing = false) => {
     if (!isRefreshing) {
       loading.value = true
     }
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
     const response = await apis.report.getReportCenterFinanceDetail({
       BeginTime,
       EndTime,
@@ -160,17 +144,14 @@ const onRefresh = async () => {
   refreshing.value = false
 }
 
-// 监听日期和排序变化，并更新 URL query
-watch([selectedDate], ([newDate]) => {
+// 监听时间范围变化
+watch(selectTimeRange, () => {
   fetchFinanceDetail()
-  // 更新 URL query 参数（不添加历史记录）
-  router.replace({
-    name: 'financeGameRecord',
-    query: {
-      ...route.query,
-      date: newDate
-    }
-  })
+}, { deep: true })
+
+// 监听排序变化
+watch(sortType, () => {
+  fetchFinanceDetail()
 })
 
 // 页面挂载时加载数据
@@ -193,7 +174,7 @@ const handleBack = () => {
   const tab = route.query.tab || '1'
   router.push({
     name: 'report',
-    query: { tab, date: selectedDate.value } // 传递日期参数回主页面
+    query: { tab }
   })
 }
 
@@ -204,14 +185,13 @@ const showInfoPopover = ref(false)
 const handleGameClick = (gameName: string) => {
   console.log('点击游戏:', gameName)
 
-  // 跳转到游戏注单详情页，传递日期参数
+  // 跳转到游戏注单详情页
   const tab = route.query.tab || '1'
   router.push({
     name: 'financeGameOrderDetail',
     query: {
       game: gameName,
-      tab,
-      date: selectedDate.value // 传递日期参数实现连动
+      tab
     }
   })
 }
@@ -275,9 +255,9 @@ const handleGameClick = (gameName: string) => {
         <div class="sticky-filter-bar px-3 py-2" :class="{ 'is-fixed': isFilterBarFixed }">
           <div class="filter-scroll-container">
             <!-- 结算时间 -->
-            <Dropdown
-              v-model="selectedDate"
-              :options="dateOptions"
+            <TimeFilterDropdown
+              v-model="selectTimeRange"
+              title="结算时间"
               height="1.5rem"
               class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
