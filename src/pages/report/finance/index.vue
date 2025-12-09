@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import Big from 'big.js'
 import FinanceSummary from './components/financeSummary.vue'
 import FinanceCard from './components/financeCard.vue'
-import Dropdown from '@/components/Dropdown/index.vue'
+import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import dayjs from 'dayjs'
 import apis from '@/apis'
 import type { ReportCenterFinancePersonalData } from '@/apis/codegen/data-contracts'
@@ -12,7 +13,6 @@ import { formatMoneyWithCommas, formatNumberWithCommas } from '@/utils/formatNum
 import { useSticky } from '@/composables/useSticky'
 
 const router = useRouter()
-const route = useRoute()
 
 const financeContainerRef = ref<HTMLElement | null>(null)
 
@@ -31,41 +31,22 @@ const totalProfit = computed(() => {
   return financeData.value.SumProfit
 })
 
-// 日期选择（从 URL query 初始化，实现页面间连动）
-const selectedDate = ref((route.query.date as string) || '本月')
+// ==================== 统计时间筛选 ====================
+// 使用 TimeFilterDropdown 组件
+// 默认：本月
+// 选项：今日、昨日、近7日、近14日、本月、上月、自定义（最多近180天）
+const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-// 日期选项
-const dateOptions = computed(() => {
-  const options = [{ label: '本月', value: '本月' }]
-  const now = new Date()
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const value = `${year}-${month}`
-    options.push({ label: value, value })
-  }
-  return options
+const selectTimeRange = ref({
+  startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+  endTime: timestampToSecond(dayjs().endOf('month').valueOf())
 })
 
-// 根据选择的日期获取时间戳范围
-const getTimeRange = (dateStr: string): { BeginTime: number; EndTime: number } => {
-  let startDate: dayjs.Dayjs
-  let endDate: dayjs.Dayjs
-
-  if (dateStr === '本月') {
-    // 本月：从本月1号00:00:00 到本月最后一天23:59:59
-    startDate = dayjs().startOf('month')
-    endDate = dayjs().endOf('month')
-  } else {
-    // 指定月份：从该月1号00:00:00 到该月最后一天23:59:59
-    startDate = dayjs(dateStr).startOf('month')
-    endDate = dayjs(dateStr).endOf('month')
-  }
-
+// 获取时间戳范围（用于 API 调用）
+const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
-    BeginTime: startDate.unix(), // Unix 时间戳（秒）
-    EndTime: endDate.unix(), // Unix 时间戳（秒）
+    BeginTime: selectTimeRange.value.startTime,
+    EndTime: selectTimeRange.value.endTime
   }
 }
 
@@ -77,7 +58,7 @@ const fetchFinanceData = async (isRefreshing = false) => {
     if (!isRefreshing) {
       loading.value = true
     }
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
     const response = await apis.report.getReportCenterFinancePersonal({
       BeginTime,
       EndTime,
@@ -111,18 +92,10 @@ const onRefresh = async () => {
   refreshing.value = false
 }
 
-// 监听日期变化，重新获取数据并更新 URL query
-watch(selectedDate, (newDate) => {
+// 监听时间范围变化，重新获取数据
+watch(selectTimeRange, () => {
   fetchFinanceData()
-  // 更新 URL query 参数（不添加历史记录）
-  router.replace({
-    name: 'report',
-    query: {
-      tab: route.query.tab || '1',
-      date: newDate
-    }
-  })
-})
+}, { deep: true })
 
 // 页面挂载时加载数据
 onMounted(() => {
@@ -283,27 +256,27 @@ const handleCardClick = (cardName: string) => {
   if (cardName === '游戏记录') {
     router.push({
       name: 'financeGameRecord',
-      query: { from: 'report', tab: '1', date: selectedDate.value } // 传递日期参数实现连动
+      query: { from: 'report', tab: 'finance' }
     })
   } else if (cardName === '充提记录') {
     router.push({
       name: 'financeDepositWithdrawRecord',
-      query: { tab: '1', date: selectedDate.value }
+      query: { tab: 'finance' }
     })
   } else if (cardName === '红利记录') {
     router.push({
       name: 'financeBonusRecord',
-      query: { tab: '1', date: selectedDate.value }
+      query: { tab: 'finance' }
     })
   } else if (cardName === '代存记录') {
     router.push({
       name: 'financeDepositRecord',
-      query: { tab: '1', date: selectedDate.value }
+      query: { tab: 'finance' }
     })
   } else if (cardName === '充提手续费记录') {
     router.push({
       name: 'financeDepositWithdrawFeeRecord',
-      query: { tab: '1', date: selectedDate.value }
+      query: { tab: 'finance' }
     })
   }
   // TODO: 添加其他卡片的详情页面跳转
@@ -324,12 +297,16 @@ const handleCardClick = (cardName: string) => {
         <FinanceSummary :total="totalProfit" />
       </div>
 
-      <!-- 日期选择器（sticky 吸顶） -->
+      <!-- 时间选择器（sticky 吸顶） -->
       <div>
         <!-- 占位元素（fixed 时避免内容跳动） -->
         <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }"></div>
         <div class="sticky-filter-bar px-3 py-1" :class="{ 'is-fixed': isFilterBarFixed }">
-          <Dropdown v-model="selectedDate" :options="dateOptions" height="2.5rem" />
+          <TimeFilterDropdown
+            v-model="selectTimeRange"
+            title="统计时间"
+            height="2.5rem"
+          />
         </div>
       </div>
 
@@ -357,7 +334,6 @@ const handleCardClick = (cardName: string) => {
           <!-- 充提记录 -->
           <FinanceCard
             title="充提记录"
-            :show-arrow="false"
             :data="depositWithdrawData"
             @click="handleCardClick('充提记录')"
           />
@@ -379,7 +355,6 @@ const handleCardClick = (cardName: string) => {
            <!-- 充提手续费记录 -->
           <FinanceCard
             title="充提手续费记录"
-            :show-arrow="false"
             :data="depositWithdrawFeeData"
             @click="handleCardClick('充提手续费记录')"
           />

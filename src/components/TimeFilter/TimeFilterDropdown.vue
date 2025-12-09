@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, useAttrs } from 'vue'
+import { ref, computed, useAttrs, type ComputedRef } from 'vue'
 import {
   Select,
   SelectContent,
@@ -13,11 +13,20 @@ import Big from 'big.js'
 
 const attrs = useAttrs()
 
+interface TimeRangeOption {
+  label: string
+  startTime: number | (() => number) | ComputedRef<number>
+  endTime: number | (() => number) | ComputedRef<number>
+  action?: () => void
+}
+
 interface Props {
   height?: string
   placeholder?: string
   disabled?: boolean
   title?: string
+  options?: TimeRangeOption[] // 可選的自定義選項
+  maxDate?: Date // 可選的最大日期（默認為今天）
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -32,7 +41,7 @@ const model = defineModel<{ startTime: number; endTime: number }>('modelValue', 
 
 // 日期區間180天
 const minDate = ref(dayjs().subtract(180, 'day').toDate())
-const maxDate = ref(dayjs().toDate())
+const maxDate = computed(() => props.maxDate || dayjs().toDate())
 
 const showDatePicker = ref(false)
 const customTimeRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 0 })
@@ -41,7 +50,8 @@ const selectedOption = ref<any>(null)
 // 時間區間
 const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-const timeRangeOptions = ref([
+// 默認選項（包含今天）
+const defaultTimeRangeOptions = [
   { label: '今日', startTime: timestampToSecond(dayjs().startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
   { label: '昨日', startTime: timestampToSecond(dayjs().subtract(1, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().subtract(1, 'day').endOf('day').valueOf()) },
   { label: '近7日', startTime: timestampToSecond(dayjs().subtract(7, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
@@ -49,13 +59,33 @@ const timeRangeOptions = ref([
   { label: '本月', startTime: timestampToSecond(dayjs().startOf('month').valueOf()), endTime: timestampToSecond(dayjs().endOf('month').valueOf()) },
   { label: '上月', startTime: timestampToSecond(dayjs().subtract(1, 'month').startOf('month').valueOf()), endTime: timestampToSecond(dayjs().subtract(1, 'month').endOf('month').valueOf()) },
   { label: '自定义', action: () => { showDatePicker.value = true }, startTime: computed(() => customTimeRange.value.startTime), endTime: computed(() => customTimeRange.value.endTime) }
-])
+]
+
+// 使用自定義選項或默認選項
+const timeRangeOptions = computed(() => {
+  if (props.options && props.options.length > 0) {
+    // 使用自定義選項，但保留自定義選項
+    return props.options
+  }
+  return defaultTimeRangeOptions
+})
+
+// 獲取選項的實際數值（處理 number, function, ComputedRef）
+const getTimeValue = (value: number | (() => number) | ComputedRef<number>): number => {
+  if (typeof value === 'function') return value()
+  if (typeof value === 'object' && 'value' in value) return value.value // ComputedRef
+  return value
+}
 
 const displayText = computed(() => {
   console.log(model.value)
   if (!model.value) return props.placeholder || '請選擇'
-  
-  const timeItem = timeRangeOptions.value.find(item => item.startTime === model.value.startTime && item.endTime === model.value.endTime)
+
+  const timeItem = timeRangeOptions.value.find(item => {
+    const itemStartTime = getTimeValue(item.startTime)
+    const itemEndTime = getTimeValue(item.endTime)
+    return itemStartTime === model.value.startTime && itemEndTime === model.value.endTime
+  })
   const displayTime = timeItem?.action ? `${dayjs(model.value.startTime * 1000).format('YYYY-MM-DD')} 至 ${dayjs(model.value.endTime * 1000).format('YYYY-MM-DD')}` : timeItem?.label
 
   if (!props.title) return displayTime
@@ -65,7 +95,10 @@ const displayText = computed(() => {
 const handleSelectChange = (item: any) => {
   if (!item) return
   if (item.action) return item.action()
-  model.value = { startTime: item.startTime, endTime: item.endTime }
+
+  const startTime = getTimeValue(item.startTime)
+  const endTime = getTimeValue(item.endTime)
+  model.value = { startTime, endTime }
 }
 
 const handleDatePickerConfirm = (value: [number, number]) => {

@@ -34,6 +34,17 @@ import type {
   PayMoneyWithdrawFeeDetailsQuery,
   PayMoneyWithdrawFeeDetailsResponse,
   WithdrawAccountResponse,
+  AgentApplyGoldQuery,
+  AgentApplyGoldResponse,
+  AgentApplyGoldSummaryResponse,
+  BonusRecordQuery,
+  BonusRecordResponse,
+  BonusSummaryResponse,
+  MemberFinanceReportQuery,
+  MemberFinanceReportResponse,
+  MemberFinanceReportTotalQuery,
+  MemberFinanceReportTotalResponse,
+  SubAgentListResponse,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -613,6 +624,151 @@ export class Admin<SecurityDataType = unknown> {
   ) =>
     this.http.request<WithdrawAccountResponse, any>({
       path: '/admin/personalcenter/agentnetcashcard',
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+  /**
+   * 代存记录列表
+   *
+   * @tags Admin
+   * @name AgentApplyGold
+   * @request GET:/admin/netcashreportcenter/finance/agentapplygold
+   * @secure
+   */
+  getAgentApplyGold = (
+    query: AgentApplyGoldQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<AgentApplyGoldResponse, any>({
+      path: '/admin/netcashreportcenter/finance/agentapplygold',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 代存记录总计
+   *
+   * @tags Admin
+   * @name AgentApplyGoldSummary
+   * @request GET:/admin/netcashreportcenter/finance/agentapplygold/summary
+   * @secure
+   */
+  getAgentApplyGoldSummary = (
+    query: {
+      BeginTime: number,
+      EndTime: number,
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<AgentApplyGoldSummaryResponse, any>({
+      path: '/admin/netcashreportcenter/finance/agentapplygold/summary',
+      method: "GET",
+      secure: true,
+      query,
+      ...params,
+    });
+
+  /**
+   * 红利记录列表
+   *
+   * @tags Admin
+   * @name BonusRecord
+   * @request GET:/admin/netcashplayergame/redlist
+   * @secure
+   */
+  getBonusRecord = (
+    query: BonusRecordQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<BonusRecordResponse, any>({
+      path: '/admin/netcashplayergame/redlist',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 红利记录总计
+   *
+   * @tags Admin
+   * @name BonusSummary
+   * @request GET:/admin/netcashreportcenter/finance/bonus/summary
+   * @secure
+   */
+  getBonusSummary = (
+    query: {
+      BeginTime: number,
+      EndTime: number,
+    },
+    params: RequestParams = {},
+  ) =>
+    this.http.request<BonusSummaryResponse, any>({
+      path: '/admin/netcashreportcenter/finance/bonus/summary',
+      method: "GET",
+      secure: true,
+      query,
+      ...params,
+    });
+
+  /**
+   * 会员财务报表
+   *
+   * @tags Admin
+   * @name MemberFinanceReport
+   * @request GET:/admin/netcashreportcenter/personalfinancereport
+   * @secure
+   */
+  getMemberFinanceReport = (
+    query: MemberFinanceReportQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MemberFinanceReportResponse, any>({
+      path: '/admin/netcashreportcenter/personalfinancereport',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 会员财务报表总计
+   *
+   * @tags Admin
+   * @name MemberFinanceReportTotal
+   * @request GET:/admin/netcashreportcenter/personalfinancereporttotal
+   * @secure
+   */
+  getMemberFinanceReportTotal = (
+    query: MemberFinanceReportTotalQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MemberFinanceReportTotalResponse, any>({
+      path: '/admin/netcashreportcenter/personalfinancereporttotal',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * @description 获取下级代理列表
+   * @name getSubAgentList
+   * @summary 获取下级代理列表
+   * @request GET:/admin/netcashreportcenter/personaldownlineadmins
+   * @secure
+   */
+  getSubAgentList = (params: RequestParams = {}) =>
+    this.http.request<SubAgentListResponse, any>({
+      path: '/admin/netcashreportcenter/personaldownlineadmins',
       method: "GET",
       secure: true,
       format: "json",
