@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, defineComponent, ref, h, onMounted, watch, watchEffect } from 'vue'
+import { computed, defineComponent, ref, h, onMounted, watch } from 'vue'
 import UnitCard from '../components/UnitCard.vue'
+import AdvancedBottomSheet from '../components/AdvancedBottomSheet/index.vue'
 import { useRouter } from 'vue-router'
 import type SearchBar from '@/components/SearchBar/index.vue'
 
@@ -12,6 +13,15 @@ import dayjs from 'dayjs'
 import { formatSignedMoney, formatNumber, formatMoney } from '@/utils/formatNumber'
 import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 
+const advanceKeyMap = {
+  RegTime: 'RegTime',
+  activeMember: 'ActiveMemberType',
+  bindCard: 'BindCard',
+  bindPhone: 'BindPhone',
+  packageId: 'PackageId',
+  vipLevels: 'VipLevels'
+}
+
 const userStore = useUserStore()
 const router = useRouter()
 const infinityRef = ref<InfinityExposeType>()
@@ -19,6 +29,15 @@ const infinityRef = ref<InfinityExposeType>()
 // const itemLs = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Items']>([])
 const totalInfo = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Total'] | null>(null)
 const pageInfo = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Pagination'] | null>(null)
+
+const showAdvanced = ref<boolean>(false)
+
+const regTime = ref<{ startTime: number; endTime: number } | null>(null)
+const activeMemberType = ref<0 | 1 | 2 | null>(null)
+const bindCard = ref<0 | 1 | 2 | null>(null)
+const bindPhone = ref<0 | 1 | 2 | null>(null)
+const packageId = ref<number | null>(null)
+const vipLevels = ref<Array<number>>([])
 
 const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
   startTime: dayjs().startOf('month').unix(),
@@ -81,7 +100,13 @@ const fetchData = async (page: number = 0) => {
       PageSize: pageInfo.value?.PageSize ?? 10,
       Sort: selectedSort.value,
       Page: page,
-      ...(searchSelected.value && { PlayerId: Number(searchSelected.value.id) })
+      ...(searchSelected.value && { PlayerId: Number(searchSelected.value.id) }),
+      ...(regTime.value && { RegTimeBegin: regTime.value.startTime, RegTimeEnd: regTime.value.endTime }),
+      ...(activeMemberType.value && { ActiveMemberType: activeMemberType.value }),
+      ...(bindCard.value && { BindCard: bindCard.value }),
+      ...(bindPhone.value && { BindPhone: bindPhone.value }),
+      ...(packageId.value && { PackageId: packageId.value }),
+      ...(vipLevels.value.length > 0 && { VipLevels: vipLevels.value.join() })
     })
     
     // itemLs.value = res.data.Data.Items
@@ -98,16 +123,116 @@ const fetchData = async (page: number = 0) => {
   }
 }
 
-watch([searchSelected, selectTime, selectedSort], () => {
+const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['ls']>(() => {
+  const productLs = userStore.productPackages
+  const { phone, card } = userStore.playerInfoPermission
+  return [
+    { key: advanceKeyMap.RegTime, title: '注册时间', type: 'time' },
+    {
+      key: advanceKeyMap.packageId,
+      title: '产品包',
+      type: 'radio',
+      list: [
+        { label: '全部', value: '' },
+        ...productLs.map((p) => ({
+          label: p.PackageName,
+          value: p.PackageId
+        }))
+      ],
+    },
+    {
+      key: advanceKeyMap.activeMember,
+      title: '活跃会员',
+      type: 'radio',
+      list: [
+        { label: '全部', value: '' },
+        { label: '是', value: 1 },
+        { label: '否', value: 2 }
+      ],
+    },
+    {
+      key: advanceKeyMap.bindCard,
+      title: '银行卡绑定',
+      type: 'radio',
+      list: [
+        { label: '全部', value: '' },
+        { label: '已绑定', value: 1 },
+        { label: '未绑定', value: 2 }
+      ],
+    },
+    {
+      key: advanceKeyMap.bindPhone,
+      title: '手机号绑定',
+      type: 'radio',
+      list: [
+        { label: '全部', value: '' },
+        { label: '已绑定', value: 1 },
+        { label: '未绑定', value: 2 }
+      ],
+    },
+    {
+      key: advanceKeyMap.vipLevels,
+      title: 'VIP等级',
+      type: 'checkbox',
+      list: [
+        { label: 'VIP0', value: 0 },
+        { label: 'VIP1', value: 1 },
+        { label: 'VIP2', value: 2 },
+        { label: 'VIP3', value: 3 },
+        { label: 'VIP4', value: 4 },
+        { label: 'VIP5', value: 5 },
+        { label: 'VIP6', value: 6 },
+        { label: 'VIP7', value: 7 },
+        { label: 'VIP8', value: 8 },
+        { label: 'VIP9', value: 9 },
+        { label: 'VIP10', value: 10 },
+      ]
+    },
+  ].filter((l) => {
+    if (l.key === advanceKeyMap.bindPhone && !phone) return false
+    if (l.key === advanceKeyMap.bindCard && !card) return false
+    return true
+  }) as InstanceType<typeof AdvancedBottomSheet>['$props']['ls']
+})
+
+const advancedHandler = (ls: Map<string, any>) => {
+  advancedLs.value.forEach((l) => {
+    const getVal = ls.get(l.key)
+    switch (l.key) {
+      case advanceKeyMap.RegTime: {
+        regTime.value = getVal ? { startTime: getVal.startTime, endTime: getVal.endTime } : null
+        break
+      }
+      case advanceKeyMap.packageId: {
+        packageId.value = getVal
+        break
+      }
+      case advanceKeyMap.activeMember: {
+        activeMemberType.value = getVal
+        break
+      }
+      case advanceKeyMap.bindCard: {
+        bindCard.value = getVal
+        break
+      }
+      case advanceKeyMap.bindPhone: {
+        bindPhone.value = getVal
+        break
+      }
+      case advanceKeyMap.vipLevels: {
+        vipLevels.value = getVal
+        break
+      }
+    }
+  })
+}
+
+watch([searchSelected, selectTime, selectedSort, regTime, activeMemberType, bindCard, bindPhone, packageId, vipLevels], () => {
   infinityRef.value?.fetchData()
 })
 
 onMounted(() => {
   searchPlayerLs()
-})
-
-watchEffect(() => {
-  console.log('==>', userStore.productPackages)
 })
 
 </script>
@@ -134,15 +259,19 @@ watchEffect(() => {
       </UnitCard>
   
       <div class="py-2 flex items-center justify-between space-x-2">
-        <div class="w-10 aspect-square rounded-full flex items-center justify-center outline outline-neutral2-seventh">
-          <van-image src="./static/images/manage/filter.svg" fit="contain" class="w-4" />
-        </div>
+        <AdvancedBottomSheet v-model:show="showAdvanced" :ls="advancedLs" @change="advancedHandler" >
+          <template #title>
+            <div class="w-10 aspect-square rounded-full flex items-center justify-center outline outline-neutral2-seventh">
+              <van-image src="./static/images/manage/filter.svg" fit="contain" class="w-4" />
+            </div>
+          </template>
+        </AdvancedBottomSheet>
         <SearchBar placeholder="会员账号" class="flex-1" v-model:selected="searchSelected" :search-ls="searchLs" />
       </div>
   
-      <div class="flex items-center space-x-1">
+      <div class="flex items-center space-x-1 overflow-x-auto">
         <TimeFilterDropdown v-model:model-value="selectTime" title="统计时间"></TimeFilterDropdown>
-        <Filled v-model:model-value="selectedSort" :options="sortOptions" />
+        <Filled v-model:model-value="selectedSort" :options="sortOptions" />        
       </div>
     </div>
 

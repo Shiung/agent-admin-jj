@@ -101,7 +101,7 @@ const handleDatePickerConfirm = (value: [number, number]) => {
     </SelectContent>
   </Select>
 
-  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" type="range" @confirm="handleDatePickerConfirm" />
+  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" teleport="body" type="range" @confirm="handleDatePickerConfirm" />
 </template>
 
 <style lang="scss" scoped>

@@ -1,4 +1,4 @@
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, watchEffect } from 'vue'
 import { defineStore } from 'pinia'
 import API from '@/apis'
 import { setHeaderToken } from '@/apis/api-client'
@@ -26,6 +26,18 @@ export const useUserStore = defineStore('user', () => {
     if (packageIds === '-1') return allPackageList
     const packageIdsList = packageIds.split(',')
     return allPackageList.filter((item) => packageIdsList.includes(String(item.PackageId)))
+  })
+  /**
+   * 權限開關
+   * api response 欄位 userInfo -> Admin -> `PlayerInfoPermission`
+   * 會員資料顯示權限(位置1: 手機號 位置2: 銀行卡;0: 無權限 1: 有權限)(在雲平台 代理管理>记录查询>權限設置>會員資料顯示 設置)
+   */
+  const playerInfoPermission = computed(() => {
+    const PlayerInfoPermission = (userInfo.value?.Admin.PlayerInfoPermission || '').split(',')
+    return {
+      phone: PlayerInfoPermission[0] === '1',
+      card: PlayerInfoPermission[1] === '1',
+    }
   })
 
   watch(userInfo, (newVal) => {
@@ -98,6 +110,7 @@ export const useUserStore = defineStore('user', () => {
     isSingleAgent,
     hasTeam,
     productPackages,
+    playerInfoPermission,
     googleSecretCode,
     setToken,
     logout,
