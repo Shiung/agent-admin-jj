@@ -19,17 +19,18 @@ interface OrderDetail {
 }
 
 interface Props {
-  show: boolean
   rawData?: GameDetailItem | null
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'update:show': [value: boolean]
   close: []
 }>()
 
+const show = defineModel<boolean>('show', {
+  required: true
+})
 // 游戏类型映射
 const gameStore = useGameStore()
 const { gamesMapping } = storeToRefs(gameStore)
@@ -87,7 +88,7 @@ const getOddsTypeString = (type: string | undefined): string => {
 const getGameName = (gameId: string | number | undefined): string => {
   if (!gameId) return '-'
   const gameIdStr = String(gameId)
-  return gamesMapping.value[gameIdStr] || '-'
+  return gamesMapping.value[gameIdStr].gameName || '-'
 }
 
 // 解析订单详情数据
@@ -400,7 +401,7 @@ const orderInfo = computed(() => {
 
 // 关闭弹窗
 const closeSheet = () => {
-  emit('update:show', false)
+  show.value = false
   emit('close')
 }
 
@@ -417,8 +418,7 @@ const copyOrderNo = (orderNo: string) => {
 
 <template>
   <van-popup
-    :show="show"
-    @update:show="val => emit('update:show', val)"
+    v-model:show="show"
     position="bottom"
     round
     :overlay="true"
