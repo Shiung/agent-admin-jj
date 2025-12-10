@@ -5,8 +5,9 @@ import Radio from './Radio.vue'
 import CheckBox from './CheckBox.vue'
 
 const show = defineModel<boolean>('show', { required: true })
-const { title = '标题' } = defineProps<{
-  title?: string;
+const { title = '标题', sheetTitle = '进阶筛选' } = defineProps<{
+  title?: string
+  sheetTitle?: string
   ls: Array<{
     /** 欄位key */
     key: string
@@ -18,8 +19,11 @@ const { title = '标题' } = defineProps<{
     type: 'time' | 'radio' | 'checkbox'
     /** defaultSelected */
     defaultSelected?: string | number | Array<any> | null
-    /** 是否可以多選 */
-    isMultiple?: boolean
+    /** 
+     * for Calendar option
+     * isShow all
+     **/
+    timeDisableAll?: boolean
   }>
 }>()
 
@@ -88,13 +92,18 @@ watch(show, (s) => {
       </div>
     </slot>
   </div>
-  <van-action-sheet v-model:show="show" title="进阶筛选" teleport="body">
+  <van-action-sheet v-model:show="show" :title="sheetTitle" teleport="body">
     <div class="px-4 py-3 flex flex-col gap-6">
       <template v-for="l in ls" :key="l.key">
-        <Calendar v-if="l.type === 'time'" :time-title="l.title" :ref="el => setUnitFieldDom(el, l.key)" />
+        <Calendar
+          v-if="l.type === 'time'"
+          :time-title="l.title"
+          :ref="el => setUnitFieldDom(el, l.key)"
+          v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}"
+          :time-disable-all="!!l.timeDisableAll"
+        />
         <CheckBox v-else-if="l.type === 'checkbox'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" />
         <Radio v-else-if="l.type === 'radio'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" />
-        <div v-else>123</div>
       </template>
   
       <div class="flex items-center gap-3">

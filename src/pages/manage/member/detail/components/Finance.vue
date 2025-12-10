@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, inject, defineComponent, h, computed, onMounted, watchEffect } from 'vue'
+import { ref, inject, defineComponent, h, computed, watchEffect } from 'vue'
 import { cn } from '@/utils/className'
 import dayjs from 'dayjs'
 import { formatSignedMoney, formatMoney } from '@/utils/formatNumber'
 import { ProviderActionSymbol, ProviderStateSymbol } from '../composables/useProvider'
 import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
+
+defineOptions({ inheritAttrs: false })
 
 const refreshing = ref(false)
 const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
@@ -75,7 +77,7 @@ watchEffect(() => {
 
 <template>
   <div class="px-4">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between my-2">
       <div>
         <TimeFilterDropdown v-model="selectTime" title="统计时间" />
       </div>

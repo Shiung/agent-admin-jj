@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, defineComponent, ref, h, onMounted, watch } from 'vue'
 import UnitCard from '../components/UnitCard.vue'
-import AdvancedBottomSheet from '../components/AdvancedBottomSheet/index.vue'
+import type AdvancedBottomSheet from '@/components/AdvancedBottomSheet/index.vue'
 import { useRouter } from 'vue-router'
 import type SearchBar from '@/components/SearchBar/index.vue'
 
@@ -345,16 +345,20 @@ onMounted(() => {
                   <van-icon :name="i.IsActiveMember ? 'checked' : 'clear'" :class="i.IsActiveMember ? 'text-success-normal' : 'text-error-normal'" />
                   <span class="text-xs text-neutral2-secondary">活跃会员</span>
                 </div>
-                <div class="w-[1px] h-3 bg-neutral2-seventh" />
-                <div class="flex items-center space-x-1">
-                  <van-icon :name="i.BindCard === 1 ? 'checked' : 'clear'" :class="i.BindCard === 1 ? 'text-success-normal' : 'text-error-normal'" />
-                  <span class="text-xs text-neutral2-secondary">银行卡绑定</span>
-                </div>
-                <div class="w-[1px] h-3 bg-neutral2-seventh" />
-                <div class="flex items-center space-x-1">
-                  <van-icon :name="i.BindPhone === 1 ? 'checked' : 'clear'" :class="i.BindPhone === 1 ? 'text-success-normal' : 'text-error-normal'" />
-                  <span class="text-xs text-neutral2-secondary">手机号绑定</span>
-                </div>
+                <template v-if="userStore.playerInfoPermission.card">
+                  <div class="w-[1px] h-3 bg-neutral2-seventh" />
+                  <div class="flex items-center space-x-1">
+                    <van-icon :name="i.BindCard === 1 ? 'checked' : 'clear'" :class="i.BindCard === 1 ? 'text-success-normal' : 'text-error-normal'" />
+                    <span class="text-xs text-neutral2-secondary">银行卡绑定</span>
+                  </div>
+                </template>
+                <template v-if="userStore.playerInfoPermission.phone">
+                  <div class="w-[1px] h-3 bg-neutral2-seventh" />
+                  <div class="flex items-center space-x-1">
+                    <van-icon :name="i.BindPhone === 1 ? 'checked' : 'clear'" :class="i.BindPhone === 1 ? 'text-success-normal' : 'text-error-normal'" />
+                    <span class="text-xs text-neutral2-secondary">手机号绑定</span>
+                  </div>
+                </template>
               </div>
             </template>
           </UnitCard>

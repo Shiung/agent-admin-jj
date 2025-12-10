@@ -52,7 +52,7 @@ const options = computed(() => {
     >
       <van-tab v-for="tab in tabs" :key="tab.id" :title="tab.title" v-bind="tab.to ? { to: tab.to } : {}">
         <template v-if="tab.content && (typeof tab.content === 'string')" >{{ tab.content  }}</template>
-        <component v-else-if="tab.content" :is="tab.content" />
+        <component v-else-if="tab.content" :is="tab.content" v-bind="attrs.playerId ? { playerId: attrs.playerId } : {}" />
       </van-tab>
     </van-tabs>
   </div>

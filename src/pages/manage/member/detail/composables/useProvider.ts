@@ -1,6 +1,7 @@
 import { computed, onMounted, provide, reactive, readonly } from 'vue'
 import type { InjectionKey, ComputedRef } from 'vue'
 import { useRoute } from 'vue-router'
+import { useUserStore } from '@/stores/user'
 import API from '@/apis/index'
 import dayjs from 'dayjs'
 
@@ -13,6 +14,7 @@ type State = {
 
 type Computeds = {
   rechargeTypeMapping: ComputedRef<Map<number, State['rechargeTypeList'][number]>>
+  playerInfoPermission: ComputedRef<ReturnType<typeof useUserStore>['playerInfoPermission']>
 }
 
 const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
@@ -25,6 +27,7 @@ export const ProviderActionSymbol: InjectionKey<{
 
 export default function useProvider() {
   const route = useRoute()
+  const userStore = useUserStore()
 
   const states = reactive<State>({
     playerInfoLoading: false,
@@ -32,6 +35,8 @@ export default function useProvider() {
     playerId: Number(route.params.id),
     rechargeTypeList: []
   })
+
+  const playerInfoPermission = computed(() => userStore.playerInfoPermission)
 
   const rechargeTypeMapping = computed(() => {
     const ls = new Map()
@@ -86,7 +91,8 @@ export default function useProvider() {
   
   provide(ProviderStateSymbol, states)
   provide(ProvideComputedSymbol, {
-    rechargeTypeMapping
+    rechargeTypeMapping,
+    playerInfoPermission
   })
   provide(ProviderActionSymbol, {
     fetchPlayerDetail
@@ -104,6 +110,7 @@ export default function useProvider() {
 
   return {
     states: readonly(states),
+    playerInfoPermission,
     fetchPlayerDetail
   }
 }

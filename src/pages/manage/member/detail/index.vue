@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, defineAsyncComponent, watchEffect } from 'vue'
+import { computed, ref, defineAsyncComponent } from 'vue'
 import UnitCard from '../../components/UnitCard.vue'
 import type SwitchTab from '@/components/SwitchTab/index.vue'
 
@@ -39,7 +39,7 @@ const showDate = (ts: number | string | null | undefined) => {
   return dayjs(num > 1e12 ? num : num * 1000).format('YYYY-MM-DD HH:mm:ss')
 }
 
-const { states } = useProvider()
+const { states, playerInfoPermission } = useProvider()
 
 </script>
 
@@ -95,22 +95,26 @@ const { states } = useProvider()
               <van-icon :name="states.playerInfo?.PlayerInfo.IsActiveMember ? 'checked' : 'clear'" :class="states.playerInfo?.PlayerInfo.IsActiveMember ? 'text-success-normal' : 'text-error-normal'" />
               <span class="text-xs text-neutral2-secondary">活跃会员</span>
             </div>
-            <div class="w-[1px] h-3 bg-neutral2-seventh" />
-            <div class="flex items-center space-x-1">
-              <van-icon :name="states.playerInfo?.PlayerInfo.BindCard === 1 ? 'checked' : 'clear'" :class="states.playerInfo?.PlayerInfo.BindCard === 1 ? 'text-success-normal' : 'text-error-normal'" />
-              <span class="text-xs text-neutral2-secondary">银行卡绑定</span>
-            </div>
-            <div class="w-[1px] h-3 bg-neutral2-seventh" />
-            <div class="flex items-center space-x-1">
-              <van-icon :name="states.playerInfo?.PlayerInfo.BindPhone === 1 ? 'checked' : 'clear'" :class="states.playerInfo?.PlayerInfo.BindPhone === 1 ? 'text-success-normal' : 'text-error-normal'" />
-              <span class="text-xs text-neutral2-secondary">手机号绑定</span>
-            </div>
+            <template v-if="playerInfoPermission.card">
+              <div class="w-[1px] h-3 bg-neutral2-seventh" />
+              <div class="flex items-center space-x-1">
+                <van-icon :name="states.playerInfo?.PlayerInfo.BindCard === 1 ? 'checked' : 'clear'" :class="states.playerInfo?.PlayerInfo.BindCard === 1 ? 'text-success-normal' : 'text-error-normal'" />
+                <span class="text-xs text-neutral2-secondary">银行卡绑定</span>
+              </div>
+            </template>
+            <template v-if="playerInfoPermission.phone">
+              <div class="w-[1px] h-3 bg-neutral2-seventh" />
+              <div class="flex items-center space-x-1">
+                <van-icon :name="states.playerInfo?.PlayerInfo.BindPhone === 1 ? 'checked' : 'clear'" :class="states.playerInfo?.PlayerInfo.BindPhone === 1 ? 'text-success-normal' : 'text-error-normal'" />
+                <span class="text-xs text-neutral2-secondary">手机号绑定</span>
+              </div>
+            </template>
           </div>
         </UnitCard>
       </div>
     </div>
 
-    <switch-tab v-model:active-tab="activeTab" :opts="{ type: 'line' }" :tabs="ls" swipeable class="cusTab"  />
+    <switch-tab v-model:active-tab="activeTab" :opts="{ type: 'line' }" :tabs="ls" swipeable :playerId="states.playerId" class="cusTab"  />
   </div>
 </template>
 

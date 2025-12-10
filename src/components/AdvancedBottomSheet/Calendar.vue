@@ -16,12 +16,14 @@ const defaultOption: { [key in string]: { label: string; startTime: number; endT
 const minDate = ref(dayjs().subtract(180, 'day').toDate())
 const maxDate = ref(dayjs().toDate())
 
-const { timeTitle = '时间区间' } = defineProps<{
-  timeTitle: string
+const { timeTitle = '时间区间', timeDisableAll = false, defaultVal = '' } = defineProps<{
+  timeTitle: string,
+  defaultVal?: any,
+  timeDisableAll?: boolean
 }>()
 
 const showDatePicker = ref<boolean>(false)
-const selectedTime = ref<string>('')
+const selectedTime = ref<string>(defaultVal)
 const customTimeRange = ref<{ startTime: number; endTime: number } | null>(null)
 
 const formatTime = (ts: number) => dayjs.unix(ts).format('YYYY-MM-DD')
@@ -34,7 +36,7 @@ const timeRangeList = computed<Array<{ key: string; label: string }>>(() => {
     }
   })
 
-  ls.unshift({ key: '', label: '全部' })
+  if (!timeDisableAll) ls.unshift({ key: '', label: '全部' })
   ls.push({ key: 'customer', label: '自定义' })
   return ls
 })
@@ -62,13 +64,14 @@ defineExpose<{
     if (selected) {
       return {
         startTime: selected.startTime,
-        endTime: selected.endTime
+        endTime: selected.endTime,
+        label: selected.label
       }
     }
     return null
   },
   reset: () => {
-    selectedTime.value = ''
+    selectedTime.value = defaultVal
     customTimeRange.value = null
   }
 })

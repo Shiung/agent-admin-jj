@@ -479,6 +479,30 @@ export interface SolidConfigData {
   GameSetting: Record<string, any>[]
 }
 
+export interface GameListConfigRequest {
+  /** false:全部, true:只查詢代理可見的場館 */
+  AgentVisible: boolean
+}
+
+export interface GameListConfigResponse {
+  Code: number
+  Data: Array<{
+    PlatformType: number
+    PlatformName: string
+    Games: Array<{
+      PlatformType: number
+      GameId: number
+      GameCode: string
+      Name: string
+      SysEnable: boolean
+      Visible: boolean
+    }>
+  }>
+  Msg: string
+  Id: string
+}
+
+
 export interface ReportsChartsQuery {
   ReportType: number // 報表類型，1:日報，2:月報
   PackageId: number
