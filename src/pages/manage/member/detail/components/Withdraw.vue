@@ -1,29 +1,46 @@
 <script setup lang="ts">
-import { defineComponent, h, computed, inject } from 'vue'
+import { defineComponent, h, computed, ref, useAttrs, watch } from 'vue'
 import UnitCard from '../../../components/UnitCard.vue'
-import { ProviderStateSymbol } from '../composables/useProvider'
+import { getWithdrawName } from '@/utils/finance'
 import API from '@/apis/index'
 import dayjs from 'dayjs'
 import { cn } from '@/utils/className'
 import { formatMoney } from '@/utils/formatNumber'
 
-const fakeData: Awaited<ReturnType<typeof API.netCashPlayerGame.getCommonWithdrawlist>>['data']['Data']['Items'] = [
-  {
-    AccountType: 10,
-    Amount: 1000,
-    Fee: 100,
-    FeeRate: 2,
-    FinishTime: 1764827116367,
-    OrderId: '1238091js',
-    PlayerId: 123456,
-    Process: 8,
-    RealAmount: 1000,
-    RefundScore: 1,
-    Status: 2
-  }
+import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
+import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
+
+defineOptions({ inheritAttrs: false })
+const attrs = useAttrs()
+
+const playerId = computed<number | undefined>(() => attrs.playerId as number)
+
+const infinityRef = ref<InfinityExposeType>()
+
+const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
+  startTime: dayjs().startOf('month').unix(),
+  endTime: dayjs().endOf('month').unix()
+})
+
+/** 0:全部 1:待处理 2:已出款 3:退款驳回 5:处理中 */
+const statusLs = [
+  { label: '全部状态', value: 0 },
+  { label: '已出款', value: 2 },
+  { label: '退款驳回', value: 3 },
+  { label: '待处理', value: 1 },
+  { label: '处理中', value: 5 },
 ]
 
-const state = inject(ProviderStateSymbol)!
+const selectStatus = ref<number>(statusLs[1]?.value ?? 2)
+
+const sortOptions = [
+  { value: '-finish_time', label: '账变时间降序' },
+  { value: '+finish_time', label: '账变时间升序' },
+  { value: '-amount', label: '提现金额降序' },
+  { value: '+amount', label: '提现金额升序' },
+]
+
+const selectedSort = ref(sortOptions[0]?.value ?? '-finish_time')
 
 /** 
  * 对应后台状态
@@ -91,18 +108,17 @@ const dateTransfer = (ts: number | string | null | undefined) => {
 }
 
 const fetchData = async (page: number = 0) => {
-  const startTime = 1751299200
-  const endTime = dayjs().endOf('day').unix()
   try {
     const res = await API.netCashPlayerGame.getCommonWithdrawlist({
-      BeginTime: startTime,
-      EndTime: endTime,
-      PlayerId: state.playerId,
+      BeginTime: selectTime.value.startTime,
+      EndTime: selectTime.value.endTime,
+      PlayerId: playerId.value,
+      Status: selectStatus.value,
       Page: page
     })
 
     return {
-      data: fakeData, // res.data.Data.Items,
+      data: res.data.Data.Items,
       paging: res.data.Data.Pagination
     }
   } catch (e) {
@@ -110,12 +126,22 @@ const fetchData = async (page: number = 0) => {
     return { data: [], paging: null }
   }
 }
+
+watch([], () => {
+  infinityRef.value?.fetchData()
+})
+
 </script>
 
 <template>
   <div class="flex-1 flex flex-col">
-    Withdraw
+    <div class="px-4 flex items-center space-x-2">
+      <TimeFilterDropdown v-model="selectTime" title="账变时间" />
+      <Filled v-model:model-value="selectStatus" :options="statusLs" />
+      <Filled v-model:model-value="selectedSort" :options="sortOptions" />
+    </div>
     <InfinityScroll
+      ref="infinityRef"
       :fetchAction="fetchData"
       class="flex-1 flex flex-col"
     >
@@ -143,7 +169,7 @@ const fetchData = async (page: number = 0) => {
             </div>
             <template #footer>
               <div class="flex justify-between items-center">
-                <div class="text-xs text-neutral2-basic">{{ l.AccountType }}</div>
+                <div class="text-xs text-neutral2-basic">{{ getWithdrawName(l.AccountType) }}</div>
                 <div class="text-xs text-neutral2-basic">{{ dateTransfer(l.FinishTime) }}</div>
               </div>
             </template>
