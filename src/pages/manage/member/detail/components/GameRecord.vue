@@ -10,6 +10,7 @@ import { formatSignedMoney, formatMoney } from '@/utils/formatNumber'
 import type AdvancedBottomSheet from '@/components/AdvancedBottomSheet/index.vue'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 import { useGameStore } from '@/stores/game'
+import { watchOnce } from '@vueuse/core'
 
 const advanceKeyMap = {
   timeRange: 'TimeRange',
@@ -31,9 +32,11 @@ const gameStore = useGameStore()
 
 const gameListConf = ref<Awaited<ReturnType<typeof API.game.getGameListConfig>>['data']['Data']>([])
 
+const filtersBox = ref<HTMLDivElement>()
 const infinityRef = ref<InfinityExposeType>()
 const moreItems = ref<Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['MoreItems'] | null>(null)
 const selectTimeType = ref<GamedetailRequest['SelectTimeType']>(2)
+const selectBetStatus = ref<0 | 1 | 2 | -1>(0)
 
 const showTimeAdvanced = ref<boolean>(false)
 const showGameTypeAdvanced = ref<boolean>(false)
@@ -90,6 +93,15 @@ const BetStatus = [
   { label: '已取消', value: 2 },
   { label: '未结算', value: -1 }
 ]
+
+const sortOptions = ref([
+  { value: '-SettlementTime', label: '结算时间降序' },
+  { value: '+SettlementTime', label: '结算时间升序' },
+  { value: '-CompanyWinLose', label: '盈利降序' },
+  { value: '+CompanyWinLose', label: '盈利升序' },
+])
+
+const selectedSort = ref(sortOptions.value[0]?.value ?? '-SettlementTime')
 
 const sum = computed(() => ([
   { id: 'sumBet', title: '投注金额', amount: moreItems.value?.SumBetGold ?? 0 },
@@ -255,6 +267,8 @@ const fetchData = async (page: number = 0) => {
       EndTime: timeRange.value.endTime,
       ...(playerId.value && { PlayerId: playerId.value }),
       ...(gameTypeLs.value.length > 0 && { GameType: gameTypeLs.value.join() }),
+      ...(selectBetStatus.value && { Status: selectBetStatus.value }),
+      Sort: selectedSort.value,
       SelectTimeType: selectTimeType.value,
       Page: page,
       PageSize: 10
@@ -291,10 +305,15 @@ const gameTypeHandler = (ls: Map<string, any>) => {
   gameTypeLs.value = [...ls.values()].flat()
 }
 
-watch([selectTimeType, timeRange, gameTypeLs], () => {
+watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus], () => {
   infinityRef.value?.fetchData()
 })
 
+watchOnce(filtersBox, (el) => {
+  el?.addEventListener('touchstart', (e) => {
+    e.stopPropagation()
+  })
+})
 
 onMounted(() => {
   fetchGameListConfig()
@@ -304,9 +323,11 @@ onMounted(() => {
 
 <template>
   <div class="flex-1 flex flex-col">
-    <div class="flex px-4 my-2 overflow-x-auto space-x-2">
+    <div class="flex px-4 my-2 overflow-x-auto space-x-2" ref="filtersBox">
       <AdvancedBottomSheet v-model:show="showTimeAdvanced" :title="showTimeRangeTitle" sheet-title="时间筛选" :ls="advancedTimeLs" @change="timeFilterHandler" />
       <AdvancedBottomSheet v-model:show="showGameTypeAdvanced" :title="showProductFilterTitle" :ls="advancedGameType" @change="gameTypeHandler" />
+      <Filled v-model:model-value="selectBetStatus" :options="BetStatus" />
+      <Filled v-model:model-value="selectedSort" :options="sortOptions" />
     </div>
 
     <InfinityScroll
