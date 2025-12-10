@@ -88,7 +88,7 @@ const getOddsTypeString = (type: string | undefined): string => {
 const getGameName = (gameId: string | number | undefined): string => {
   if (!gameId) return '-'
   const gameIdStr = String(gameId)
-  return gamesMapping.value[gameIdStr].gameName || '-'
+  return gamesMapping.value?.[gameIdStr]?.gameName ?? '-'
 }
 
 // 解析订单详情数据

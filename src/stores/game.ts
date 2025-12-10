@@ -13,7 +13,7 @@ export const useGameStore = defineStore('game', () => {
 
     const gamesMapping = computed(() => {
     const games = solidConfig.value.GameSetting.find((item) => item.Type === 'games')
-    return JSON.parse(games?.Value ?? '{}') as Record<string, string>
+    return JSON.parse(games?.Value ?? '{}') as Record<string, any>
   })
 
   const fetchSolidConfig = async () => {
