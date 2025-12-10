@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { inject } from 'vue'
+import { ref, useAttrs, watch, computed } from 'vue'
 import UnitCard from '../../../components/UnitCard.vue'
 import API from '@/apis/index'
 import dayjs from 'dayjs'
 import { formatMoney } from '@/utils/formatNumber'
-import { ProviderStateSymbol } from '../composables/useProvider'
+
+import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
+import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
+
+defineOptions({ inheritAttrs: false })
+const attrs = useAttrs()
+
+const playerId = computed<number | undefined>(() => attrs.playerId as number)
+
+const infinityRef = ref<InfinityExposeType>()
 
 const dateTransfer = (ts: number | string | null | undefined) => {
   if (!ts) return '-'
@@ -13,16 +22,27 @@ const dateTransfer = (ts: number | string | null | undefined) => {
   return dayjs(num > 1e12 ? num : num * 1000).format('YYYY-MM-DD HH:mm:ss')
 }
 
-const state = inject(ProviderStateSymbol)!
+const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
+  startTime: dayjs().startOf('month').unix(),
+  endTime: dayjs().endOf('month').unix()
+})
+
+const sortOptions = [
+  { value: '-update_time', label: '账变时间降序' },
+  { value: '+update_time', label: '账变时间升序' },
+  { value: '-amount', label: '代存金额降序' },
+  { value: '+amount', label: '代存金额升序' },
+]
+
+const selectedSort = ref(sortOptions[0]?.value ?? '-update_time')
 
 const fetchData = async (page: number = 0) => {
-  const startTime = 1751299200
-  const endTime = dayjs().endOf('day').unix()
   try {
     const res = await API.netCashPlayerGame.getAgentapplygoldlist({
-      BeginTime: startTime,
-      EndTime: endTime,
-      PlayerId: state.playerId,
+      BeginTime: selectTime.value.startTime,
+      EndTime: selectTime.value.endTime,
+      PlayerId: playerId.value,
+      Sort: selectedSort.value,
       Page: page
     })
 
@@ -48,13 +68,21 @@ const transferType = (type: number) => {
   return type
 } 
 
+watch([selectTime, selectedSort], () => {
+  infinityRef.value?.fetchData()
+})
+
 </script>
 
 <template>
   <div class="flex-1 flex flex-col">
-    deposit
+    <div class="px-4 my-2 flex items-center space-x-2">
+      <TimeFilterDropdown v-model="selectTime" title="账变时间" />
+      <Filled v-model:model-value="selectedSort" :options="sortOptions" />
+    </div>
 
     <InfinityScroll
+      ref="infinityRef"
       :fetchAction="fetchData"
       class="flex-1 flex flex-col"
     >

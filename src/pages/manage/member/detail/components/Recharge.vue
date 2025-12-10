@@ -143,7 +143,7 @@ watch([selectTime, selectStatus, selectedSort], () => {
 
 <template>
   <div class="flex flex-col">
-    <div class="px-4 flex items-center space-x-2">
+    <div class="px-4 my-2 flex items-center space-x-2">
       <TimeFilterDropdown v-model="selectTime" title="账变时间" />
       <Filled v-model:model-value="selectStatus" :options="statusLs" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
