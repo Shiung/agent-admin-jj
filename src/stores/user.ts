@@ -4,7 +4,7 @@ import API from '@/apis'
 import { setHeaderToken } from '@/apis/api-client'
 import { useGlobalStore } from '@/stores/global'
 import { useGameStore } from '@/stores/game'
-import { type AccountInfoData } from '@/apis/codegen/data-contracts'
+import { type AccountInfoData, type SubAgentItem } from '@/apis/codegen/data-contracts'
 
 export const useUserStore = defineStore('user', () => {
   const globalStore = useGlobalStore()
@@ -19,6 +19,8 @@ export const useUserStore = defineStore('user', () => {
   const isSingleAgent = computed(() => userInfo.value?.NetCashAccount.AccountType === 1)
   /** 有無團隊 (單層代理而且TeamId > 0) */
   const hasTeam = computed(() => isSingleAgent.value && userInfo.value?.NetCashAccount.TeamId > 0)
+  /** 是否為主線 (IsMain: 1=主线, 2=副线) */
+  const isMainLine = computed(() => userInfo.value?.NetCashAccount.IsMain !== 2)
   /** 代理底下的產品包 */
   const productPackages = computed(() => {
     const packageIds = userInfo.value?.Admin.PackageId || ''
@@ -38,6 +40,25 @@ export const useUserStore = defineStore('user', () => {
       phone: PlayerInfoPermission[0] === '1',
       card: PlayerInfoPermission[1] === '1',
     }
+  })
+
+  // 下级代理列表（共享数据，避免重复调用 API）
+  const subAgentList = ref<SubAgentItem[]>([])
+  const subAgentListLoaded = ref(false) // 是否已加载
+
+  /** 当前登录代理的层级 */
+  const currentAdminLevel = computed(() => userInfo.value?.NetCashAccount?.AccountLevel || 1)
+
+  /** 自身的 AdminId */
+  const selfAdminId = computed(() => {
+    const firstAgent = subAgentList.value[0]
+    return firstAgent ? firstAgent.AdminId : null
+  })
+
+  /** 下级代理的最大层级 */
+  const maxSubAgentLevel = computed(() => {
+    if (subAgentList.value.length === 0) return currentAdminLevel.value
+    return Math.max(...subAgentList.value.map(a => a.AccountLevel))
   })
 
   watch(userInfo, (newVal) => {
@@ -103,19 +124,46 @@ export const useUserStore = defineStore('user', () => {
     return res.data.Data
   }
 
+  // 获取下级代理列表（只在第一次调用时请求 API）
+  const fetchSubAgentList = async (forceRefresh = false) => {
+    // 如果已加载且不强制刷新，直接返回
+    if (subAgentListLoaded.value && !forceRefresh) {
+      return subAgentList.value
+    }
+
+    try {
+      const response = await API.admin.getSubAgentList()
+      if (response.data.Code === 200) {
+        subAgentList.value = response.data.Data || []
+        subAgentListLoaded.value = true
+        return subAgentList.value
+      }
+    } catch (err) {
+      console.error('获取下级代理列表失败:', err)
+    }
+    return []
+  }
+
   return {
     token,
     userInfo,
     accountInfo,
     isSingleAgent,
     hasTeam,
+    isMainLine,
     productPackages,
     playerInfoPermission,
     googleSecretCode,
+    subAgentList,
+    subAgentListLoaded,
+    currentAdminLevel,
+    selfAdminId,
+    maxSubAgentLevel,
     setToken,
     logout,
     fetchIsLogin,
     ensureUser,
-    fetchAccountInfo
+    fetchAccountInfo,
+    fetchSubAgentList
   }
 })

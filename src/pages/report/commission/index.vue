@@ -18,7 +18,7 @@ const commissionContainerRef = ref<HTMLElement | null>(null)
 
 // 用户信息
 const userStore = useUserStore()
-const { isSingleAgent, hasTeam } = storeToRefs(userStore)
+const { isSingleAgent, hasTeam, subAgentList } = storeToRefs(userStore)
 
 // 提取吸顶逻辑到 composable
 const {
@@ -179,16 +179,6 @@ const fetchSubordinateAgentList = async (skipLoading = false) => {
       loadingSubordinateList.value = true
     }
 
-    // 映射层级筛选
-    const accountLevelMap: Record<string, number> = {
-      '全部层级': 0,
-      '一级': 1,
-      '二级': 2,
-      '三级': 3,
-      '四级': 4,
-      '五级': 5,
-    }
-
     // 映射发放状态（-1:未发放, 0:全部, 1:已发放, 2:已拒绝）
     const settlementStatusMap: Record<string, number> = {
       '全部状态': 0,
@@ -210,7 +200,7 @@ const fetchSubordinateAgentList = async (skipLoading = false) => {
       ReportMonth: selectedDate.value,
       Page: subordinatePagination.value.currPage,
       PageSize: subordinatePagination.value.pageSize,
-      AccountLevel: accountLevelMap[levelFilter.value] || 0,
+      AccountLevel: levelFilter.value, // 直接使用 levelFilter.value (0 或具体层级数字)
       AgentAccount: searchKeyword.value || undefined,
       IsSettlement: settlementStatusMap[statusFilter.value] || 0,
       Sort: sortMap[commissionSortType.value] || '-AccountLevel', // 默认代理层级降序
@@ -297,11 +287,18 @@ const fetchTeamAgentList = async (skipLoading = false) => {
 // 日期选择（默认为已结算的最新一期(上个月））
 const selectedDate = ref(dayjs().subtract(1, 'month').format('YYYY-MM'))
 
-// 日期选项（生成最近12个月）
+// 日期选项（根据视图类型动态生成）
 const dateOptions = computed(() => {
   const options = []
   const now = new Date()
-  for (let i = 0; i < 12; i++) {
+
+  // 根据视图类型确定月数
+  // 个人视图(0)：近12个月
+  // 团队视图(1)：近6个月
+  // 下级视图(2)：近12个月
+  const monthCount = viewType.value === 1 ? 6 : 12
+
+  for (let i = 0; i < monthCount; i++) {
     const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
     const year = date.getFullYear()
     const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -315,20 +312,55 @@ const dateOptions = computed(() => {
 const searchKeyword = ref('')
 
 
+// 数字转中文
+const numberToChinese = (num: number): string => {
+  const chineseNumbers = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十']
+  if (num <= 10) {
+    return chineseNumbers[num] || String(num)
+  }
+  if (num < 20) {
+    const ones = chineseNumbers[num - 10] || String(num - 10)
+    return `十${ones}`
+  }
+  if (num < 100) {
+    const tens = Math.floor(num / 10)
+    const ones = num % 10
+    const tensChar = chineseNumbers[tens] || String(tens)
+    const onesChar = ones > 0 ? (chineseNumbers[ones] || String(ones)) : ''
+    return `${tensChar}十${onesChar}`
+  }
+  return String(num)
+}
+
 // 下级视图筛选条件
-const levelFilter = ref('全部层级')
+const levelFilter = ref(0) // 默认值：0 (全部层级)
 const statusFilter = ref('全部状态')
 const commissionSortType = ref('代理层级降序')
 
-// 层级选项
-const levelOptions = [
-  { label: '全部层级', value: '全部层级' },
-  { label: '一级', value: '一级' },
-  { label: '二级', value: '二级' },
-  { label: '三级', value: '三级' },
-  { label: '四级', value: '四级' },
-  { label: '五级', value: '五级' },
-]
+// 层级选项（动态生成：从 subAgentList 提取下级代理的层级）
+const levelOptions = computed(() => {
+  const options: Array<{ label: string; value: number }> = [
+    { label: '全部层级', value: 0 }
+  ]
+
+  // 从第二个元素开始（index 1），提取所有下级代理的层级
+  if (subAgentList.value.length > 1) {
+    // 获取所有下级代理的唯一层级，并排序
+    const subordinateLevels = [...new Set(
+      subAgentList.value.slice(1).map(agent => agent.AccountLevel)
+    )].sort((a, b) => a - b)
+
+    // 生成层级选项
+    subordinateLevels.forEach(level => {
+      options.push({
+        label: `${numberToChinese(level)}级代理`,
+        value: level
+      })
+    })
+  }
+
+  return options
+})
 
 // 状态选项
 const statusOptions = [
@@ -444,6 +476,13 @@ const handleSearch = () => {
 watch(viewType, (newType) => {
   updateStickyDimensions()
 
+  // 检查当前选中的日期是否在新视图的日期范围内
+  const availableDates = dateOptions.value.map(opt => opt.value)
+  if (!availableDates.includes(selectedDate.value)) {
+    // 如果不在范围内，重置为已结算的最新一期（上个月）
+    selectedDate.value = dayjs().subtract(1, 'month').format('YYYY-MM')
+  }
+
   // 切换到下级视图时，仅在第一次切换时获取数据
   if (newType === 2 && !viewDataLoaded.value.subordinate) {
     fetchSubordinateAgentList()
@@ -484,7 +523,10 @@ watch([levelFilter, statusFilter, commissionSortType], () => {
 })
 
 // 组件挂载时获取数据
-onMounted(() => {
+onMounted(async () => {
+  // 获取下级代理列表（用于动态生成层级筛选选项）
+  await userStore.fetchSubAgentList()
+
   fetchCommissionData()
 
   // 如果初始就是下级视图，也获取下级数据

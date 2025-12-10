@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick, onUnmounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getRechargeName, getRechargeAccountType, getRechargeType } from '@/utils/finance'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import { rulesRequired } from '@/utils/formRules'
-import { type RechargeMoneyData, type RechargeMoneyPayUrlData } from '@/apis/codegen/data-contracts'
+import { type RechargeMoneyData, type RechargeMoneyPayUrlData, type RechargeRecordListDataItem } from '@/apis/codegen/data-contracts'
 import Big from 'big.js'
 import API from '@/apis'
 
 import PayTypeList, { type ListItem } from '../components/payTypeList.vue'
 import RechargeChannelList, { type RechargeChannelItem, showLimit } from '../components/rechargeChannelList.vue'
 import DDWallet from '../components/ddWallet.vue'
+import RechargeOrder from '../components/rechargeOrder.vue'
 import { type FormInstance } from 'vant'
 
 const userStore = useUserStore()
@@ -38,7 +39,6 @@ const fetchRechargeList = async () => {
   }
 }
 const handleChangeType = (item: ListItem) => {
-  console.log("🍊 selectPayTypeItem", item)
   selectPayTypeItem.value = item
   nextTick(() => {
     handleChangeRechargeChannel(selectPayTypeItem.value?.expandables[0])
@@ -49,8 +49,8 @@ const handleChangeType = (item: ListItem) => {
   formData.value = initFormData()
 }
 const handleChangeRechargeChannel = (item: RechargeChannelItem) => {
-  console.log("🍊 selectRechargeChannelItem", item)
   selectRechargeChannelItem.value = item
+  formData.value = initFormData()
 }
 
 const isDDWallet = computed(() => {
@@ -62,8 +62,8 @@ const USDTRate = ref<number>(0)
 const fetchUSDTRate = async () => {
   if (!selectPayTypeItem.value?.PayType) return
   try {
-    const res = await API.finance.getUSDTRate({
-      AccountType: selectPayTypeItem.value.PayType
+    const res = await API.finance.getRechargeUSDTRate({
+      PayType: selectPayTypeItem.value.PayType
     })
     if (res.data.Code !== 200) return
     USDTRate.value = new Big(res.data.Data.CryptoRate).div(100).toNumber()
@@ -83,6 +83,7 @@ const formData = ref<FormData>(initFormData())
 const adminInfo = computed(() => {
   return userStore.userInfo?.Admin || {}
 })
+const realName = computed(() => userStore.accountInfo?.RealName || '')
 
 /** 快選金額列表 */
 const quickSelectAmountList = computed<number[]>((): number[] => {
@@ -96,8 +97,23 @@ const confirmDisabled = computed(() => {
     !formData.value.Amount
 })
 
+const checkOrderInterval = ref<ReturnType<typeof setInterval> | null>(null)
 /** 0:充值表單 1:普通訂單 2:三方訂單(會額外外開頁面) */
-const process = ref<number>(0)
+const process = ref<number | null>(null)
+watch(
+  () => process.value, 
+  (newValue, oldValue) => {
+    if (newValue !== oldValue && oldValue === 0) {
+      /** 每15秒檢查一次訂單狀態 */
+      checkOrderInterval.value = setInterval(() => {
+        fetchRechargeOrder(true)
+      }, 15000)
+    } else if (newValue === 0) {
+      checkOrderInterval.value && clearInterval(checkOrderInterval.value)
+    }
+  }
+)
+
 /** 充值訂單data */
 const thirdRechargeData = ref<RechargeMoneyData | null>(null)
 
@@ -115,7 +131,8 @@ const rechargeConfirm = async () => {
       Amount: new Big(formData.value.Amount! ?? 0).times(100).toNumber(),
       RealAmount: new Big(formData.value.Amount! ?? 0).times(100).toNumber(),
       Process: 'f',
-      RechargeId: selectRechargeChannelItem.value.Id
+      RechargeId: selectRechargeChannelItem.value.Id,
+      AccountName: realName.value
     }
     const res = await API.finance.rechargeMoney(params)
     if (res.data.Code !== 200) return
@@ -131,14 +148,54 @@ const rechargeConfirm = async () => {
       }
       process.value = 1
     }
-    thirdRechargeData.value = Data
+    thirdRechargeData.value = {
+      ...Data, 
+      PayType: selectPayTypeItem.value.PayType
+    }
   } finally {
     loading.close()
   }
 }
 
+/** 取得充值訂單(用充值記錄api判斷) */
+const fetchRechargeOrder = async (hideLoading: boolean = true) => {
+  const loading = !hideLoading ? showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 }) : null
+  try {
+    const res = await API.finance.getRechargeRecordList({ Status: '1,4' })
+    if (res.data.Code !== 200) return
+    const { Items } = res.data.Data
+    if (Items && Items.length) { // 有訂單進入訂單明細
+      const item = Items[0] as RechargeRecordListDataItem
+      item.OrderInfo = item.OrderInfo ? JSON.parse(item.OrderInfo) : {}
+      const newThirdRechargeData: RechargeMoneyData = {
+        amount: new Big(item.Amount).div(100).toNumber(),
+        orderId: item.OrderId,
+        payUrl: item.OrderInfo.payUrl ? JSON.parse(item.OrderInfo.payUrl) : {},
+        PayType: item.PayType
+      }
+      if (typeof newThirdRechargeData.payUrl !== 'string' && newThirdRechargeData.payUrl.card2CardReceiveInfo) {
+        newThirdRechargeData.payUrl.card2CardReceiveInfo = JSON.parse(newThirdRechargeData.payUrl.card2CardReceiveInfo)
+      }
+      thirdRechargeData.value = newThirdRechargeData
+      if (getRechargeType(item.PayType) === 'thirdParty') {
+        process.value = 2
+      } else {
+        process.value = 1
+      }
+    } else { // 沒有訂單進入充值表單
+      process.value = 0
+      fetchRechargeList()
+    }
+  } finally {
+    !hideLoading && loading && loading.close()
+  }
+}
+
 onMounted(() => {
-  fetchRechargeList()
+  fetchRechargeOrder()
+})
+onUnmounted(() => {
+  checkOrderInterval.value && clearInterval(checkOrderInterval.value)
 })
 </script>
 
@@ -176,17 +233,17 @@ onMounted(() => {
         </div>
         <div class="flex items-center mt-2 px-3 py-2 rounded-2xl bg-bg-floor-1-2">
           <van-image src="./static/images/common/lightBulb.png" fit="contain" class="w-5 h-5 mr-2" />
-          <div class="flex-1 flex flex-col gap-1">
-            <div class="text-sm font-normal leading-6">
+          <div class="flex-1 flex flex-col gap-1 text-sm font-normal leading-6 text-neutral2-basic">
+            <div>
               单次限额
               <span class="inline-block ml-2 text-primary-normal">{{ selectRechargeChannelItem ? showLimit(selectRechargeChannelItem) : '' }}</span>
             </div>
-            <div v-if="selectPayTypeItem && getRechargeAccountType(selectPayTypeItem.PayType) === 'USDT'" class="text-sm font-normal leading-6">
+            <div v-if="selectPayTypeItem && getRechargeAccountType(selectPayTypeItem.PayType) === 'USDT'">
               参考汇率
               <span class="inline-block ml-2 text-primary-normal">{{ USDTRate }}</span>
               RMB
-              <span class="inline-block ml-2 text-primary-normal">≈</span>
-              <span class="inline-block ml-2 text-primary-normal">{{ formData.Amount ? formatMoneyWithComma((formData.Amount / USDTRate), 2, false) : 0 }}</span>
+              <span class="inline-block ml-2">≈</span>
+              <span class="inline-block ml-2 text-primary-normal">{{ formData.Amount ? formatMoneyWithComma((formData.Amount / USDTRate).toFixed(2), 2, false) : 0 }}</span>
               USDT
             </div>
           </div>
@@ -218,13 +275,17 @@ onMounted(() => {
           </van-button>
         </div>
         <div class="mt-4 mx-4 mb-8">
-          <van-button type="primary" round block native-type="submit" :disabled="confirmDisabled" class="!text-base font-semibold gray-disabled">
+          <van-button type="primary" round block native-type="submit" :disabled="confirmDisabled" class="!h-12 !text-base font-semibold gray-disabled">
             确认
           </van-button>
         </div>
       </van-form>
     </div>
-    <div v-if="process === 1">普通訂單</div>
-    <div v-if="process === 2">三方訂單</div>
+    <RechargeOrder
+      v-if="(process === 1 || process === 2) && thirdRechargeData"
+      :process="process"
+      :thirdRechargeData="thirdRechargeData"
+      @checkOrder="fetchRechargeOrder"
+    />
   </div>
 </template>

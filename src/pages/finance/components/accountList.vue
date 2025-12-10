@@ -2,7 +2,6 @@
 import { ref, computed, watch } from 'vue'
 import { type ListItem } from './payTypeList.vue'
 import { getWithdrawTypeImage, getRechargeTypeImage } from '@/utils/finance'
-import { type BankList } from '@/apis/codegen/data-contracts'
 import { useGlobalStore } from '@/stores/global'
 
 import AddAccountPopup from './addAccountPopup.vue'
@@ -62,16 +61,8 @@ const getIcon = (PayType: number): string => {
   }[props.type] || ''
 }
 
-const bankMapping = computed<Record<string, BankList>>(() => {
-  const list = globalStore.configInfo?.BankList
-  if (!list) return {}
-  return list.reduce((acc, cur) => {
-    acc[cur.BankCode] = cur
-    return acc
-  }, {} as Record<string, BankList>)
-})
 const getBankName = (bankCode: string) => {
-  return bankMapping.value[bankCode]?.BankName ?? ''
+  return globalStore.bankMapping?.[bankCode]?.BankName ?? ''
 }
 
 const isDDWallet = computed(() => {
@@ -102,24 +93,27 @@ const showAddAccountPopup = ref(false)
       @click="handleAccountClick(item)"
     >
       <van-image :src="props.selectPayTypeItem.PayType ? getIcon(props.selectPayTypeItem.PayType) : ''" fit="contain" class="w-10 h-10" />
-      <div class="flex-1 flex flex-col gap-1 text-xs leading-5">
+      <div class="flex-1 flex flex-col gap-1 text-xs leading-5 mr-4">
         <!-- 銀行卡 -->
         <template v-if="props.selectPayTypeItem.PayType === 1001">
-          <div>银行名称：{{ getBankName(item.BankCode) }}</div>
-          <div>银行账号：{{ item.BankCardNum }}</div>
+          <div class="flex-1 flex justify-between gap-2">
+            <div class="flex-1">银行名称: {{ getBankName(item.BankCode) }}</div>
+            <div class="flex-1">持卡人: {{ item.RealName }}</div>
+          </div>
+          <div>银行账号: {{ item.BankCardNum }}</div>
         </template>
         <!-- 支付寶 -->
         <template v-else-if="props.selectPayTypeItem.PayType === 1002">
-          <div>账户名称：{{ item.RealName }}</div>
-          <div>支付宝账号：{{ item.BankCardNum }}</div>
+          <div>账户名称: {{ item.RealName }}</div>
+          <div>支付宝账号: {{ item.BankCardNum }}</div>
         </template>
         <!-- 虛擬帳號 -->
         <template v-else-if="props.selectPayTypeItem.IsCrypto">
-          <div class="flex-1 flex">
-            <div class="w-1/2">别名：{{ item.DigitalAlias }}</div>
-            <div class="w-1/2">协议：{{ item.DigitalDesc }}</div>
+          <div class="flex-1 flex justify-between">
+            <div class="flex-1">别名: {{ item.DigitalAlias }}</div>
+            <div class="flex-1">协议: {{ item.DigitalDesc }}</div>
           </div>
-          <div>地址：{{ item.DigitalAddress }}</div>
+          <div>地址: {{ item.DigitalAddress }}</div>
         </template>
       </div>
       <van-image v-if="!isDDWallet" src="./static/images/common/circleDelete.svg" fit="contain" class="!absolute right-2 top-2 w-4 h-4" @click.stop="handleDeleteAccount(item)" />

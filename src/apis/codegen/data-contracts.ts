@@ -1427,6 +1427,136 @@ export interface PayMoneyWithdrawFeeDetailsResponse {
   Msg: string
   Id: string
 }
+
+// ==================== 代存记录 API ====================
+
+// 代存记录查询参数
+export interface AgentApplyGoldQuery {
+  Page?: number // 页码
+  PageSize?: number // 每页数量
+  PlayerId?: number // 玩家ID
+  BeginTime: number // 开始时间（Unix时间戳）
+  EndTime: number // 结束时间（Unix时间戳）
+  WalletType: number // 钱包类型（1：佣金代存钱包 2：额度代存钱包）
+  Sort?: string // 排序字段（账变时间:update_time 代存金额:amount）
+  LoginAccount?: string // 会员账号
+}
+
+// 代存记录单条数据
+export interface AgentApplyGoldItem {
+  Amount: number // 代存金额（分）
+  CreditBonus: number // 代存回馈（分）
+  CreditFee: number // 代存手续费（分）
+  LoginAccount: string // 会员账号
+  OrderId: string // 订单号
+  ProcessingTime: number // 账变时间（Unix时间戳）
+  Remarks: string // 备注
+  Status: number // 状态（2:完成）
+  TransferType: number // 充值类型（2:代理代存 10:代理代存-红利）
+  VipLevel: string // VIP等级
+  WalletType: number // 钱包类型（1：佣金代存 2：额度代存）
+  WithdrawWaterMultiply: number // 流水倍数
+}
+
+// 代存记录响应数据
+export interface AgentApplyGoldData {
+  Items: AgentApplyGoldItem[]
+  Pagination: {
+    CurrPage: number
+    MaxCount: number
+    MaxPageCount: number
+    PageSize: number
+  }
+}
+
+// 代存记录响应
+export interface AgentApplyGoldResponse {
+  Code: number
+  Data: AgentApplyGoldData
+  Msg: string
+  Id: string
+}
+
+// 代存记录总计响应
+export interface AgentApplyGoldSummaryResponse {
+  Code: number
+  Data: {
+    CommissionAmount: number // 佣金代存金额总计
+    CommissionFeedback: number // 佣金代存回馈总计
+    CreditAmount: number // 额度代存金额总计
+    CreditFeedback: number // 额度代存回馈总计
+  }
+  Msg: string
+  Id: string
+}
+
+// ==================== 红利记录 API ====================
+
+// 红利记录查询参数
+export interface BonusRecordQuery {
+  Page: number
+  PageSize: number
+  PlayerId?: number // 会员id
+  BeginTime: number // 查询开始时间（Unix时间戳）
+  EndTime: number // 查询结束时间（Unix时间戳）
+  Sort?: string // 排序字段(send_time:领奖时间 bonus:红利金额)，前面带正负号代表排序方式
+  LoginAccount?: string // 会员账号
+}
+
+// 红利记录项
+export interface BonusRecordItem {
+  Account: string // 会员账号
+  AdminId: number // 代理id
+  AgentId: number // 总代id
+  Bonus: number // 红利金额（分）
+  BonusTitle: string // 红利标题
+  BonusType: number // 红利类型(4:升级礼金 5:每月红包 6:生日礼金 9:活动红利 12:推荐红利)
+  ChannelId: string // 渠道号
+  CreateTime: number // 创建时间（Unix时间戳）
+  Draw: number // 流水倍数
+  DrawAmount: number // 流水（分）
+  FinishTime: number // 完成时间（Unix时间戳）
+  OrderId: string // 订单号
+  PlayerId: number // 会员id
+  SendTime: number // 领奖时间（Unix时间戳）
+  Status: number // 状态(2:申請成功 5:待領取)
+  UpdateTime: number // 更新时间（Unix时间戳）
+  VipLevel: string // VIP等级
+}
+
+// 红利记录数据
+export interface BonusRecordData {
+  Items: BonusRecordItem[]
+  Pagination: {
+    CurrPage: number
+    MaxCount: number
+    MaxPageCount: number
+    PageSize: number
+  }
+  Total: {
+    Count: number
+    SumAmount: number
+  }
+}
+
+// 红利记录响应
+export interface BonusRecordResponse {
+  Code: number
+  Data: BonusRecordData
+  Msg: string
+  Id: string
+}
+
+// 红利记录总计响应
+export interface BonusSummaryResponse {
+  Code: number
+  Data: {
+    BackWaterAmount: number // 返水总计（分）
+    BonusAmount: number // 红利总计（分）
+  }
+  Msg: string
+  Id: string
+}
 export interface HelpCenterListData {
   AdminId: number
   Content: string
@@ -1642,6 +1772,178 @@ export interface LoginSettingRequest {
   IsAllowOtherDeviceLogin: number // 是否允许其他设备登录，1:允许，0:不允许
   PrivatePassword: string // 私人密码
   TimeFreeVerification: number // 免验证时间，单位:分钟
+}
+
+// ==================== 下级代理列表 API ====================
+
+// 下级代理项
+export interface SubAgentItem {
+  AccountLevel: number // 账号层级
+  AdminId: number // 代理id
+  Username: string // 代理账号
+}
+
+// 下级代理列表响应
+export interface SubAgentListResponse {
+  Code: number
+  Data: SubAgentItem[]
+  Msg: string
+  Id: string
+}
+
+// ==================== 会员财务报表 API ====================
+
+// 会员财务报表查询参数
+export interface MemberFinanceReportQuery {
+  BeginTime: string // 开始时间（日报: YYYY-MM-DD, 月报: YYYY-MM）
+  EndTime: string // 结束时间（日报: YYYY-MM-DD, 月报: YYYY-MM）
+  ReportType: 1 | 2 // 日/月报(1: 日报, 2: 月报)
+  SearchType: 'today' | 'month' | 'old' // 实时、本月历史或旧历史
+  PackageId?: number // 产品id
+  AdminId?: string // 代理id（逗号分隔的多个id，不带为全查）
+}
+
+// 下级代理数据项
+export interface DownLineItem {
+  AccountLevel: number // 账号层级
+  AdminId: number // 代理id
+  ReportDay: string | null // 报表日期，ReportType=1(日报)会有值
+  ReportMonth: string | null // 报表月份，ReportType=2(月报)会有值
+  SumAccountChangeSumNum: number // 输赢调整（分）
+  SumAgentCommissionSumNum: number // 代理佣金（分）
+  SumBetWaterMoney: number // 返水（分）
+  SumChangeWithdrawMoney: number // 提现调整（分）
+  SumCustomerWithdrawMoney: number // 客户提现（分）
+  SumFirstPayMoney: number // 首充金额（分）
+  SumFirstPayNum: number // 首充人数
+  SumLogin: number // 登录账户
+  SumPayMergerMoney: number // 充值金额（分）
+  SumPayMergerNum: number // 充值人数
+  SumRedSumNum: number // 红利（分）
+  SumReg: number // 注册账号
+  SumTransBetMoney1: number // 投注金额（分）
+  SumTransBetNum1: number // 投注人数
+  SumTransWinMoney1: number // 派送金额（分）
+  SumWithdrawMoney: number // 提现金额（分）
+  SumWithdrawNum: number // 提现人数-包含提现调整
+  SumWithdrawPureNum: number // 提现人数-不包含提现调整
+  Username: string // 代理账号
+}
+
+// 历史报表项
+export interface HistoryItem {
+  AdminsReport: DownLineItem[] | null // 历史日/月报，各级代理统计资料(多层代理才会有)
+  ReportDay: string | null // 报表日期，ReportType=1(日报)会有值
+  ReportMonth: string | null // 报表月份，ReportType=2(月报)会有值
+  SumAccountChangeSumNum: number // 输赢调整（分）
+  SumAgentCommissionSumNum: number // 代理佣金（分）
+  SumBetWaterMoney: number // 返水（分）
+  SumFirstPayMoney: number // 首充金额（分）
+  SumFirstPayNum: number // 首充人数
+  SumLogin: number // 登录账户
+  SumPayMergerMoney: number // 充值金额（分）
+  SumPayMergerNum: number // 充值人数
+  SumRedSumNum: number // 红利（分）
+  SumReg: number // 注册账号
+  SumTransBetMoney1: number // 投注金额（分）
+  SumTransBetNum1: number // 投注人数
+  SumTransWinMoney1: number // 派送金额（分）
+  SumWithdrawMoney: number // 提现金额（分）
+  SumWithdrawNum: number // 提现人数-包含提现调整
+  SumWithdrawPureNum: number // 提现人数-不包含提现调整
+}
+
+// 实时报表项
+export interface RealTimeItem {
+  ReportDay: string | null // 报表日期，ReportType=1(日报)会有值
+  ReportMonth: string | null // 报表月份，ReportType=2(月报)会有值
+  SumAccountChangeSumNum: number // 输赢调整（分）
+  SumAgentCommissionSumNum: number // 代理佣金（分）
+  SumBetWaterMoney: number // 返水（分）
+  SumFirstPayMoney: number // 首充金额（分）
+  SumFirstPayNum: number // 首充人数
+  SumLogin: number // 登录账户
+  SumPayMergerMoney: number // 充值金额（分）
+  SumPayMergerNum: number // 充值人数
+  SumRedSumNum: number // 红利（分）
+  SumReg: number // 注册账号
+  SumTransBetMoney1: number // 投注金额（分）
+  SumTransBetNum1: number // 投注人数
+  SumTransWinMoney1: number // 派送金额（分）
+  SumWithdrawMoney: number // 提现金额（分）
+  SumWithdrawNum: number // 提现人数-包含提现调整
+  SumWithdrawPureNum: number // 提现人数-不包含提现调整
+}
+
+// 会员财务报表响应
+export interface MemberFinanceReportResponse {
+  Code: number
+  Data: {
+    AdminsReport: DownLineItem[] | null // 实时日/月报，各级代理统计资料(多层代理才会有)
+    Items: HistoryItem[] | null // 历史日/月报，统计资料
+    TodayItems: RealTimeItem | null // 实时日/月报，统计资料
+  }
+  Msg: string
+  Id: string
+}
+
+// 会员财务报表总计查询参数
+export interface MemberFinanceReportTotalQuery {
+  BeginTime: string // 开始时间（日报: YYYY-MM-DD, 月报: YYYY-MM）
+  EndTime: string // 结束时间（日报: YYYY-MM-DD, 月报: YYYY-MM）
+  ReportType: 1 | 2 // 日/月报(1: 日报, 2: 月报)
+  SearchType: 'today' | 'old' // 实时或历史
+  PackageId?: number // 产品id
+  AdminId?: string // 代理id（逗号分隔的多个id）
+}
+
+// 会员财务报表总计项
+export interface MemberFinanceReportTotalItem {
+  SumAccountChangeSumNum: number // 输赢调整（分）
+  SumAgentCommissionSumNum: number // 代理佣金（分）
+  SumBetWaterMoney: number // 返水（分）
+  SumFirstPayMoney: number // 首充金额（分）
+  SumFirstPayNum: number // 首充人数
+  SumLogin: number // 登录账户
+  SumPayMergerMoney: number // 充值金额（分）
+  SumPayMergerNum: number // 充值人数
+  SumRedSumNum: number // 红利（分）
+  SumReg: number // 注册账号
+  SumTransBetMoney1: number // 投注金额（分）
+  SumTransBetNum1: number // 投注人数
+  SumTransWinMoney1: number // 派送金额（分）
+  SumWithdrawMoney: number // 提现金额（分）
+  SumWithdrawNum: number // 提现人数-包含提现调整
+  SumWithdrawPureNum: number // 提现人数-不包含提现调整
+}
+
+// 会员财务报表总计响应
+export interface MemberFinanceReportTotalResponse {
+  Code: number
+  Data: {
+    BannerItems: MemberFinanceReportTotalItem
+  }
+  Msg: string
+  Id: string
+}
+
+export interface WithdrawAccountResponse {
+  Code: number
+  Data: WithdrawAccountData[]
+  Msg: string
+  Id: string
+}
+
+export interface WithdrawAccountData {
+  /** 提現帳號 */
+  AccountNum: string,
+  /** 銀行代號(銀行卡用) */
+  BankCode: string,
+  /** 帳號類型 */
+  Name: string,
+  /** 虛擬幣協議 */
+  Protocol: string
+  CreateTime: number,
 }
 
 export type * from './Playermanage/types'

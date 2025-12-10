@@ -171,12 +171,12 @@ export interface AppliedAmountResponse {
   Id: string
 }
 
-export interface USDTRateQuery {
+export interface WithdrawUSDTRateQuery {
   /** PayType */
   AccountType: number
 }
 
-export interface USDTRateResponse {
+export interface WithdrawUSDTRateResponse {
   Code: number
   Data: {
     /** USDT匯率 */
@@ -272,8 +272,12 @@ export interface WithdrawRecordListQuery {
   BeginTime: number
   /** 結束時間 */
   EndTime: number
+  /** 提現方式 */
+  AccountType?: string | number
   /** 訂單狀態 0:全部, 1:申請中, 2:已打款, 3:已拒絕, 4:已打款, 5:審核中, */
-  Status: number
+  Status?: number
+  /** 排序 */
+  Sort?: string
   Page: number
   PageSize: number
 }
@@ -374,6 +378,8 @@ export interface RechargeMoneyFormData {
   Process: string
   /** 通道ID */
   RechargeId: number
+  /** 真實姓名 (DD錢包用) */
+  AccountName?: string
 }
 
 export interface RechargeMoneyResponse {
@@ -386,18 +392,21 @@ export interface RechargeMoneyResponse {
 export interface RechargeMoneyData {
   amount: number
   orderId: string
-  ownWebBrowser: boolean
-  payUrl: string | RechargeMoneyPayUrlData
-  sign: string
-  status: number
-  t: number
+  ownWebBrowser?: boolean
+  payUrl: string | RechargeMoneyPayUrlData | Record<string, any>
+  sign?: string
+  status?: number
+  t?: number
+  [key: string]: any
 } 
 
 export interface RechargeMoneyPayUrlData {
+  /** 三方頁面連結 */
   data?: string
-  card2CardReceiveInfo?: string | {
-    [key: string]: any
-  }
+  card2CardReceiveInfo?: string | Record<string, any>
+  /** 到期時間 */
+  ExpireTime?: number
+  [key: string]: any
 }
 
 export interface RechargeMoneyCancelFormData {
@@ -412,6 +421,53 @@ export interface RechargeMoneyCancelFormData {
 export interface RechargeMoneyCancelResponse {
   Code: number
   Data: string
+  Msg: string
+  Id: string
+}
+
+export interface RechargeRecordListQuery {
+  /** 開始時間 */
+  BeginTime?: number
+  /** 結束時間 */
+  EndTime?: number
+  /** 訂單狀態 ''全部狀態, 1處理中, 2充值完成, 3充值失敗, 4已審核, 12充值取消, 13用戶取消 */
+  Status?: string | number
+  /** 排序 */
+  Sort?: string
+  Page?: number
+  PageSize?: number
+}
+
+export interface RechargeRecordListResponse {
+  Code: number
+  Data: RechargeRecordListData
+  Msg: string
+  Id: string
+}
+
+export interface RechargeRecordListData {
+  Items: null | RechargeRecordListDataItem[]
+  Pagination: Pagination
+  Total: Record<string, any>
+}
+
+export interface RechargeRecordListDataItem {
+  Amount: number
+  OrderId: string
+  [key: string]: any
+}
+
+export interface RechargeUSDTRateFormData {
+  /** PayType */
+  PayType: number
+}
+
+export interface RechargeUSDTRateResponse {
+  Code: number
+  Data: {
+    /** USDT匯率 */
+    CryptoRate: number
+  }
   Msg: string
   Id: string
 }

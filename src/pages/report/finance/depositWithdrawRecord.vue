@@ -3,35 +3,28 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import FinanceCard from './components/financeCard.vue'
 import DepositWithdrawCard from './components/depositWithdrawCard.vue'
-import Dropdown from '@/components/Dropdown/index.vue'
+import Big from 'big.js'
+import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import apis from '@/apis'
 import dayjs from 'dayjs'
 import type { PaymentSummaryData, PlayerRechargeList, PlayerWithdrawList } from '@/apis/codegen/data-contracts'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
+import { getWithdrawName } from '@/utils/finance'
 
 const router = useRouter()
 const route = useRoute()
 
-// 从 URL query 初始化日期（实现页面间联动）
-const selectedDate = ref((route.query.date as string) || '本月')
+const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-// 时间范围转换函数
-const getTimeRange = (dateValue: string) => {
-  const now = dayjs()
-  let startDate, endDate
+const selectTimeRange = ref({
+  startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+  endTime: timestampToSecond(dayjs().endOf('month').valueOf())
+})
 
-  if (dateValue === '本月') {
-    startDate = now.startOf('month')
-    endDate = now.endOf('month')
-  } else {
-    // 格式如 "2025-01"
-    startDate = dayjs(dateValue).startOf('month')
-    endDate = dayjs(dateValue).endOf('month')
-  }
-
+const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
-    BeginTime: startDate.unix(),
-    EndTime: endDate.unix(),
+    BeginTime: selectTimeRange.value.startTime,
+    EndTime: selectTimeRange.value.endTime
   }
 }
 
@@ -43,7 +36,7 @@ const summaryLoading = ref(false)
 const fetchSummary = async () => {
   try {
     summaryLoading.value = true
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getPaymentSummary({
       BeginTime,
@@ -97,20 +90,6 @@ const tipText = computed(() => {
 
 // 会员账号搜索
 const searchKeyword = ref('')
-
-// 日期选项
-const dateOptions = computed(() => {
-  const options = [{ label: '账变时间｜本月', value: '本月' }]
-  const now = new Date()
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const value = `${year}-${month}`
-    options.push({ label: value, value })
-  }
-  return options
-})
 
 // 状态筛选
 const statusFilter = ref('全部状态')
@@ -249,7 +228,7 @@ const formatRechargeOrder = (item: PlayerRechargeList) => {
 const formatWithdrawOrder = (item: PlayerWithdrawList) => {
   // 将API状态数字转换为状态标识（completed/failed/primary/cancelled）
   const statusType = item.Status !== undefined ? (withdrawStatusToType[item.Status] || 'failed') : 'failed'
-
+  const withdrawTypeName = getWithdrawName(item.AccountType || '')
   return {
     orderNo: item.OrderId || '-',
     status: statusType,
@@ -257,7 +236,7 @@ const formatWithdrawOrder = (item: PlayerWithdrawList) => {
     vipLevel: 'VIP0', // API 未返回 VIP 等级
     applyAmount: item.Amount || 0,
     actualAmount: item.RealAmount || 0,
-    depositType: item.AccountType || '-',
+    depositType: withdrawTypeName,
     depositRate: item.FeeRate ? `${(item.FeeRate / 10)}%` : '0%', // 千分比转百分比
     depositFee: item.Fee || 0,
     time: item.FinishTime ? dayjs.unix(item.FinishTime).format('YYYY-MM-DD HH:mm:ss') : '-',
@@ -280,7 +259,7 @@ const fetchRechargeList = async (isRefreshing = false) => {
     if (!isRefreshing) {
       loading.value = true
     }
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getRechargeList({
       Page: currentPage.value,
@@ -319,7 +298,7 @@ const fetchWithdrawList = async (isRefreshing = false) => {
     if (!isRefreshing) {
       loading.value = true
     }
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getWithdrawList({
       Page: currentPage.value,
@@ -384,7 +363,7 @@ const handleBack = () => {
   const tab = route.query.tab || '1'
   router.push({
     name: 'report',
-    query: { tab, date: selectedDate.value } // 传递日期参数回主页面
+    query: { tab }
   })
 }
 
@@ -397,19 +376,11 @@ const handleSearch = () => {
 }
 
 // 监听筛选条件变化
-watch([selectedDate, statusFilter, sortType], ([newDate]) => {
+watch([selectTimeRange, statusFilter, sortType], () => {
   currentPage.value = 1
   fetchCurrentList()
   fetchSummary()
-  // 更新 URL query 参数（不添加历史记录）
-  router.replace({
-    name: 'financeDepositWithdrawRecord',
-    query: {
-      ...route.query,
-      date: newDate
-    }
-  })
-})
+}, { deep: true })
 
 // 监听 Tab 切换
 watch(activeTab, () => {
@@ -428,13 +399,26 @@ const fetchRechargeTypeList = async () => {
       // 将数组转换为 Key -> Name 的映射表
       const mapping: Record<number, string> = {}
       response.data.Data.forEach(item => {
+        if (mapping[item.Key] !== undefined) return
         mapping[item.Key] = item.Name
       })
-      payTypeMap.value = mapping
 
-      console.log('=== 充值类型映射表已建立 ===')
-      console.log('映射表:', payTypeMap.value)
-      console.log('=======================')
+      // 其他Key copy from 1.0（與 useProvider 中的 rechargeTypeMapping 保持一致）
+      const otherKey = [
+        { Key: 111, Name: '充值调整' },
+        { Key: 137, Name: '佣金代存' },
+        { Key: 138, Name: '額度代存' },
+        { Key: 22, Name: '代客充值' },
+        { Key: -2, Name: '代客充值' },
+        { Key: -10, Name: '充值调整' }
+      ]
+
+      otherKey.forEach(o => {
+        if (mapping[o.Key] !== undefined) return
+        mapping[o.Key] = o.Name
+      })
+
+      payTypeMap.value = mapping
     }
   } catch (error) {
     console.error('获取充值类型列表失败:', error)
@@ -530,9 +514,9 @@ const handleDepositWithdrawClick = (record: any) => {
           <!-- 筛选条件行 -->
           <div class="filter-scroll-container">
             <!-- 账变时间 -->
-            <Dropdown
-              v-model="selectedDate"
-              :options="dateOptions"
+            <TimeFilterDropdown
+              v-model="selectTimeRange"
+              title="账变时间"
               height="1.5rem"
               class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />

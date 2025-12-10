@@ -60,31 +60,29 @@ const showList = computed((): ListItem[] => {
 </script>
 
 <template>
-  <div>
-    <van-radio-group v-model="selectPayType" direction="horizontal" class="grid-radio-group mt-2 gap-2">
-      <SelectBox 
-        v-for="item in showList" 
-        :key="`PayType${item.PayType}`" 
-        :name="item.PayType"
-        class="pl-2"
-        @click="handleItemClick(item)"
-      >
-        <van-image :src="getIcon(item.PayType)" fit="contain" class="mr-2 w-5 h-5" />
-        <div class="text-xs line-clamp-2">{{ item.Name }}</div>
-      </SelectBox>
+  <van-radio-group v-model="selectPayType" direction="horizontal" class="grid-radio-group mt-2 gap-2">
+    <SelectBox 
+      v-for="item in showList" 
+      :key="`PayType${item.PayType}`" 
+      :name="item.PayType"
+      class="px-2"
+      @click="handleItemClick(item)"
+    >
+      <van-image :src="getIcon(item.PayType)" fit="contain" class="mr-2 w-5 h-5" />
+      <div class="text-xs line-clamp-2">{{ item.Name }}</div>
+    </SelectBox>
 
-      <div 
-        v-if="props.list.length > 5" 
-        class="flex items-center justify-center px-4 h-10 min-w-[4.5rem] border border-neutral2-seventh text-neutral2-secondary font-normal rounded-xl bg-white" 
-        @click="handleShowMoreClick"
-      >
-        <div class="text-xs line-clamp-2 mr-1">{{ showMore ? '收合' : '更多' }}</div>
-        <div :class="['flex items-center justify-center w-2 h-2', showMore ? '' : 'rotate-180']">
-          <van-image src="./static/images/common/triangle.svg" fit="contain" />
-        </div>
+    <div 
+      v-if="props.list.length > 5" 
+      class="flex items-center justify-center px-4 h-10 min-w-[4.5rem] border border-neutral2-seventh text-neutral2-secondary font-normal rounded-xl bg-white" 
+      @click="handleShowMoreClick"
+    >
+      <div class="text-xs line-clamp-2 mr-1">{{ showMore ? '收合' : '更多' }}</div>
+      <div :class="['flex items-center justify-center w-2 h-2', showMore ? '' : 'rotate-180']">
+        <van-image src="./static/images/common/triangle.svg" fit="contain" />
       </div>
-    </van-radio-group>
-  </div>
+    </div>
+  </van-radio-group>
 </template>
 
 <style lang="scss" scoped>

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 
 interface DataItem {
   label: string
@@ -21,7 +20,7 @@ withDefaults(defineProps<Props>(), {
 })
 
 // 月报/日报切换
-const reportType = ref(0)  // 0: 月报, 1: 日报
+const reportType = defineModel<number>('reportType', { default: 0 })  // 0: 月报, 1: 日报
 </script>
 
 <template>

@@ -1,7 +1,7 @@
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import API from '@/apis'
-import type { ConfigInfoData, SystemConfigData } from '@/apis/codegen/data-contracts'
+import type { ConfigInfoData, SystemConfigData, BankList } from '@/apis/codegen/data-contracts'
 
 export const useGlobalStore = defineStore('global', () => {
   const configInfo = ref<ConfigInfoData>({
@@ -37,10 +37,20 @@ export const useGlobalStore = defineStore('global', () => {
     systemConfig.value = res.data.Data
   }
 
+  const bankMapping = computed<Record<string, BankList>>(() => {
+    const list = configInfo?.value.BankList
+    if (!list) return {}
+    return list.reduce((acc, cur) => {
+      acc[cur.BankCode] = cur
+      return acc
+    }, {} as Record<string, BankList>)
+  })
+
   return {
     configInfo,
     fetchConfigInfo,
     systemConfig,
-    fetchSystemConfig
+    fetchSystemConfig,
+    bankMapping
   }
 })
