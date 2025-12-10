@@ -45,6 +45,9 @@ import type {
   MemberFinanceReportTotalQuery,
   MemberFinanceReportTotalResponse,
   SubAgentListResponse,
+  LoginPasswordRequest,
+  PrivatePasswordV2Request,
+  BindingPhoneVerifyRequest,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -501,7 +504,7 @@ export class Admin<SecurityDataType = unknown> {
    * @secure
    */
   updatePhone = (
-    data: { Phone: string; VerifyCode: string, AreaCode: string },
+    data: BindingPhoneVerifyRequest,
     params: RequestParams = {},
   ) =>
     this.http.request<MineResponse, any>({
@@ -611,6 +614,48 @@ export class Admin<SecurityDataType = unknown> {
   ) =>
     this.http.request<MineResponse, any>({
       path: '/admin/accountlogin/loginsetting',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新登录密码
+   *
+   * @tags Admin
+   * @name UpdateLoginPassword
+   * @request POST:/admin/accountlogin/password
+   * @secure
+   */
+  updateLoginPassword = (
+    data: LoginPasswordRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/password',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.FormData,
+      ...params,
+    });
+
+  /**
+   * 更新私人密码
+   *
+   * @tags Admin
+   * @name UpdatePrivatePassword
+   * @request POST:/admin/accountlogin/privatepasswordv2
+   * @secure
+   */
+  updatePrivatePasswordV2 = (
+    data: PrivatePasswordV2Request,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<MineResponse, any>({
+      path: '/admin/accountlogin/privatepasswordv2',
       method: "POST",
       secure: true,
       body: data,

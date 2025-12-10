@@ -1744,10 +1744,26 @@ export interface HelpCenterListResponse {
 }
 
 export interface LoginSettingRequest {
-  LoginType: number // 登录类型，1:允许，0:禁止
+  LoginType: number // 登录设置 1图形验证码 2短信验证码
   IsAllowOtherDeviceLogin: number // 是否允许其他设备登录，1:允许，0:不允许
   PrivatePassword: string // 私人密码
   TimeFreeVerification: number // 免验证时间，单位:分钟
+}
+export interface LoginPasswordRequest {
+  OldPassword: string // 旧密码
+  NewPassword: string // 新密码
+  ConfirmPassword: string // 确认密码
+}
+export interface PrivatePasswordV2Request {
+  NewPassword: string // 新密码
+  ConfirmPassword: string // 确认密码
+  VerifyCode: string // 验证码
+  ValidType: number // 0:手機號,1:email,2:google (驗證方式)
+}
+export interface BindingPhoneVerifyRequest {
+  Phone: string // 手机号
+  VerifyCode: string // 验证码
+  AreaCode: string // 区号
 }
 
 // ==================== 下级代理列表 API ====================

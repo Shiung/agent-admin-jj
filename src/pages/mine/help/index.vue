@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref, computed } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import NavBar from '@/components/NavBar/index.vue'
 import API from '@/apis'
 import type { HelpCenterListData } from '@/apis/codegen/data-contracts'
 
 const router = useRouter()
+const route = useRoute()
 const loading = ref(false)
-const helpCenterList = ref<HelpCenterListData[]>()
+const helpCenterList = ref<HelpCenterListData[]>([])
+const selectedHelpDetail = ref<HelpCenterListData | null>(null)
 
 const fetchHelpCenterList = async () => {
   loading.value = true
@@ -19,12 +21,19 @@ const fetchHelpCenterList = async () => {
   loading.value = false
 }
 
+const navBarTitle = computed(() => {
+  if (route.name === 'helpDetail' && selectedHelpDetail.value) {
+    return selectedHelpDetail.value.Tag || ''
+  }
+  return '帮助'
+})
+
 onMounted(() => {
   fetchHelpCenterList()
 })
 
 const handleClick = (item: HelpCenterListData) => {
-  sessionStorage.setItem('helpItem', JSON.stringify(item))
+  selectedHelpDetail.value = item
   router.push({ name: 'helpDetail' })
 }
 
@@ -32,8 +41,14 @@ const handleClick = (item: HelpCenterListData) => {
 
 <template>
   <div class="flex flex-col pb-6">
-    <NavBar title="帮助" />
-    <div class="flex flex-col">
+    <NavBar :title="navBarTitle" />
+    <router-view
+      v-if="route.name === 'helpDetail'"
+      v-slot="{ Component }"
+    >
+      <component :is="Component" :detail="selectedHelpDetail" />
+    </router-view>
+    <div v-else class="flex flex-col">
       <div
         v-for="item in helpCenterList"
         :key="item.Id"

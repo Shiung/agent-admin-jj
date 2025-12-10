@@ -7,6 +7,7 @@ import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
 import API from '@/apis'
 import { rulesRequired } from '@/utils/formRules'
+import type { FormInstance } from 'vant'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -16,6 +17,7 @@ const verificationCode = ref('')
 const loading = ref(false)
 const codeLoading = ref(false)
 const countdown = ref(0)
+const formRef = ref<FormInstance | null>(null)
 
 const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -58,22 +60,24 @@ const getVerificationCode = async () => {
 
 const submit = async () => {
   loading.value = true
-  try {
-    const res = await API.admin.updateEmail({
-      Email: email.value.trim(),
-      VerifyCode: verificationCode.value.trim()
-    })
-    if (res.data.Code !== 200) {
-      showFailToast(res.data.Msg)
-      return
-    }
-    showToast('修改成功')
-    router.replace({ name: 'mineProfile' })
-  } catch (error) {
-    console.error('更新失败：', error)
-  } finally {
-    loading.value = false
-  }
+  formRef.value?.validate().then(async () => {
+    try {
+      const res = await API.admin.updateEmail({
+        Email: email.value.trim(),
+        VerifyCode: verificationCode.value.trim()
+      })
+      if (res.data.Code !== 200) {
+        showFailToast(res.data.Msg)
+        return
+      }
+      showToast('修改成功')
+      router.replace({ name: 'mineProfile' })
+      } catch (error) {
+        console.error('更新失败：', error)
+      } finally {
+        loading.value = false
+      }
+  })
 }
 </script>
 
@@ -82,8 +86,7 @@ const submit = async () => {
     <NavBar title="邮箱地址" />
 
     <div class="py-3">
-      <!-- 邮箱地址输入 -->
-      <div>
+      <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
         <AppField
           v-model="email"
           name="email"
@@ -105,10 +108,7 @@ const submit = async () => {
             </div>
           </template>
         </AppField>
-      </div>
 
-      <!-- 验证码输入 -->
-      <div>
         <AppField
           v-model="verificationCode"
           name="verificationCode"
@@ -141,19 +141,19 @@ const submit = async () => {
             </div>
           </template>
         </AppField>
-      </div>
-    </div>
-    <div class="px-4">
-      <van-button
-        block
-        round
-        type="primary"
-        :loading="loading"
-        :disabled="!email.trim() || !verificationCode.trim()"
-        @click="submit"
-      >
-        提交
-      </van-button>
+        <div class="px-4 my-4">
+          <van-button
+            block
+            round
+            type="primary"
+            :loading="loading"
+            :disabled="!email.trim() || !verificationCode.trim()"
+            native-type="submit"
+          >
+            提交
+          </van-button>
+        </div>
+      </van-form>
     </div>
   </div>
 </template>

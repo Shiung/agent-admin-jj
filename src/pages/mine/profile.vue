@@ -137,18 +137,18 @@ onMounted(async () => {
       </van-cell>
       <van-cell
         title="谷歌验证"
-        :class="{ 'success': personalCenterInfo?.GoogleSecret, 'danger': !personalCenterInfo?.GoogleSecret }"
+        :class="personalCenterInfo?.GoogleSecret ? 'success' : 'danger'"
       >
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
             {{ personalCenterInfo?.GoogleSecret ? '已设置' : '尚未设置' }}
           </van-skeleton>
         </template>
-        <van-button v-if="!personalCenterInfo?.GoogleSecret" round size="small" type="primary" class="px-11" @click="router.push({ name: 'mineGoogleCode', query: { Username: personalCenterInfo?.Username } })">设置</van-button>
+        <van-button v-if="!personalCenterInfo?.GoogleSecret" round size="small" type="primary" @click="router.push({ name: 'mineGoogleCode', query: { Username: personalCenterInfo?.Username } })">设置</van-button>
       </van-cell>
       <van-cell
         title="QQ号"
-        :class="{ 'success': personalCenterInfo?.QQ, 'danger': !personalCenterInfo?.QQ }"
+        :class="personalCenterInfo?.QQ ? 'success' : 'danger'"
       >
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
@@ -182,5 +182,8 @@ onMounted(async () => {
 /* 尚未设置 - 红色 */
 :deep(.danger .van-cell__label) {
   color: var(--color-error-normal);
+}
+:deep(.van-button) {
+  padding: 14px 11px;
 }
 </style>
