@@ -16,10 +16,28 @@ const route = useRoute()
 
 const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-const selectTimeRange = ref({
-  startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
-  endTime: timestampToSecond(dayjs().endOf('month').valueOf())
-})
+// 从 URL query 初始化时间范围（实现页面间时间同步）
+const initTimeRange = () => {
+  const startTimeFromQuery = route.query.startTime as string
+  const endTimeFromQuery = route.query.endTime as string
+
+  if (startTimeFromQuery && endTimeFromQuery) {
+    return {
+      startTime: parseInt(startTimeFromQuery),
+      endTime: parseInt(endTimeFromQuery)
+    }
+  }
+
+  return {
+    startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+    endTime: timestampToSecond(dayjs().endOf('month').valueOf())
+  }
+}
+
+const selectTimeRange = ref(initTimeRange())
+
+// Calendar 打开状态（用于禁用下拉刷新）
+const showCalendar = ref(false)
 
 const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
@@ -358,12 +376,19 @@ const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
   stickyTop: 84 // 吸頂時距離頂部的距離
 })
 
+// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
+const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
+
 // 返回
 const handleBack = () => {
   const tab = route.query.tab || '1'
   router.push({
     name: 'report',
-    query: { tab }
+    query: {
+      tab,
+      startTime: selectTimeRange.value.startTime.toString(),
+      endTime: selectTimeRange.value.endTime.toString()
+    }
   })
 }
 
@@ -460,7 +485,7 @@ const handleDepositWithdrawClick = (record: any) => {
     <!-- 下拉刷新容器 -->
     <van-pull-refresh
       v-model="refreshing"
-      :disabled="pullRefreshDisabled"
+      :disabled="disablePullRefresh"
       @refresh="onRefresh"
       class="deposit-withdraw-pull-refresh"
     >
@@ -516,6 +541,7 @@ const handleDepositWithdrawClick = (record: any) => {
             <!-- 账变时间 -->
             <TimeFilterDropdown
               v-model="selectTimeRange"
+              v-model:show-calendar="showCalendar"
               title="账变时间"
               height="1.5rem"
               class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
