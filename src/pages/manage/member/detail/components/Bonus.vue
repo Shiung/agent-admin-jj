@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { onMounted, ref, inject } from 'vue'
+import { ref, useAttrs, computed, watch } from 'vue'
 import UnitCard from '../../../components/UnitCard.vue'
 import { formatMoney } from '@/utils/formatNumber'
 import { bonusType } from '@/utils/mappingStatus'
-import { ProviderStateSymbol } from '../composables/useProvider'
 import API from '@/apis/index'
 import dayjs from 'dayjs'
 
+import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 
 const dateTransfer = (ts: number | string | null | undefined) => {
@@ -16,20 +16,37 @@ const dateTransfer = (ts: number | string | null | undefined) => {
   return dayjs(num > 1e12 ? num : num * 1000).format('YYYY-MM-DD HH:mm:ss')
 }
 
-const state = inject(ProviderStateSymbol)!
+
+defineOptions({ inheritAttrs: false })
+const attrs = useAttrs()
+
+const playerId = computed<number | undefined>(() => attrs.playerId as number)
 
 const infinityRef = ref<InfinityExposeType>()
 
-const fetchData = async (page: number = 0) => {
-  const startTime = 1751299200
-  const endTime = dayjs().endOf('day').unix()
+const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
+  startTime: dayjs().startOf('month').unix(),
+  endTime: dayjs().endOf('month').unix()
+})
 
+const sortOptions = [
+  { value: '-send_time', label: '领奖时间降序' },
+  { value: '+send_time', label: '领奖时间升序' },
+  { value: '-bonus', label: '红利金额降序' },
+  { value: '+bonus', label: '红利金额升序' },
+]
+
+const selectedSort = ref(sortOptions[0]?.value ?? '-send_time')
+
+const fetchData = async (page: number = 0) => {
   try {
     const res = await API.netCashPlayerGame.getRedlist({
-      BeginTime: startTime,
-      EndTime: endTime,
+      BeginTime: selectTime.value.startTime,
+      EndTime: selectTime.value.endTime,
       Status: 2,
-      PlayerId: state.playerId
+      Sort: selectedSort.value,
+      PlayerId: playerId.value,
+      Page: page
     })
 
     return {
@@ -43,15 +60,19 @@ const fetchData = async (page: number = 0) => {
   }
 }
 
-onMounted(() => {
-  fetchData()
+watch([selectTime, selectedSort], () => {
+  infinityRef.value?.fetchData()
 })
 
 </script>
 
 <template>
   <div class="flex flex-col">
-    bonus
+    <div class="px-4 flex items-center space-x-2">
+      <TimeFilterDropdown v-model="selectTime" title="领奖时间" />
+      <Filled v-model:model-value="selectedSort" :options="sortOptions" />
+    </div>
+
     <InfinityScroll
       ref="infinityRef"
       :fetchAction="fetchData"
