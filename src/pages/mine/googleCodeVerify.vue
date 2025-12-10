@@ -87,7 +87,7 @@ const submit = async () => {
         </template>
       </AppField>
     </div>
-    <div class="px-4">
+    <div class="px-4 my-4">
       <van-button
         block
         round

@@ -4,7 +4,10 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import API from '@/apis'
-import pkg from '../../../package.json'
+import pkgJson from '../../../package.json'
+
+// 解決 ts 報錯
+const pkg = pkgJson
 
 // 常用功能
 const SHORTCUTS = [
