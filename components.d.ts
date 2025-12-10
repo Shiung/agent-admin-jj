@@ -24,6 +24,7 @@ declare module 'vue' {
     InfinityScroll: typeof import('./src/components/InfinityScroll/index.vue')['default']
     InfoDialog: typeof import('./src/components/InfoDialog/index.vue')['default']
     NavBar: typeof import('./src/components/NavBar/index.vue')['default']
+    OrderDetailSheet: typeof import('./src/components/OrderDetailSheet/index.vue')['default']
     ReadMore: typeof import('./src/components/InfinityScroll/ReadMore.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
