@@ -305,6 +305,14 @@ const gameTypeHandler = (ls: Map<string, any>) => {
   gameTypeLs.value = [...ls.values()].flat()
 }
 
+const showDetail = ref<boolean>(false)
+const detailRaw = ref<Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['Items'][number] | null>(null)
+
+const showDetailHandler = (item: Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['Items'][number]) => {
+  detailRaw.value = item
+  showDetail.value = true
+}
+
 watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus], () => {
   infinityRef.value?.fetchData()
 })
@@ -369,7 +377,7 @@ onMounted(() => {
             <div class="flex items-center justify-between py-3">
               <SumBlock :item="l" />
             </div>
-            <van-button round plain size="small" class="absolute! top-1/2 -right-1 shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] -translate-y-1/2"  @click="() => console.log('next step', l)">
+            <van-button round plain size="small" class="absolute! top-1/2 -right-1 shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] -translate-y-1/2"  @click="showDetailHandler">
               <van-icon name="arrow" class="w-3 text-neutral2-tertiary" />
             </van-button>
 
@@ -384,4 +392,5 @@ onMounted(() => {
       </template>
     </InfinityScroll>
   </div>
+  <OrderDetailSheet v-model:show="showDetail" :raw-data="detailRaw" />
 </template>

@@ -181,7 +181,7 @@ watch(() => model.value, (newValue) => {
     </SelectContent>
   </Select>
 
-  <van-calendar :overlay-style="{ background: 'rgba(0, 0, 0, 0.5)' }" v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" teleport="body" type="range" @confirm="handleDatePickerConfirm" />
+  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" teleport="body" type="range" @confirm="handleDatePickerConfirm" />
 </template>
 
 <style lang="scss" scoped>
