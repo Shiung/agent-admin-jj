@@ -127,7 +127,7 @@ const fetchData = async (page: number = 0) => {
   }
 }
 
-watch([], () => {
+watch([selectTime, selectStatus, selectedSort], () => {
   infinityRef.value?.fetchData()
 })
 
