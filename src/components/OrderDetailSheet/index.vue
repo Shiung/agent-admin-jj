@@ -20,8 +20,7 @@ interface OrderDetail {
 
 interface Props {
   show: boolean
-  order: any
-  rawData?: GameDetailItem
+  rawData?: GameDetailItem | null
 }
 
 const props = defineProps<Props>()
@@ -381,6 +380,24 @@ const orderDetailData = computed(() => {
   return parseOrderDetail(props.rawData)
 })
 
+// 订单基本信息（从 rawData 中提取）
+const orderInfo = computed(() => {
+  if (!props.rawData) return null
+
+  // 格式化状态
+  const formatStatus = (status: number): 'completed' | 'pending' | 'cancelled' => {
+    if (status === 1) return 'completed' // 已结算
+    if (status === 2) return 'cancelled' // 已取消
+    return 'pending' // 未结算
+  }
+
+  return {
+    orderNo: props.rawData.TransactionId,
+    status: formatStatus(props.rawData.Status),
+    time: dayjs.unix(props.rawData.SettlementTime).format('YYYY-MM-DD HH:mm:ss')
+  }
+})
+
 // 关闭弹窗
 const closeSheet = () => {
   emit('update:show', false)
@@ -412,7 +429,7 @@ const copyOrderNo = (orderNo: string) => {
     teleport="body"
     :z-index="9999"
   >
-    <div v-if="order" class="order-detail-sheet">
+    <div v-if="orderInfo" class="order-detail-sheet">
       <!-- 顶部指示器 -->
       <div class="sheet-indicator"></div>
 
@@ -430,17 +447,17 @@ const copyOrderNo = (orderNo: string) => {
         <div class="order-no-row">
           <div class="order-no-wrapper">
             <span class="label">订单号</span>
-            <span class="value">{{ order.orderNo }}</span>
+            <span class="value">{{ orderInfo.orderNo }}</span>
             <van-image
               width="12"
               height="12"
               src="/static/images/common/copy.png"
-              @click.stop="copyOrderNo(order.orderNo)"
+              @click.stop="copyOrderNo(orderInfo.orderNo)"
               style="cursor: pointer;"
             />
           </div>
-          <div class="status-tag" :class="`status-${order.status}`">
-            {{ order.status === 'completed' ? '已结算' : order.status === 'pending' ? '未结算' : '已取消' }}
+          <div class="status-tag" :class="`status-${orderInfo.status}`">
+            {{ orderInfo.status === 'completed' ? '已结算' : orderInfo.status === 'pending' ? '未结算' : '已取消' }}
           </div>
         </div>
 
@@ -462,7 +479,7 @@ const copyOrderNo = (orderNo: string) => {
 
         <div class="game-info">
           <span class="game-name">{{ orderGameName }}</span>
-          <span class="game-time">{{ order.time }}</span>
+          <span class="game-time">{{ orderInfo.time }}</span>
         </div>
       </div>
 
