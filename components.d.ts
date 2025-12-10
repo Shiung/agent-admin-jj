@@ -28,6 +28,7 @@ declare module 'vue' {
     InfoDialog: typeof import('./src/components/InfoDialog/index.vue')['default']
     NavBar: typeof import('./src/components/NavBar/index.vue')['default']
     Radio: typeof import('./src/components/AdvancedBottomSheet/Radio.vue')['default']
+    OrderDetailSheet: typeof import('./src/components/OrderDetailSheet/index.vue')['default']
     ReadMore: typeof import('./src/components/InfinityScroll/ReadMore.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

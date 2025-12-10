@@ -102,8 +102,9 @@ const submit = async () => {
     })
     if (res.data.Code !== 200) return
     router.replace({ name: 'mineProfile' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('更新失败：', error)
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     loading.value = false
   }
@@ -183,7 +184,7 @@ const submit = async () => {
         </AppField>
       </div>
     </div>
-    <div class="px-4">
+    <div class="px-4 my-4">
       <van-button
         block
         round

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, useAttrs, type ComputedRef } from 'vue'
+import { ref, computed, useAttrs, watch, type ComputedRef } from 'vue'
 import {
   Select,
   SelectContent,
@@ -39,11 +39,13 @@ const props = withDefaults(defineProps<Props>(), {
 // 有些地方不會有type
 const model = defineModel<{ startTime: number; endTime: number }>('modelValue', { required: true })
 
+// 暴露 calendar 的打开状态，让父组件可以在 calendar 打开时禁用下拉刷新
+const showDatePicker = defineModel<boolean>('showCalendar', { default: false })
+
 // 日期區間180天
 const minDate = ref(dayjs().subtract(180, 'day').toDate())
 const maxDate = computed(() => props.maxDate || dayjs().toDate())
 
-const showDatePicker = ref(false)
 const customTimeRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 0 })
 const selectedOption = ref<any>(null)
 
@@ -86,7 +88,21 @@ const displayText = computed(() => {
     const itemEndTime = getTimeValue(item.endTime)
     return itemStartTime === model.value.startTime && itemEndTime === model.value.endTime
   })
-  const displayTime = timeItem?.action ? `${dayjs(model.value.startTime * 1000).format('YYYY-MM-DD')} 至 ${dayjs(model.value.endTime * 1000).format('YYYY-MM-DD')}` : timeItem?.label
+
+  // 如果找到匹配的选项
+  let displayTime: string
+  if (timeItem) {
+    // 如果是自定义选项（有 action 的选项），显示日期范围
+    if (timeItem.action) {
+      displayTime = `${dayjs(model.value.startTime * 1000).format('YYYY-MM-DD')} 至 ${dayjs(model.value.endTime * 1000).format('YYYY-MM-DD')}`
+    } else {
+      // 否则显示选项标签（如"本月"、"今日"等）
+      displayTime = timeItem.label
+    }
+  } else {
+    // 没找到匹配的选项，显示日期范围
+    displayTime = `${dayjs(model.value.startTime * 1000).format('YYYY-MM-DD')} 至 ${dayjs(model.value.endTime * 1000).format('YYYY-MM-DD')}`
+  }
 
   if (!props.title) return displayTime
   return `${props.title} | ${displayTime}`
@@ -108,6 +124,37 @@ const handleDatePickerConfirm = (value: [number, number]) => {
   showDatePicker.value = false
 }
 
+// 判断选项是否被选中（处理 computed 类型的时间值）
+const isOptionSelected = (option: TimeRangeOption) => {
+  if (!model.value) return false
+  const optionStartTime = getTimeValue(option.startTime)
+  const optionEndTime = getTimeValue(option.endTime)
+  return model.value.startTime === optionStartTime && model.value.endTime === optionEndTime
+}
+
+// 当 model 从外部初始化时，同步更新 customTimeRange
+// 这样如果是自定义时间范围，就能正确匹配和高亮显示
+watch(() => model.value, (newValue) => {
+  if (!newValue) return
+
+  // 检查是否匹配任何预设选项
+  const matchesPreset = timeRangeOptions.value.some(option => {
+    // 跳过自定义选项（有 action 的选项）
+    if (option.action) return false
+    const optionStartTime = getTimeValue(option.startTime)
+    const optionEndTime = getTimeValue(option.endTime)
+    return newValue.startTime === optionStartTime && newValue.endTime === optionEndTime
+  })
+
+  // 如果不匹配任何预设选项，说明是自定义时间，更新 customTimeRange
+  if (!matchesPreset) {
+    customTimeRange.value = {
+      startTime: newValue.startTime,
+      endTime: newValue.endTime
+    }
+  }
+}, { immediate: true })
+
 </script>
 
 <template>
@@ -125,7 +172,7 @@ const handleDatePickerConfirm = (value: [number, number]) => {
           v-for="option in timeRangeOptions"
           :key="`${option.label}-${option.startTime}-${option.endTime}`"
           :value="option"
-          :class="['dropdown-item', { 'is-selected': model?.startTime === option.startTime && model?.endTime === option.endTime }]"
+          :class="['dropdown-item', { 'is-selected': isOptionSelected(option) }]"
           hiddenCheck
         >
           <p class="whitespace-nowrap overflow-hidden text-ellipsis">{{ option.label }}</p>
@@ -134,7 +181,7 @@ const handleDatePickerConfirm = (value: [number, number]) => {
     </SelectContent>
   </Select>
 
-  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" teleport="body" type="range" @confirm="handleDatePickerConfirm" />
+  <van-calendar :overlay-style="{ background: 'rgba(0, 0, 0, 0.5)' }" v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" teleport="body" type="range" @confirm="handleDatePickerConfirm" />
 </template>
 
 <style lang="scss" scoped>

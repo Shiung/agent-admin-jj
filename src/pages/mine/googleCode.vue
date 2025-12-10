@@ -60,7 +60,7 @@ const nextStep = async () => {
     <NavBar title="谷歌验证器密钥" />
     <div class="py-3">
       <div class="mx-3 my-2 px-3 py-2 bg-bg-floor-1-2 rounded-lg flex items-center">
-        <p class="mr-2">💡</p>
+        <van-image src="./static/images/common/lightBulb.png" class="mr-2" width="24" />
         <p class="text-primary-normal text-sm">可以在苹果商店搜索"Google Authenticator"，或安卓商店搜索"Google身份验证器" 下载安装</p>
       </div>
       <AppField
@@ -87,7 +87,7 @@ const nextStep = async () => {
         </template>
       </AppField>
     </div>
-    <div class="px-4">
+    <div class="px-4 my-4">
       <van-button block round type="primary" :loading="loading" :disabled="!googleCode" @click="nextStep">下一步</van-button>
       <span class="block text-xs font-normal my-4" style="color: #6b7190;">
         打开谷歌身份验证器，点选右下角的"+"，选择手动输入密钥，填入任意账户和上述密钥绑定

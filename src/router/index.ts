@@ -29,7 +29,7 @@ const routes: RouteRecordRaw[] = [
         path: 'member',
         component: () => import('@/pages/manage/member.vue'),
         children: [
-          { 
+          {
             path: '',
             name: 'manageMember',
             component: () => import('@/pages/manage/member/index.vue'),
@@ -223,11 +223,13 @@ const routes: RouteRecordRaw[] = [
     path: '/mine/help',
     name: 'help',
     component: () => import('@/pages/mine/help/index.vue'),
-  },
-  {
-    path: '/mine/help/detail',
-    name: 'helpDetail',
-    component: () => import('@/pages/mine/help/detail.vue'),
+    children: [
+      {
+        path: 'detail',
+        name: 'helpDetail',
+        component: () => import('@/pages/mine/help/detail.vue'),
+      }
+    ],
   },
   {
     path: '/mine/security/password',
@@ -248,6 +250,13 @@ const routes: RouteRecordRaw[] = [
     path: '/mine/security/gesturePassword',
     name: 'gesturePassword',
     component: () => import('@/pages/mine/security/gesturePassword.vue'),
+    children: [
+      {
+        path: 'gesture',
+        name: 'gesture',
+        component: () => import('@/pages/mine/security/gesture.vue'),
+      },
+    ],
   },
   {
     path: '/commission-detail',

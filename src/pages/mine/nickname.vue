@@ -37,19 +37,20 @@ const submit = async () => {
     <NavBar title="代理昵称" />
 
     <div class="py-3">
-      <AppField
-        v-model="nickname"
-        name="nickname"
-        label-align="top"
-        label="代理昵称"
-        placeholder="请输入"
-        maxlength="4"
-        required
-        :rules="[rulesRequired()]"
-      >
-      </AppField>
+      <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
+        <AppField
+          v-model="nickname"
+          name="nickname"
+          label-align="top"
+          label="代理昵称"
+          placeholder="请输入"
+          required
+          :rules="[rulesRequired()]"
+        >
+        </AppField>
+      </van-form>
     </div>
-    <div class="px-4">
+    <div class="px-4 my-4">
       <van-button block round type="primary" :loading="loading" :disabled="!nickname" @click="submit">提交</van-button>
     </div>
   </div>

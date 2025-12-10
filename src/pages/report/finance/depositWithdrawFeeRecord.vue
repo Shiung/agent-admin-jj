@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import Big from 'big.js'
 import FinanceCard from './components/financeCard.vue'
 import DepositWithdrawCard from './components/depositWithdrawCard.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
 import apis from '@/apis'
 import dayjs from 'dayjs'
@@ -12,42 +14,38 @@ import type { PayRecordItem, WithdrawRecordItem } from '@/apis/codegen/data-cont
 const router = useRouter()
 const route = useRoute()
 
-// 结算时间选择（从 URL query 初始化，实现页面间连动）
-const selectedDate = ref((route.query.date as string) || '本月')
+// 账变时间选择
+const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-// 时间范围转换函数
-const getTimeRange = (dateValue: string) => {
-  const now = dayjs()
-  let startDate, endDate
+// 从 URL query 初始化时间范围（实现页面间时间同步）
+const initTimeRange = () => {
+  const startTimeFromQuery = route.query.startTime as string
+  const endTimeFromQuery = route.query.endTime as string
 
-  if (dateValue === '本月') {
-    startDate = now.startOf('month')
-    endDate = now.endOf('month')
-  } else {
-    // 格式如 "2025-01"
-    startDate = dayjs(dateValue).startOf('month')
-    endDate = dayjs(dateValue).endOf('month')
+  if (startTimeFromQuery && endTimeFromQuery) {
+    return {
+      startTime: parseInt(startTimeFromQuery),
+      endTime: parseInt(endTimeFromQuery)
+    }
   }
 
   return {
-    BeginTime: startDate.unix(),
-    EndTime: endDate.unix(),
+    startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+    endTime: timestampToSecond(dayjs().endOf('month').valueOf())
   }
 }
 
-// 日期选项
-const dateOptions = computed(() => {
-  const options = [{ label: '账变时间｜本月', value: '本月' }]
-  const now = new Date()
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const value = `${year}-${month}`
-    options.push({ label: value, value })
+const selectTimeRange = ref(initTimeRange())
+
+// Calendar 打开状态（用于禁用下拉刷新）
+const showCalendar = ref(false)
+
+const getTimeRange = (): { BeginTime: number; EndTime: number } => {
+  return {
+    BeginTime: selectTimeRange.value.startTime,
+    EndTime: selectTimeRange.value.endTime
   }
-  return options
-})
+}
 
 // Tab 切换
 const activeTab = ref(0)
@@ -171,7 +169,7 @@ const fetchRechargeTypeList = async () => {
 // 获取手续费总计
 const fetchFeeTotal = async () => {
   try {
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getPayMoneyWithdrawFeeDetails({
       Page: 1,
@@ -194,7 +192,7 @@ const fetchPayRecords = async (isRefreshing = false) => {
     if (!isRefreshing) {
       loading.value = true
     }
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getPayRecords({
       Page: currentPage.value,
@@ -232,7 +230,7 @@ const fetchWithdrawRecords = async (isRefreshing = false) => {
     if (!isRefreshing) {
       loading.value = true
     }
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getWithdrawRecords({
       Page: currentPage.value,
@@ -291,12 +289,19 @@ const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
   stickyTop: 44 // 吸顶时距离顶部的距离
 })
 
+// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
+const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
+
 // 返回
 const handleBack = () => {
   const tab = route.query.tab || '1'
   router.push({
     name: 'report',
-    query: { tab, date: selectedDate.value } // 传递日期参数回主页面
+    query: {
+      tab,
+      startTime: selectTimeRange.value.startTime.toString(),
+      endTime: selectTimeRange.value.endTime.toString()
+    }
   })
 }
 
@@ -314,19 +319,11 @@ const handleOrderClick = (order: any) => {
 }
 
 // 监听筛选条件变化
-watch([selectedDate, sortType], ([newDate]) => {
+watch([selectTimeRange, sortType], () => {
   currentPage.value = 1
   fetchFeeTotal() // 更新手续费总计
   fetchCurrentList()
-  // 更新 URL query 参数（不添加历史记录）
-  router.replace({
-    name: 'financeDepositWithdrawFeeRecord',
-    query: {
-      ...route.query,
-      date: newDate
-    }
-  })
-})
+}, { deep: true })
 
 // 监听 Tab 切换
 watch(activeTab, () => {
@@ -357,7 +354,7 @@ onMounted(async () => {
     <!-- 下拉刷新容器 -->
     <van-pull-refresh
       v-model="refreshing"
-      :disabled="pullRefreshDisabled"
+      :disabled="disablePullRefresh"
       @refresh="onRefresh"
       class="deposit-withdraw-pull-refresh"
     >
@@ -405,9 +402,10 @@ onMounted(async () => {
           <!-- 筛选条件行 -->
           <div class="filter-scroll-container">
             <!-- 账变时间 -->
-            <Dropdown
-              v-model="selectedDate"
-              :options="dateOptions"
+            <TimeFilterDropdown
+              v-model="selectTimeRange"
+              v-model:show-calendar="showCalendar"
+              title="账变时间"
               height="1.5rem"
               class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />

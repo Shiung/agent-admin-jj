@@ -43,7 +43,7 @@ const submit = async () => {
         :rules="[rulesRequired()]"
       />
     </div>
-    <div class="px-4">
+    <div class="px-4 my-4">
       <van-button block round type="primary" :loading="loading" :disabled="!qq" @click="submit">提交</van-button>
     </div>
   </div>

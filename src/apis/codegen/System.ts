@@ -148,6 +148,8 @@ export class System<SecurityDataType = unknown> {
   emailVerify = (
     query: {
       Email: string;
+      DeviceId?: string;
+      OpType?: number;
     },
     params: RequestParams = {},
   ) =>

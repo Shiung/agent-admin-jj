@@ -13,6 +13,7 @@ import { formatMoneyWithCommas, formatNumberWithCommas } from '@/utils/formatNum
 import { useSticky } from '@/composables/useSticky'
 
 const router = useRouter()
+const route = useRoute()
 
 const financeContainerRef = ref<HTMLElement | null>(null)
 
@@ -37,10 +38,31 @@ const totalProfit = computed(() => {
 // 选项：今日、昨日、近7日、近14日、本月、上月、自定义（最多近180天）
 const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-const selectTimeRange = ref({
-  startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
-  endTime: timestampToSecond(dayjs().endOf('month').valueOf())
-})
+// 从 URL query 初始化时间范围（实现从子页面返回时恢复时间选择）
+const initTimeRange = () => {
+  const startTimeFromQuery = route.query.startTime as string
+  const endTimeFromQuery = route.query.endTime as string
+
+  if (startTimeFromQuery && endTimeFromQuery) {
+    return {
+      startTime: parseInt(startTimeFromQuery),
+      endTime: parseInt(endTimeFromQuery)
+    }
+  }
+
+  return {
+    startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+    endTime: timestampToSecond(dayjs().endOf('month').valueOf())
+  }
+}
+
+const selectTimeRange = ref(initTimeRange())
+
+// Calendar 打开状态（用于禁用下拉刷新）
+const showCalendar = ref(false)
+
+// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
+const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
 
 // 获取时间戳范围（用于 API 调用）
 const getTimeRange = (): { BeginTime: number; EndTime: number } => {
@@ -252,34 +274,39 @@ const adjustmentRecordData = computed(() => {
 const handleCardClick = (cardName: string) => {
   console.log('点击了卡片:', cardName)
 
-  // 根据卡片名称跳转到对应的详情页面，传递当前选中的日期
+  // 根据卡片名称跳转到对应的详情页面，传递当前选中的时间范围
+  const queryParams = {
+    tab: 'finance',
+    startTime: selectTimeRange.value.startTime.toString(),
+    endTime: selectTimeRange.value.endTime.toString()
+  }
+
   if (cardName === '游戏记录') {
     router.push({
       name: 'financeGameRecord',
-      query: { from: 'report', tab: 'finance' }
+      query: { ...queryParams, from: 'report' }
     })
   } else if (cardName === '充提记录') {
     router.push({
       name: 'financeDepositWithdrawRecord',
-      query: { tab: 'finance' }
+      query: queryParams
     })
   } else if (cardName === '红利记录') {
     router.push({
       name: 'financeBonusRecord',
-      query: { tab: 'finance' }
+      query: queryParams
     })
   } else if (cardName === '代存记录') {
     router.push({
       name: 'financeDepositRecord',
-      query: { tab: 'finance' }
+      query: queryParams
     })
   } else if (cardName === '充提手续费记录') {
     router.push({
       name: 'financeDepositWithdrawFeeRecord',
-      query: { tab: 'finance' }
+      query: queryParams
     })
   }
-  // TODO: 添加其他卡片的详情页面跳转
 }
 </script>
 
@@ -288,7 +315,7 @@ const handleCardClick = (cardName: string) => {
     <!-- 下拉刷新容器 -->
     <van-pull-refresh
       v-model="refreshing"
-      :disabled="pullRefreshDisabled"
+      :disabled="disablePullRefresh"
       @refresh="onRefresh"
       class="finance-pull-refresh"
     >
@@ -304,8 +331,10 @@ const handleCardClick = (cardName: string) => {
         <div class="sticky-filter-bar px-3 py-1" :class="{ 'is-fixed': isFilterBarFixed }">
           <TimeFilterDropdown
             v-model="selectTimeRange"
+            v-model:show-calendar="showCalendar"
             title="统计时间"
             height="2.5rem"
+            class="finance-time-filter"
           />
         </div>
       </div>
@@ -397,6 +426,14 @@ const handleCardClick = (cardName: string) => {
     top: 108px; /* Header (44px) + fixed Tab (64px) 的总和 */
     left: 0;
     right: 0;
+  }
+    :deep(.dropdown-button) {
+    width: 100%;
+    border: 1px solid var(--color-neutral2-seventh);
+    background: white;
+    padding-left: 12px;
+    font-size: 0.875rem;
+    box-shadow: none;
   }
 }
 
