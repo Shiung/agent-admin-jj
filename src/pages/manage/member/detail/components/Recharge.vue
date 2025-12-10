@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineComponent, ref, h, computed, inject } from 'vue'
+import { defineComponent, ref, h, computed, inject, useAttrs, watch } from 'vue'
 import UnitCard from '../../../components/UnitCard.vue'
 import { formatMoney } from '@/utils/formatNumber'
 import { cn } from '@/utils/className'
@@ -8,11 +8,44 @@ import dayjs from 'dayjs'
 
 import { ProvideComputedSymbol } from '../composables/useProvider'
 
+import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
+
+defineOptions({ inheritAttrs: false })
+const attrs = useAttrs()
+
+const playerId = computed<number | undefined>(() => attrs.playerId as number)
 
 const infinityRef = ref<InfinityExposeType>()
 
 const { rechargeTypeMapping } = inject(ProvideComputedSymbol)!
+
+const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
+  startTime: dayjs().startOf('month').unix(),
+  endTime: dayjs().endOf('month').unix()
+})
+
+/** 狀態(0:全部 1:处理中 2:充值完成 3:充值失败 4:已审核 12:充值取消 13:用戶取消) */
+const statusLs = [
+  { label: '全部状态', value: 0 },
+  { label: '充值完成', value: 2 },
+  { label: '充值失败', value: 3 },
+  { label: '处理中', value: 1 },
+  { label: '已审核', value: 4 },
+  { label: '充值取消', value: 12 },
+  { label: '用户取消', value: 13 },
+]
+
+const selectStatus = ref<number>(statusLs[1]?.value ?? 2)
+
+const sortOptions = [
+  { value: '-finish_time', label: '账变时间降序' },
+  { value: '+finish_time', label: '账变时间升序' },
+  { value: '-amount', label: '充值金额降序' },
+  { value: '+amount', label: '充值金额升序' },
+]
+
+const selectedSort = ref(sortOptions[0]?.value ?? '-finish_time')
 
 const dateTransfer = (ts: number | string | null | undefined) => {
   if (!ts) return '-'
@@ -81,13 +114,13 @@ const parseRealAmout = (item: Awaited<ReturnType<typeof API.netCashPlayerGame.ge
 }
 
 const fetchData = async (page: number = 0) => {
-  const startTime = 1751299200
-  const endTime = dayjs().endOf('day').unix()
-
   try {
     const res = await API.netCashPlayerGame.getCommonRechargelist({
-      BeginTime: startTime,
-      EndTime: endTime,
+      BeginTime: selectTime.value.startTime,
+      EndTime: selectTime.value.endTime,
+      ...(playerId.value && { PlayerId: playerId.value }),
+      ...(selectStatus.value && { Status: selectStatus.value.toString() }),
+      Sort: selectedSort.value,
       Page: page,
       PageSize: 10
     })
@@ -101,11 +134,21 @@ const fetchData = async (page: number = 0) => {
     return { data: [], paging: null }
   }
 }
+
+watch([selectTime, selectStatus, selectedSort], () => {
+  infinityRef.value?.fetchData()
+})
+
 </script>
 
 <template>
   <div class="flex flex-col">
-    recharge
+    <div class="px-4 my-2 flex items-center space-x-2">
+      <TimeFilterDropdown v-model="selectTime" title="账变时间" />
+      <Filled v-model:model-value="selectStatus" :options="statusLs" />
+      <Filled v-model:model-value="selectedSort" :options="sortOptions" />
+    </div>
+
     <InfinityScroll
       ref="infinityRef"
       :fetchAction="fetchData"

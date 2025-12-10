@@ -29,6 +29,18 @@ export const useUserStore = defineStore('user', () => {
     const packageIdsList = packageIds.split(',')
     return allPackageList.filter((item) => packageIdsList.includes(String(item.PackageId)))
   })
+  /**
+   * 權限開關
+   * api response 欄位 userInfo -> Admin -> `PlayerInfoPermission`
+   * 會員資料顯示權限(位置1: 手機號 位置2: 銀行卡;0: 無權限 1: 有權限)(在雲平台 代理管理>记录查询>權限設置>會員資料顯示 設置)
+   */
+  const playerInfoPermission = computed(() => {
+    const PlayerInfoPermission = (userInfo.value?.Admin.PlayerInfoPermission || '').split(',')
+    return {
+      phone: PlayerInfoPermission[0] === '1',
+      card: PlayerInfoPermission[1] === '1',
+    }
+  })
 
   // 下级代理列表（共享数据，避免重复调用 API）
   const subAgentList = ref<SubAgentItem[]>([])
@@ -140,6 +152,7 @@ export const useUserStore = defineStore('user', () => {
     hasTeam,
     isMainLine,
     productPackages,
+    playerInfoPermission,
     googleSecretCode,
     subAgentList,
     subAgentListLoaded,

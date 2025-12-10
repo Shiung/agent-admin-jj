@@ -329,7 +329,7 @@ export interface GamedetailRequest extends RequestPage {
   BeginTime: number
   /** 查詢結束時間，timestamp */
   EndTime: number
-  PlayerId: number
+  PlayerId?: number
   /** 會員帳號 */
   LoginAccount?: string
   /**
