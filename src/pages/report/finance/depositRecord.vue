@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import Big from 'big.js'
 import FinanceCard from './components/financeCard.vue'
 import DepositCard from './components/depositCard.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import dayjs from 'dayjs'
 import apis from '@/apis'
 import type { AgentApplyGoldItem } from '@/apis/codegen/data-contracts'
@@ -40,37 +42,37 @@ const tabs = ['额度代存', '佣金代存']
 const searchKeyword = ref('')
 
 // 账变时间选择
-const selectedDate = ref('本月')
+const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-// 日期选项
-const dateOptions = computed(() => {
-  const options = [{ label: '账变时间｜本月', value: '本月' }]
-  const now = new Date()
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const value = `${year}-${month}`
-    options.push({ label: value, value })
-  }
-  return options
-})
+// 从 URL query 初始化时间范围（实现页面间时间同步）
+const initTimeRange = () => {
+  const startTimeFromQuery = route.query.startTime as string
+  const endTimeFromQuery = route.query.endTime as string
 
-// 计算开始时间和结束时间 (Unix timestamp)
-const beginTime = computed(() => {
-  if (selectedDate.value === '本月') {
-    return dayjs().startOf('month').unix()
-  } else {
-    return dayjs(selectedDate.value).startOf('month').unix()
+  if (startTimeFromQuery && endTimeFromQuery) {
+    return {
+      startTime: parseInt(startTimeFromQuery),
+      endTime: parseInt(endTimeFromQuery)
+    }
   }
-})
-const endTime = computed(() => {
-  if (selectedDate.value === '本月') {
-    return dayjs().endOf('month').unix()
-  } else {
-    return dayjs(selectedDate.value).endOf('month').unix()
+
+  return {
+    startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+    endTime: timestampToSecond(dayjs().endOf('month').valueOf())
   }
-})
+}
+
+const selectTimeRange = ref(initTimeRange())
+
+// Calendar 打开状态（用于禁用下拉刷新）
+const showCalendar = ref(false)
+
+const getTimeRange = (): { BeginTime: number; EndTime: number } => {
+  return {
+    BeginTime: selectTimeRange.value.startTime,
+    EndTime: selectTimeRange.value.endTime
+  }
+}
 
 // 排序选择
 const sortType = ref('账变时间降序')
@@ -110,12 +112,19 @@ const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
   stickyTop: 44
 })
 
+// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
+const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
+
 // 返回
 const handleBack = () => {
   const tab = route.query.tab || '1'
   router.push({
     name: 'report',
-    query: { tab }
+    query: {
+      tab,
+      startTime: selectTimeRange.value.startTime.toString(),
+      endTime: selectTimeRange.value.endTime.toString()
+    }
   })
 }
 
@@ -147,9 +156,10 @@ const formatDepositRecord = (record: AgentApplyGoldItem) => ({
 // 获取代存总计数据
 const fetchDepositSummary = async () => {
   try {
+    const { BeginTime, EndTime } = getTimeRange()
     const response = await apis.admin.getAgentApplyGoldSummary({
-      BeginTime: beginTime.value,
-      EndTime: endTime.value
+      BeginTime,
+      EndTime
     })
     if (response.data.Code === 200) {
       depositSummary.value = response.data.Data
@@ -167,12 +177,13 @@ const fetchDepositList = async () => {
   loading.value = true
   error.value = false
   try {
+    const { BeginTime, EndTime } = getTimeRange()
     const response = await apis.admin.getAgentApplyGold({
       Page: currentPage.value,
       PageSize: pageSize,
       LoginAccount: searchKeyword.value || undefined,
-      BeginTime: beginTime.value,
-      EndTime: endTime.value,
+      BeginTime,
+      EndTime,
       WalletType: currentWalletType.value,
       Sort: currentSortType.value
     })
@@ -233,9 +244,9 @@ const onLoad = () => {
 }
 
 // Watchers
-watch([activeTab, selectedDate, sortType], () => {
+watch([activeTab, selectTimeRange, sortType], () => {
   resetAndFetchData()
-})
+}, { deep: true })
 
 onMounted(() => {
   resetAndFetchData()
@@ -257,7 +268,7 @@ onMounted(() => {
     <!-- 下拉刷新容器 -->
     <van-pull-refresh
       v-model="refreshing"
-      :disabled="pullRefreshDisabled"
+      :disabled="disablePullRefresh"
       @refresh="onRefresh"
       class="deposit-record-pull-refresh"
     >
@@ -316,9 +327,10 @@ onMounted(() => {
           <!-- 筛选条件行 -->
           <div class="filter-scroll-container">
             <!-- 账变时间 -->
-            <Dropdown
-              v-model="selectedDate"
-              :options="dateOptions"
+            <TimeFilterDropdown
+              v-model="selectTimeRange"
+              v-model:show-calendar="showCalendar"
+              title="账变时间"
               height="1.5rem"
               class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />

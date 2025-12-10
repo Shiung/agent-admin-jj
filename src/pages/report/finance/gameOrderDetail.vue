@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import Big from 'big.js'
 import FinanceCard from './components/financeCard.vue'
 import OrderCard from './components/orderCard.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import { useSticky } from '@/composables/useSticky'
 import dayjs from 'dayjs'
 import apis from '@/apis'
@@ -33,6 +35,9 @@ const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
   stickyTop: 84 // Height of the fixed header
 })
 
+// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
+const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
+
 // 游戏数据汇总
 const gameData = computed(() => {
   if (!gameDetailData.value) return {
@@ -51,33 +56,46 @@ const gameData = computed(() => {
   }
 })
 const searchKeyword = ref('')
-// 结算时间选择（从 URL query 初始化，实现页面间连动）
-const selectedDate = ref((route.query.date as string) || '本月')
+
+// 结算时间选择
+const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
+
+// 从 URL query 初始化时间范围（实现页面间时间同步）
+const initTimeRange = () => {
+  const startTimeFromQuery = route.query.startTime as string
+  const endTimeFromQuery = route.query.endTime as string
+
+  if (startTimeFromQuery && endTimeFromQuery) {
+    return {
+      startTime: parseInt(startTimeFromQuery),
+      endTime: parseInt(endTimeFromQuery)
+    }
+  }
+
+  return {
+    startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+    endTime: timestampToSecond(dayjs().endOf('month').valueOf())
+  }
+}
+
+const selectTimeRange = ref(initTimeRange())
+
+// Calendar 打开状态（用于禁用下拉刷新）
+const showCalendar = ref(false)
+
+const getTimeRange = (): { BeginTime: number; EndTime: number } => {
+  return {
+    BeginTime: selectTimeRange.value.startTime,
+    EndTime: selectTimeRange.value.endTime
+  }
+}
+
 const statusFilter = ref('全部状态')
 const sortType = ref('结算时间降序')
 
 // 分页
 const currentPage = ref(1)
 const pageSize = ref(20)
-
-// 根据选择的日期获取时间戳范围
-const getTimeRange = (dateStr: string): { BeginTime: number; EndTime: number } => {
-  let startDate: dayjs.Dayjs
-  let endDate: dayjs.Dayjs
-
-  if (dateStr === '本月') {
-    startDate = dayjs().startOf('month')
-    endDate = dayjs().endOf('month')
-  } else {
-    startDate = dayjs(dateStr).startOf('month')
-    endDate = dayjs(dateStr).endOf('month')
-  }
-
-  return {
-    BeginTime: startDate.unix(),
-    EndTime: endDate.unix(),
-  }
-}
 
 // 状态映射：UI显示 -> API参数
 const statusMap: Record<string, number> = {
@@ -104,7 +122,7 @@ const fetchGameDetail = async (isRefreshing = false) => {
     if (!isRefreshing) {
       loading.value = true
     }
-    const { BeginTime, EndTime } = getTimeRange(selectedDate.value)
+    const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getGameDetail({
       Page: currentPage.value,
@@ -162,18 +180,7 @@ const orderList = computed(() => {
     rawData: item // 保留原始数据用于详情展示
   }))
 })
-const dateOptions = computed(() => {
-  const options = [{ label: '结算时间｜本月', value: '本月' }]
-  const now = new Date()
-  for (let i = 0; i < 12; i++) {
-    const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
-    const year = date.getFullYear()
-    const month = String(date.getMonth() + 1).padStart(2, '0')
-    const value = `${year}-${month}`
-    options.push({ label: value, value })
-  }
-  return options
-})
+
 const statusOptions = [
   { label: '全部状态', value: '全部状态' },
   { label: '已结算', value: '已结算' },
@@ -200,7 +207,11 @@ const handleBack = () => {
   const tab = route.query.tab || '1'
   router.push({
     name: 'financeGameRecord',
-    query: { tab, date: selectedDate.value } // 传递日期参数回游戏记录页
+    query: {
+      tab,
+      startTime: selectTimeRange.value.startTime.toString(),
+      endTime: selectTimeRange.value.endTime.toString()
+    }
   })
 }
 
@@ -211,19 +222,11 @@ const handleSearch = () => {
   fetchGameDetail()
 }
 
-// 监听筛选条件变化，并更新 URL query
-watch([selectedDate, statusFilter, sortType], ([newDate]) => {
+// 监听筛选条件变化
+watch([selectTimeRange, statusFilter, sortType], () => {
   currentPage.value = 1 // 重置到第一页
   fetchGameDetail()
-  // 更新 URL query 参数（不添加历史记录）
-  router.replace({
-    name: 'financeGameOrderDetail',
-    query: {
-      ...route.query,
-      date: newDate
-    }
-  })
-})
+}, { deep: true })
 
 // 页面挂载时加载数据
 onMounted(async () => {
@@ -621,7 +624,7 @@ const copyOrderNo = (orderNo: string) => {
     <!-- 下拉刷新容器 -->
     <van-pull-refresh
       v-model="refreshing"
-      :disabled="pullRefreshDisabled"
+      :disabled="disablePullRefresh"
       @refresh="onRefresh"
       class="game-order-pull-refresh"
     >
@@ -668,9 +671,9 @@ const copyOrderNo = (orderNo: string) => {
           <!-- 筛选条件行 -->
           <div class="filter-scroll-container">
             <!-- 结算时间 -->
-            <Dropdown
-              v-model="selectedDate"
-              :options="dateOptions"
+            <TimeFilterDropdown
+              v-model="selectTimeRange"
+              title="结算时间"
               height="1.5rem"
               class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
