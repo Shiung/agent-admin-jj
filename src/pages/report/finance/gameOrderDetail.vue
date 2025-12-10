@@ -10,7 +10,7 @@ import OrderDetailSheet from '@/components/OrderDetailSheet/index.vue'
 import { useSticky } from '@/composables/useSticky'
 import dayjs from 'dayjs'
 import apis from '@/apis'
-import type { GameDetailData } from '@/apis/codegen/data-contracts'
+import type { GameDetailData, GameDetailItem } from '@/apis/codegen/data-contracts'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
 import { useGameStore } from '@/stores/game'
 
@@ -237,10 +237,10 @@ onMounted(async () => {
 
 // Order Detail Popup
 const showOrderDetail = ref(false)
-const selectedOrder = ref<any>(null)
+const selectedOrderRawData = ref<GameDetailItem | null>(null)
 
 const handleOrderClick = (order: any) => {
-  selectedOrder.value = order
+  selectedOrderRawData.value = order.rawData
   showOrderDetail.value = true
 }
 </script>
@@ -365,8 +365,7 @@ const handleOrderClick = (order: any) => {
     <!-- 订单详情弹窗 -->
     <OrderDetailSheet
       v-model:show="showOrderDetail"
-      :order="selectedOrder"
-      :raw-data="selectedOrder?.rawData"
+      :raw-data="selectedOrderRawData"
     />
   </div>
 </template>
