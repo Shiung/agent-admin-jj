@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref, defineComponent, computed, h, watch } from 'vue'
 import API from '@/apis/index'
-import type { PlayermanageApplylistv2Request } from '@/apis/codegen/data-contracts'
 import { cn } from '@/utils/className'
 import { useUserStore } from '@/stores/user'
 import dayjs from 'dayjs'
