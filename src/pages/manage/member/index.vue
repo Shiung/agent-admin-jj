@@ -5,6 +5,7 @@ import type AdvancedBottomSheet from '@/components/AdvancedBottomSheet/index.vue
 import { useRouter } from 'vue-router'
 import type SearchBar from '@/components/SearchBar/index.vue'
 
+import { useClipboard } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 import { cn } from '@/utils/className'
@@ -227,6 +228,11 @@ const advancedHandler = (ls: Map<string, any>) => {
   })
 }
 
+const copyHadandler = (c: string) => {
+  useClipboard().copy(c)
+  showToast({ message: '复制成功' })
+}
+
 watch([searchSelected, selectTime, selectedSort, regTime, activeMemberType, bindCard, bindPhone, packageId, vipLevels], () => {
   infinityRef.value?.fetchData()
 })
@@ -282,7 +288,7 @@ onMounted(() => {
     >
       <template v-slot="{ ls }">
         <div class="space-y-2 px-3">
-          <UnitCard v-for="(i, idx) in ls" :key="idx" class="relative">
+          <UnitCard v-for="(i, idx) in ls" :key="idx" class="relative" @click="router.push({ name: 'manageMemberDetail', params: { id: i.PlayerId }})">
             <template #header>
               <div class="flex items-start justify-start relative">
                 <div class="flex items-start space-x-2">
@@ -295,7 +301,7 @@ onMounted(() => {
                   <div class="space-y-1">
                     <div class="text-base font-semibold text-neutral2-basic flex items-center space-x-1">
                       <span>{{ i.LoginAccount }}</span>
-                      <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
+                      <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" @click.stop="copyHadandler(i.LoginAccount)"/>
                     </div>
                     <div class="flex items-start text-xs text-neutral2-tertiary space-x-1">
                       <div>
@@ -335,7 +341,7 @@ onMounted(() => {
               </div>
             </div>
 
-            <van-button round plain size="small" class="absolute! top-1/2 -right-1 shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] -translate-y-1/2"  @click="router.push({ name: 'manageMemberDetail', params: { id: i.PlayerId }})">
+            <van-button round plain size="small" class="absolute! top-1/2 -right-1 shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] -translate-y-1/2">
               <van-icon name="arrow" class="w-3 text-neutral2-tertiary" />
             </van-button>
 

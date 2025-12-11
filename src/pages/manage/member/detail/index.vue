@@ -2,6 +2,7 @@
 import { computed, ref, defineAsyncComponent } from 'vue'
 import UnitCard from '../../components/UnitCard.vue'
 import type SwitchTab from '@/components/SwitchTab/index.vue'
+import { useClipboard } from '@vueuse/core'
 
 import dayjs from 'dayjs'
 import { useWindowSize, useElementSize } from '@vueuse/core'
@@ -41,6 +42,11 @@ const showDate = (ts: number | string | null | undefined) => {
 
 const { states, playerInfoPermission } = useProvider()
 
+const copyHadandler = (c: string) => {
+  useClipboard().copy(c)
+  showToast({ message: '复制成功' })
+}
+
 </script>
 
 <template>
@@ -62,7 +68,7 @@ const { states, playerInfoPermission } = useProvider()
                 <div class="space-y-1">
                   <div class="text-base font-semibold text-neutral2-basic flex items-center space-x-1">
                     <span>{{ states.playerInfo?.PlayerInfo.LoginAccount }}</span>
-                    <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
+                    <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" @click="copyHadandler(states.playerInfo?.PlayerInfo.LoginAccount ?? '')" />
                   </div>
                   <div class="text-xs text-neutral2-basic">ID: <span>{{ states.playerInfo?.PlayerInfo.PlayerId }}</span></div>
                   <div class="text-xs text-neutral2-basic">{{ states.playerInfo?.PlayerInfo.PackageName }}</div>

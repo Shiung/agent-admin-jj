@@ -6,6 +6,8 @@ import { bonusType } from '@/utils/mappingStatus'
 import API from '@/apis/index'
 import dayjs from 'dayjs'
 
+import FilterBox from '../../components/FilterBox.vue'
+
 import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 
@@ -68,10 +70,10 @@ watch([selectTime, selectedSort], () => {
 
 <template>
   <div class="flex flex-col">
-    <div class="px-4 my-2 flex items-center space-x-2">
+    <FilterBox>
       <TimeFilterDropdown v-model="selectTime" title="领奖时间" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
-    </div>
+    </FilterBox>
 
     <InfinityScroll
       ref="infinityRef"

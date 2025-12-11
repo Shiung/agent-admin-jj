@@ -5,6 +5,8 @@ import API from '@/apis/index'
 import dayjs from 'dayjs'
 import { formatMoney } from '@/utils/formatNumber'
 
+import FilterBox from '../../components/FilterBox.vue'
+
 import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 
@@ -76,10 +78,10 @@ watch([selectTime, selectedSort], () => {
 
 <template>
   <div class="flex-1 flex flex-col">
-    <div class="px-4 my-2 flex items-center space-x-2">
+    <FilterBox>
       <TimeFilterDropdown v-model="selectTime" title="账变时间" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
-    </div>
+    </FilterBox>
 
     <InfinityScroll
       ref="infinityRef"

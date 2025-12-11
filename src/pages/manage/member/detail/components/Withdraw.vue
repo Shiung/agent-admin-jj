@@ -10,6 +10,8 @@ import { formatMoney } from '@/utils/formatNumber'
 import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 
+import FilterBox from '../../components/FilterBox.vue'
+
 defineOptions({ inheritAttrs: false })
 const attrs = useAttrs()
 
@@ -135,11 +137,11 @@ watch([selectTime, selectStatus, selectedSort], () => {
 
 <template>
   <div class="flex-1 flex flex-col">
-    <div class="px-4 my-2 flex items-center space-x-2">
+    <FilterBox>
       <TimeFilterDropdown v-model="selectTime" title="账变时间" />
       <Filled v-model:model-value="selectStatus" :options="statusLs" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
-    </div>
+    </FilterBox>
     <InfinityScroll
       ref="infinityRef"
       :fetchAction="fetchData"
