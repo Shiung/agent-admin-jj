@@ -10,7 +10,8 @@ import { formatSignedMoney, formatMoney } from '@/utils/formatNumber'
 import type AdvancedBottomSheet from '@/components/AdvancedBottomSheet/index.vue'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 import { useGameStore } from '@/stores/game'
-import { watchOnce } from '@vueuse/core'
+import { useClipboard } from '@vueuse/core'
+import FilterBox from '../../components/FilterBox.vue'
 
 const advanceKeyMap = {
   timeRange: 'TimeRange',
@@ -32,7 +33,6 @@ const gameStore = useGameStore()
 
 const gameListConf = ref<Awaited<ReturnType<typeof API.game.getGameListConfig>>['data']['Data']>([])
 
-const filtersBox = ref<HTMLDivElement>()
 const infinityRef = ref<InfinityExposeType>()
 const moreItems = ref<Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['MoreItems'] | null>(null)
 const selectTimeType = ref<GamedetailRequest['SelectTimeType']>(2)
@@ -313,14 +313,13 @@ const showDetailHandler = (item: Awaited<ReturnType<typeof API.netCashPlayerGame
   showDetail.value = true
 }
 
+const copyHadandler = (c: string) => {
+  useClipboard().copy(c)
+  showToast({ message: '复制成功' })
+}
+
 watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus], () => {
   infinityRef.value?.fetchData()
-})
-
-watchOnce(filtersBox, (el) => {
-  el?.addEventListener('touchstart', (e) => {
-    e.stopPropagation()
-  })
 })
 
 onMounted(() => {
@@ -331,12 +330,12 @@ onMounted(() => {
 
 <template>
   <div class="flex-1 flex flex-col">
-    <div class="flex px-4 my-2 overflow-x-auto space-x-2" ref="filtersBox">
+    <FilterBox>
       <AdvancedBottomSheet v-model:show="showTimeAdvanced" :title="showTimeRangeTitle" sheet-title="时间筛选" :ls="advancedTimeLs" @change="timeFilterHandler" />
       <AdvancedBottomSheet v-model:show="showGameTypeAdvanced" :title="showProductFilterTitle" :ls="advancedGameType" @change="gameTypeHandler" />
       <Filled v-model:model-value="selectBetStatus" :options="BetStatus" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
-    </div>
+    </FilterBox>
 
     <InfinityScroll
       ref="infinityRef"
@@ -364,12 +363,13 @@ onMounted(() => {
               </div>
             </div>
           </UnitCard>
-          <UnitCard v-for="l in ls" :key="l.Id" class="relative">
+          <UnitCard v-for="l in ls" :key="l.Id" class="relative" @click="showDetailHandler(l)">
             <template #header>
               <div class="flex justify-between items-center">
                 <div class="text-xs text-neutral2-secondary space-x-1">
                   <span>订单号</span>
                   <span>{{ l.TransactionId }}</span>
+                  <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" @click.stop="copyHadandler(l.TransactionId)"/>
                 </div>
                 <Status class="text-xs px-2 border rounded-xl leading-5" :status="l.Status"/>
               </div>
@@ -377,7 +377,7 @@ onMounted(() => {
             <div class="flex items-center justify-between py-3">
               <SumBlock :item="l" />
             </div>
-            <van-button round plain size="small" class="absolute! top-1/2 -right-1 shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] -translate-y-1/2"  @click="showDetailHandler">
+            <van-button round plain size="small" class="absolute! top-1/2 -right-1 shadow-[-1px_1px_6px_0px_rgba(0,0,0,0.15)] -translate-y-1/2">
               <van-icon name="arrow" class="w-3 text-neutral2-tertiary" />
             </van-button>
 

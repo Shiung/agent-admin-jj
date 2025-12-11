@@ -5,6 +5,9 @@ import { formatMoney } from '@/utils/formatNumber'
 import { bonusType } from '@/utils/mappingStatus'
 import API from '@/apis/index'
 import dayjs from 'dayjs'
+import { useClipboard } from '@vueuse/core'
+
+import FilterBox from '../../components/FilterBox.vue'
 
 import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
@@ -60,6 +63,11 @@ const fetchData = async (page: number = 0) => {
   }
 }
 
+const copyHadandler = (c: string) => {
+  useClipboard().copy(c)
+  showToast({ message: '复制成功' })
+}
+
 watch([selectTime, selectedSort], () => {
   infinityRef.value?.fetchData()
 })
@@ -68,10 +76,10 @@ watch([selectTime, selectedSort], () => {
 
 <template>
   <div class="flex flex-col">
-    <div class="px-4 my-2 flex items-center space-x-2">
+    <FilterBox>
       <TimeFilterDropdown v-model="selectTime" title="领奖时间" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
-    </div>
+    </FilterBox>
 
     <InfinityScroll
       ref="infinityRef"
@@ -86,7 +94,7 @@ watch([selectTime, selectedSort], () => {
                 <div class="text-xs text-neutral2-secondary space-x-1">
                   <span>订单号</span>
                   <span>{{ l.OrderId }}</span>
-                  <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
+                  <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" @click="copyHadandler(l.OrderId)" />
                 </div>
               </div>
             </template>
