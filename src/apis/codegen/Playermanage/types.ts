@@ -135,3 +135,46 @@ export interface PlayermanagePlayerdetailv2ResponseData {
 }
 
 export type PlayermanagePlayerdetailv2Response = BaseResponse<PlayermanagePlayerdetailv2ResponseData>
+
+export interface PlayermanageApplylistv2Request extends RequestPage {
+  /** 申請起始時間 */
+  ApplyTimeBegin?: number
+  /** 申請結束時間 */
+  ApplyTimeEnd?: number
+  /** 會員ID */
+  PlayerId?: number
+  /** 產品ID */
+  PackageId?: number
+  /** 狀態(0:全部 1:申請中 2:同意 3:拒絕) (Allowed values: 0, 1, 2, 3) */
+  Status?: number
+}
+
+interface PlayermanageApplylistv2ResponseData {
+  Items: Array<{
+    /** 設備類型 */
+    ApplyPlatform: string
+    /** 申请时间 */
+    ApplyTime: number
+    /** 綁定渠道號 */
+    BindChannelId: string
+    /** 備註 */
+    Desc: string
+    /** 引導連結 */
+    GuideUrl: string
+    /** 記錄ID */
+    Id: number
+    /** 會員帳號 */
+    LoginAccount: string
+    /** 產品名稱 */
+    PackageName: string
+    /** 會員ID */
+    PlayerId: number
+    /** 狀態(1:申請中 2:同意 3:拒絕) */
+    Status: 1 | 2 | 3
+    /** VIP等級 */
+    VipLevel: number
+  }>
+  Pagination: Pagination
+}
+
+export type PlayermanageApplylistv2Response = BaseResponse<PlayermanageApplylistv2ResponseData>

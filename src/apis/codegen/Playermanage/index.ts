@@ -4,7 +4,9 @@ import type {
   PlayermanageSearchRequest,
   PlayermanageSearchResponse,
   PlayermanagePlayerdetailv2Request,
-  PlayermanagePlayerdetailv2Response
+  PlayermanagePlayerdetailv2Response,
+  PlayermanageApplylistv2Request,
+  PlayermanageApplylistv2Response
 } from '../data-contracts'
 import type { HttpClient, RequestParams } from '../http-client'
 
@@ -50,6 +52,20 @@ export class PlayerManage<SecurityDataType = unknown> {
   ) =>
     this.http.request<PlayermanagePlayerdetailv2Response, any>({
       path: '/admin/playermanage/playerdetailv2',
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: "json",
+      ...params
+    })
+
+  /** 管理>會員管理>調線記錄V2 */
+  getApplylistv2 = (
+    query: PlayermanageApplylistv2Request,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PlayermanageApplylistv2Response, any>({
+      path: '/admin/playermanage/applylistv2',
       method: 'GET',
       query: query,
       secure: true,
