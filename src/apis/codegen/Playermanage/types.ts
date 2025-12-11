@@ -175,6 +175,55 @@ interface PlayermanageApplylistv2ResponseData {
     VipLevel: number
   }>
   Pagination: Pagination
+  Total: {
+    /** 通過會員總數 */
+    TotalApproved: number
+  }
 }
 
 export type PlayermanageApplylistv2Response = BaseResponse<PlayermanageApplylistv2ResponseData>
+
+export interface PlayermanageApplycheckRequest {
+  /** 會員帳號 (Required) */
+  LoginAccount: string
+  /** 產品ID (Required) */
+  PackageId: number
+}
+
+export interface PlayermanageApplycheckResponseData {
+  Items: Array<{
+    /** 代理ID */
+    AdminId: number
+    /** 建立時間 */
+    CreateTime: number
+    /** 會員帳號 */
+    LoginAccount: string
+    /** 產品名稱 */
+    PackageName: string
+    /** 會員ID */
+    PlayerId: number
+  }>
+}
+
+export type PlayermanageApplycheckResponse = BaseResponse<PlayermanageApplycheckResponseData>
+
+export interface PlayermanageApplyRequest {
+  /** 上傳圖片，多個用逗號分割 */
+  Image: string
+  /** 會員ID */
+  PlayerId: number
+  /** 引導連結(必填) (Required) */
+  Url: string
+  /** 綁定渠道號(必填) (Required) */
+  ChannelId: string
+  /** 設備類型(android,ios,h5,pc) (Allowed values: android, ios, h5, pc) */
+  Platform: string
+  /** 備註(最多1024字) (Maximum: 1024) */
+  Desc: string
+  /** 產品ID (Required) */
+  PackageId: number
+  /** 會員帳號 (Required) */
+  LoginAccount: string
+}
+
+export type PlayermanageApplyResponse = BaseResponse
