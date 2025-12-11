@@ -19,6 +19,9 @@ useIntersectionObserver(
   ([entry]) => {
     const isActive = entry?.isIntersecting ?? false
     if (isActive) emit('onLoad')
+  },
+  {
+    rootMargin: '0px -10px 0px -10px'
   }
 )
 
