@@ -179,14 +179,14 @@ const calculateProfitMargin = (betAmount: number, winAmount: number) => {
   if (betAmount === 0) return '0%'
   const profit = betAmount - winAmount
   const margin = (profit / betAmount) * 100
-  return `${margin.toFixed(2)}%`
+  return `${+margin.toFixed(2)}%`
 }
 
 // 计算转化率
 const calculateConversionRate = (firstPayNum: number, regNum: number) => {
   if (regNum === 0) return '0%'
   const rate = (firstPayNum / regNum) * 100
-  return `${rate.toFixed(2)}%`
+  return `${+rate.toFixed(2)}%`
 }
 
 // 实时数据
