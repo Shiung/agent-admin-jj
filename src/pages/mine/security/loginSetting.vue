@@ -143,7 +143,7 @@ const submit = async () => {
   height: 18px;
   min-width: 18px;
   min-height: 18px;
-  border: 1.5px solid rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(0, 0, 0, 0.2);
   border-radius: 50%;
   position: relative;
   cursor: pointer;
@@ -168,20 +168,19 @@ const submit = async () => {
   }
 
   &:checked {
+    border-width: 2px;
     border-color: var(--color-primary-normal);
 
     &::after {
       background-color: var(--color-primary-normal);
       opacity: 1;
-      width: 12px;
-      height: 12px;
+      width: 9px;
+      height: 9px;
     }
   }
 
   &:not(:checked)::after {
-    opacity: 1;
-    width: 8px;
-    height: 8px;
+    opacity: 0;
   }
 }
 

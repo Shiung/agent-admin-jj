@@ -19,7 +19,7 @@ const submit = async () => {
       showFailToast(res.data.Msg)
       return
     }
-    showToast('修改成功')
+    showToast('编辑成功')
     router.replace({ name: 'mineProfile' })
   } catch (error) {
     console.error('更新失败：', error)

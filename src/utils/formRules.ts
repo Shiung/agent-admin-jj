@@ -2,7 +2,7 @@
 export const rulesRequired = (params: any = {}) => {
   return {
     required: true,
-    message: '此项为必填',
+    message: '此项不可为空',
     ...(params)
   }
 }
