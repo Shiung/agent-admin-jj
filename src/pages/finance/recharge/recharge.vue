@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, nextTick, onUnmounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { getRechargeName, getRechargeAccountType, getRechargeType } from '@/utils/finance'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
-import { rulesRequired } from '@/utils/formRules'
+import { rulesRequired, rulesPositiveIntegerNumber } from '@/utils/formRules'
 import { type RechargeMoneyData, type RechargeMoneyPayUrlData, type RechargeRecordListDataItem } from '@/apis/codegen/data-contracts'
 import Big from 'big.js'
 import API from '@/apis'
@@ -243,7 +243,9 @@ onUnmounted(() => {
               <span class="inline-block ml-2 text-primary-normal">{{ USDTRate }}</span>
               RMB
               <span class="inline-block ml-2">≈</span>
-              <span class="inline-block ml-2 text-primary-normal">{{ formData.Amount ? formatMoneyWithComma((formData.Amount / USDTRate).toFixed(2), 2, false) : 0 }}</span>
+              <span class="inline-block ml-2 text-primary-normal">
+                {{ formData.Amount && !isNaN(formData.Amount) ? formatMoneyWithComma((formData.Amount / USDTRate), 2, false) : 0 }}
+              </span>
               USDT
             </div>
           </div>
@@ -259,7 +261,7 @@ onUnmounted(() => {
           clearable 
           required 
           :disabled="selectRechargeChannelItem?.AllowInput === 2"
-          :rules="[rulesRequired()]" 
+          :rules="[rulesRequired(), rulesPositiveIntegerNumber()]" 
         />
         <div class="flex items-center px-4 gap-2 overflow-auto">
           <van-button 

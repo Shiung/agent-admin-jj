@@ -40,7 +40,7 @@ const MENUS = [
     title: '注单记录',
   },
   {
-    key: 'memberDeposit',
+    key: 'memberRecharge',
     title: '会员充值',
   },
   {

@@ -116,7 +116,7 @@ const handleWithdrawConfirm = async () => {
     :show="show" 
     :title="`提现至${selectPayTypeItem.Name ?? ''}`"
     height="fit-content"
-    @cancel="handleWithdrawCancel"
+    @close="handleWithdrawCancel"
     @confirm="handleWithdrawConfirm"
   >
     <div class="px-4 py-3">
