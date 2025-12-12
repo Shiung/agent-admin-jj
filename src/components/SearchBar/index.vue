@@ -34,7 +34,7 @@ const selectedVal = defineModel<SearchType | null>('selected', { required: true 
 
 const { placeholder = '请输入', shape = 'round', cusStyle, searchLs = [] } = defineProps<Partial<Options>>()
 
-const value = ref<string>('')
+const value = ref<string>(selectedVal.value?.text ?? '')
 const inputFocus = ref<boolean>(false)
 
 const styleVal = computed(() => {
