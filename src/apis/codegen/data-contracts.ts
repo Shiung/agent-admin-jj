@@ -1962,6 +1962,57 @@ export interface WithdrawAccountData {
   CreateTime: number,
 }
 
+export interface CommissionToQuotaRequest {
+  Amount: number
+  PayPassword: string
+}
+
+export interface CommissionToQuotaResponse {
+  Code: number
+  Data: null
+  Msg: string
+  Id?: string
+}
+
+export interface CommissionToQuotaTotalQuery {
+  Page: number
+  PageSize: number
+  BeginTime: number
+  EndTime: number
+  BillType: number
+  TransferType: number
+  Sort: string
+}
+
+export interface CommissionToQuotaTotalItem {
+  AdjustAmount: number
+  AdjustAmountAft: number
+  AdjustAmountBef: number
+  BillType: number
+  CreateTime: number
+  Id: number
+  OrderId: string
+  Remark: string
+  ReviewNote: string
+  TransferType: number
+  UpdateTime: number
+  WalletType: number
+  ApplyNote: string
+}
+
+export interface CommissionToQuotaTotalResponse {
+  Code: number
+  Data: {
+    Items: CommissionToQuotaTotalItem[]
+    MoreItems: {
+      Count: number
+      TotalChangeGold: number
+    }
+  }
+  Msg: string
+  Id: string
+}
+
 export type * from './Playermanage/types'
 export type * from './NetCashPlayerGame/types'
 export type * from './ApiConfig/types'

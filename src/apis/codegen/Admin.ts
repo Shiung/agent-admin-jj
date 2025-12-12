@@ -48,6 +48,10 @@ import type {
   LoginPasswordRequest,
   PrivatePasswordV2Request,
   BindingPhoneVerifyRequest,
+  CommissionToQuotaRequest,
+  CommissionToQuotaResponse,
+  CommissionToQuotaTotalQuery,
+  CommissionToQuotaTotalResponse,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -819,4 +823,40 @@ export class Admin<SecurityDataType = unknown> {
       format: "json",
       ...params,
     });
+
+  /**
+   * 佣金转额度
+   *
+   * @tags Admin
+   * @name CommissionToQuota
+   * @request POST:/admin/agentcreditlimittransaction/commissiontoquota
+   * @secure
+   */
+  postCommissionToQuota = (data: CommissionToQuotaRequest, params: RequestParams = {}) =>
+    this.http.request<CommissionToQuotaResponse, any>({
+      path: '/admin/agentcreditlimittransaction/commissiontoquota',
+      method: "POST",
+      secure: true,
+      body: data,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 佣金轉额度 - 转换记录
+   *
+   * @tags Admin
+   * @name CommissionToQuotaTotal
+   * @request GET:/admin/financecenter/paymentwalletdetaillist
+   * @secure
+   */
+  getCommissionToQuotaTotal = (query: CommissionToQuotaTotalQuery, params: RequestParams = {}) =>
+    this.http.request<CommissionToQuotaTotalResponse, any>({
+      path: '/admin/financecenter/paymentwalletdetaillist',
+      method: "GET",
+      query: query,
+      secure: true,
+      format: "json",
+      ...params
+    })
 }

@@ -24,7 +24,7 @@ const submit = async () => {
     <router-view v-if="route.name === 'gesture'" />
     <div v-else class="py-3">
       <div class="mx-3 my-2 px-3 py-2 bg-bg-floor-1-2 rounded-lg flex items-center">
-        <van-image src="./static/images/common/lightBulb.png" class="mr-2" width="24" />
+        <van-image src="./static/images/common/lightBulb.png" class="mx-2" width="24" />
         <p class="text-primary-normal text-sm">请输入登录密码进行验证</p>
       </div>
       <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
