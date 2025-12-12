@@ -954,7 +954,7 @@ const handleReleaseConfirm = async () => {
     </template>
 
     <!-- 发放时间分隔线（在整个列表最下方） -->
-    <div v-if="props.viewType === 0 && props.commissionData" class="flex items-center gap-3 mt-4 px-1">
+    <div v-if="props.viewType === 0 && props.commissionData && !props.loadingPersonalData" class="flex items-center gap-3 mt-4 px-1">
       <div class="flex-1 h-px divider-line"></div>
       <span class="release-date-text">发放时间：{{ releaseDate }}</span>
       <div class="flex-1 h-px divider-line"></div>

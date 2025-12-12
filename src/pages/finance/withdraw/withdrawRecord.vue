@@ -273,27 +273,27 @@ onMounted(async () => {
               </div>
             </div>
             <div class="mt-2 px-3 bg-white rounded-2xl">
-              <div class="flex justify-between py-2 leading-5 text-xs text-neutral2-basic">
-                <div class="font-normal">订单号</div>
+              <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic">
+                <div class="min-w-20">订单号</div>
                 <div class="flex items-center justify-center font-semibold">
-                  {{ item.OrderId }}
-                  <van-image src="./static/images/promote/copy_lite.png" class="ml-1 w-3 h-3" fit="contain" @click="handleCopy(item.OrderId)" />
+                  <div class="text-right break-all">{{ item.OrderId }}</div>
+                  <van-image src="./static/images/promote/copy_lite.png" class="ml-1 w-3 flex-shrink-0" fit="contain" @click="handleCopy(item.OrderId)" />
                 </div>
               </div>
 
-              <div class="flex justify-between py-2 leading-5 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
-                <div class="font-normal">提现金额</div>
-                <div class="font-semibold">{{ formatMoneyWithComma(item.Amount) }}</div>
+              <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
+                <div class="min-w-20">提现金额</div>
+                <div class="text-right font-semibold">{{ formatMoneyWithComma(item.Amount) }}</div>
               </div>
 
-              <div class="flex justify-between py-2 leading-5 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
-                <div class="font-normal">提现方式</div>
-                <div class="font-semibold">{{ getWithdrawName(item.AccountType) }}</div>
+              <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
+                <div class="min-w-20">提现方式</div>
+                <div class="text-right font-semibold">{{ getWithdrawName(item.AccountType) }}</div>
               </div>
 
-              <div class="flex justify-between py-2 leading-5 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
-                <div class="font-normal">提现帐号</div>
-                <div class="font-semibold text-right">
+              <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
+                <div class="min-w-20">提现帐号</div>
+                <div class="text-right font-semibold">
                   <template v-if="item.AccountType === 1001">
                     <div>{{ item.AccountBank }}</div>
                     <div>{{ item.AccountNum }}</div>

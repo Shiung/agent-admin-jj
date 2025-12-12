@@ -13,13 +13,12 @@ export const useUserStore = defineStore('user', () => {
   const token = ref<string | null>(localStorage.getItem('userToken') || null)
   const userInfo = ref<Record<string, any> | null>(null)
   const accountInfo = ref<AccountInfoData | null>(null)
-  const googleSecretCode = ref<{ Secret?: string; QrCode?: string } | null>(null)
 
   /** 是否為單層代理（AccountType: 1=单层代理,2=多层代理-单费率,3=多层代理-多费率(目前無3)） */
   const isSingleAgent = computed(() => userInfo.value?.NetCashAccount.AccountType === 1)
   /** 有無團隊 (單層代理而且TeamId > 0) */
   const hasTeam = computed(() => isSingleAgent.value && userInfo.value?.NetCashAccount.TeamId > 0)
-  /** 是否為主線 (IsMain: 1=主线, 2=副线) */
+  /** 是否為主線 (IsMain: 1=主线, 2=副线, 0=其他(多层代理)) */
   const isMainLine = computed(() => userInfo.value?.NetCashAccount.IsMain !== 2)
   /** 代理底下的產品包 */
   const productPackages = computed(() => {
@@ -91,6 +90,8 @@ export const useUserStore = defineStore('user', () => {
   const logout = () => {
     setToken(null)
     userInfo.value = null
+    subAgentList.value = []
+    subAgentListLoaded.value = false
   }
 
   const fetchIsLogin = async () => {
@@ -153,7 +154,6 @@ export const useUserStore = defineStore('user', () => {
     isMainLine,
     productPackages,
     playerInfoPermission,
-    googleSecretCode,
     subAgentList,
     subAgentListLoaded,
     currentAdminLevel,

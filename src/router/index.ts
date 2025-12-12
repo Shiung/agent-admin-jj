@@ -200,11 +200,6 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/mine/googleCode.vue'),
   },
   {
-    path: '/mine/googleCodeVerify',
-    name: 'mineGoogleCodeVerify',
-    component: () => import('@/pages/mine/googleCodeVerify.vue'),
-  },
-  {
     path: '/mine/qq',
     name: 'mineQQ',
     component: () => import('@/pages/mine/qq.vue'),
@@ -213,6 +208,16 @@ const routes: RouteRecordRaw[] = [
     path: '/mine/withdrawAccount',
     name: 'withdrawAccount',
     component: () => import('@/pages/mine/withdrawAccount.vue'),
+  },
+  {
+    path: '/mine/memberRecharge',
+    name: 'memberRecharge',
+    component: () => import('@/pages/mine/memberRecord/memberRecharge.vue'),
+  },
+  {
+    path: '/mine/memberRechargeRecord',
+    name: 'memberRechargeRecord',
+    component: () => import('@/pages/mine/memberRecord/memberRechargeRecord.vue'),
   },
   {
     path: '/mine/security',
@@ -297,6 +302,18 @@ const routes: RouteRecordRaw[] = [
       },
     ]
   },
+  {
+    path: '/mine/commissionQuota',
+    name: 'commissionQuota',
+    component: () => import('@/pages/mine/commissionQuota/index.vue'),
+    children: [
+      {
+        path: 'record',
+        name: 'record',
+        component: () => import('@/pages/mine/commissionQuota/record.vue'),
+      },
+    ]
+  }
 ]
 
 const router = createRouter({

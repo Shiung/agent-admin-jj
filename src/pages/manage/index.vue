@@ -10,13 +10,12 @@ const route = useRoute()
 
 const rootRouteLs = ['manageMember', 'manageAgent', 'manageTeam']
 
-const ls: InstanceType<typeof SwitchTab>['$props']['tabs'] = [
-  { id: 'manageMember', title: '会员', to: { name: 'manageMember' }},
-  ...(!userStore.isSingleAgent ? [{ id: 'manageAgent', title: '代理', to: { name: 'manageAgent' }}] : []),
-  ...(userStore.hasTeam ? [{ id: 'manageTeam', title: '团队', to: { name: 'manageTeam' }}] : []),
-]
-
-const active = ref<InstanceType<typeof SwitchTab>['$props']['activeTab']>(ls.findIndex(l => l.id.toString() === route.name) ?? 0)
+const ls = computed<InstanceType<typeof SwitchTab>['$props']['tabs']>(() => [
+  { id: 'manageMember', title: '会员管理', to: { name: 'manageMember' }},
+  ...(!userStore.isSingleAgent ? [{ id: 'manageAgent', title: '代理管理', to: { name: 'manageAgent' }}] : []),
+  ...(userStore.hasTeam && userStore.isMainLine ? [{ id: 'manageTeam', title: '团队管理', to: { name: 'manageTeam' }}] : []),
+])
+const active = ref<InstanceType<typeof SwitchTab>['$props']['activeTab']>(ls.value.findIndex(l => l.id.toString() === route.name) ?? 0)
 
 const isTabAlive = computed(() => {
   const routeName = route.name

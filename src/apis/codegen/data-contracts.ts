@@ -1,4 +1,5 @@
 export type * from './Finance/type.d.ts'
+export type * from './MemberRecharge/types.d.ts'
 
 export interface LoginFormData {
   Username: string
@@ -1141,6 +1142,7 @@ export interface GameDetailItem {
 export interface SumItem {
   GameId: number // 游戏ID
   SumAddGold: number // 总增加金额，单位:分
+  SumApiFee: number // 場館費，单位:分
   SumBetGold: number // 总投注，单位:分
   SumPlayerWinLose: number // 会员总输赢，单位:分
   SumProfitGold: number // 总盈利，单位:分
@@ -1500,6 +1502,7 @@ export interface BonusRecordQuery {
   BeginTime: number // 查询开始时间（Unix时间戳）
   EndTime: number // 查询结束时间（Unix时间戳）
   Sort?: string // 排序字段(send_time:领奖时间 bonus:红利金额)，前面带正负号代表排序方式
+  Status?: number // 状态(2:申請成功 5:待領取)
   LoginAccount?: string // 会员账号
 }
 
@@ -1960,6 +1963,89 @@ export interface WithdrawAccountData {
   /** 虛擬幣協議 */
   Protocol: string
   CreateTime: number,
+}
+
+export interface WithdrawAccountResponse {
+  Code: number
+  Data: WithdrawAccountData[]
+  Msg: string
+  Id: string
+}
+
+export interface WithdrawAccountData {
+  /** 提現帳號 */
+  AccountNum: string,
+  /** 銀行代號(銀行卡用) */
+  BankCode: string,
+  /** 帳號類型 */
+  Name: string,
+  /** 虛擬幣協議 */
+  Protocol: string
+  CreateTime: number,
+}
+
+export interface UploadImageMd5Response {
+  Code: number
+  Data: {
+    original: string
+    smallUrl: string
+    state: string
+    title: string
+    url: string
+  }
+  Msg: string
+  Id: string
+}
+
+export interface CommissionToQuotaRequest {
+  Amount: number
+  PayPassword: string
+}
+
+export interface CommissionToQuotaResponse {
+  Code: number
+  Data: null
+  Msg: string
+  Id?: string
+}
+
+export interface CommissionToQuotaTotalQuery {
+  Page: number
+  PageSize: number
+  BeginTime: number
+  EndTime: number
+  BillType: number
+  TransferType: number
+  Sort: string
+}
+
+export interface CommissionToQuotaTotalItem {
+  AdjustAmount: number
+  AdjustAmountAft: number
+  AdjustAmountBef: number
+  BillType: number
+  CreateTime: number
+  Id: number
+  OrderId: string
+  Remark: string
+  ReviewNote: string
+  TransferType: number
+  UpdateTime: number
+  WalletType: number
+  ApplyNote: string
+}
+
+export interface CommissionToQuotaTotalResponse {
+  Code: number
+  Data: {
+    Items: CommissionToQuotaTotalItem[]
+    MoreItems: {
+      Count: number
+      TotalChangeGold: number
+    }
+  }
+  Msg: string
+  Id: string
 }
 
 export type * from './Playermanage/types'

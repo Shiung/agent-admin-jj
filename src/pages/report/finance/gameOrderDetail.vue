@@ -48,8 +48,8 @@ const gameData = computed(() => {
 
   const summary = gameDetailData.value.MoreItems
   return {
-    totalProfit: summary.SumPlayerWinLose, // 会员总输赢
-    venueFee: 0, // API 中没有场馆费字段
+    totalProfit: summary.SumProfitGold, // 会员总输赢
+    venueFee: summary.SumApiFee, // 场馆费
     betAmount: summary.SumTotalBetGold, // 总投注金额
     validBet: summary.SumValidWater // 总有效流水
   }
@@ -172,7 +172,7 @@ const orderList = computed(() => {
     status: formatStatus(item.Status),
     betAmount: formatMoneyWithCommas(item.TotalBetGold, 2, true),
     validBet: formatMoneyWithCommas(item.ValidWater, 2, true),
-    profit: formatMoneyWithCommas(item.PlayerWinLose, 2, true),
+    profit: formatMoneyWithCommas(item.CompanyWinLose, 2, true),
     username: item.LoginAccount,
     vipLevel: `VIP${item.VipLevel || 0}`,
     time: dayjs.unix(item.SettlementTime).format('YYYY-MM-DD HH:mm:ss'),
@@ -321,20 +321,22 @@ const handleOrderClick = (order: any) => {
             />
 
             <!-- 状态筛选 -->
+             <div class="filter-dropdown">
             <Dropdown
               v-model="statusFilter"
               :options="statusOptions"
               height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
+            </div>
 
             <!-- 排序方式 -->
+            <div class="filter-dropdown">
             <Dropdown
               v-model="sortType"
               :options="sortOptions"
               height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
+            </div>
           </div>
         </div>
       </div>
@@ -530,6 +532,7 @@ const handleOrderClick = (order: any) => {
     justify-content: flex-start;
     gap: 0.25rem;
     white-space: nowrap;
+    background: var(--color-bg-floor-1-2);
   }
 
   :deep(.dropdown-button [data-placeholder]) {

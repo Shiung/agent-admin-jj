@@ -40,7 +40,7 @@ const MENUS = [
     title: '注单记录',
   },
   {
-    key: 'memberDeposit',
+    key: 'memberRecharge',
     title: '会员充值',
   },
   {
@@ -142,6 +142,7 @@ onMounted(async () => {
           v-for="item in SHORTCUTS"
           :key="item.key"
           class="flex-1 flex flex-col items-center cursor-pointer"
+          @click="handleMenuClick(item.key)"
         >
           <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-2">
             <van-image :src="`./static/images/mine/${item.key}.svg`" size="24"/>

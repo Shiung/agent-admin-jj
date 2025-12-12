@@ -3,6 +3,7 @@ interface Props {
   show: boolean
   title?: string
   showClose?: boolean
+  showButton?: boolean
   cancelText?: string
   confirmText?: string
   confirmDisabled?: boolean
@@ -12,6 +13,7 @@ interface Props {
 withDefaults(defineProps<Props>(), {
   title: '提示',
   showClose: true,
+  showButton: true,
   cancelText: '取消',
   confirmText: '确定',
   confirmDisabled: false,
@@ -20,12 +22,12 @@ withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:show': [value: boolean]
-  'cancel': []
+  'close': []
   'confirm': []
 }>()
 
-const handleCancel = () => {
-  emit('cancel')
+const handleClose = () => {
+  emit('close')
 }
 
 const handleConfirm = () => {
@@ -39,22 +41,22 @@ const handleConfirm = () => {
     position="bottom"
     round
     :style="{ height: height }"
-    @click-overlay="handleCancel"
+    @click-overlay="handleClose"
     @update:show="emit('update:show', $event)"
   >
     <div class="flex-1 flex flex-col pt-2 h-full">
       <!-- 标题 -->
       <h3 class="relative flex items-center justify-center px-4 text-lg font-semibold text-neutral2-basic mb-2">
         {{ title }}
-        <van-image v-if="showClose" src="./static/images/common/close.svg" fit="contain" class="!absolute right-4 w-4 h-4" @click="handleCancel" />
+        <van-image v-if="showClose" src="./static/images/common/close.svg" fit="contain" class="!absolute right-4 w-4 h-4" @click="handleClose" />
       </h3>
       
       <!-- 内容插槽 -->
       <slot />
       
       <!-- 按钮 -->
-      <div class="flex gap-3 p-4">
-        <van-button type="primary" plain round class="flex-1 !h-12 !text-base" @click="handleCancel">
+      <div v-if="showButton" class="flex gap-3 p-4">
+        <van-button type="primary" plain round class="flex-1 !h-12 !text-base" @click="handleClose">
           {{ cancelText }}
         </van-button>
         <van-button type="primary" round native-type="submit" class="flex-1 !h-12 !text-base gray-disabled" :disabled="confirmDisabled" @click="handleConfirm">

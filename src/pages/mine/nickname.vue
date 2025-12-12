@@ -22,7 +22,7 @@ const submit = async () => {
       showFailToast(res.data.Msg)
       return
     }
-    showToast('修改成功')
+    showToast('编辑成功')
     router.replace({ name: 'mineProfile' })
   } catch (error) {
     console.error('更新失败：', error)
@@ -44,6 +44,7 @@ const submit = async () => {
           label-align="top"
           label="代理昵称"
           placeholder="请输入"
+          maxlength="20"
           required
           :rules="[rulesRequired()]"
         >
@@ -51,7 +52,7 @@ const submit = async () => {
       </van-form>
     </div>
     <div class="px-4 my-4">
-      <van-button block round type="primary" :loading="loading" :disabled="!nickname" @click="submit">提交</van-button>
+      <van-button block round type="primary" :loading="loading" :disabled="!nickname" native-type="submit">提交</van-button>
     </div>
   </div>
 </template>
