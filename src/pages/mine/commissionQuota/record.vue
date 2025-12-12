@@ -53,7 +53,7 @@ watch([quotaTime, selectedSort], () => {
       <TimeFilterDropdown v-model="quotaTime" title="账变时间" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
     </div>
-    <div class="flex flex-col gap-2 mx-3">
+    <div class="flex flex-col gap-2 mx-3 mt-2">
       <template v-if="records.length > 0">
         <template v-for="item in records" :key="item.Id">
           <RecordItem :record="item" />
