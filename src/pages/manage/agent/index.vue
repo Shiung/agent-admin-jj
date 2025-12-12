@@ -163,21 +163,7 @@ const fetchNetcashmultiList = async () => {
   const res = await apis.netcashmulti.getNetcashmultiList(netcashmultiListQuery.value).catch((e) => e)
   if (res?.data?.Code !== 200) return
 
-  // const items = res.data.Data.Items || []
-  const items = Array.from({ length: 2 }, (_, i) => ({
-    AdminId: i + 1,
-    Username: `Agent${i + 1}`,
-    AccountLevel: i + 1,
-    CreateTime: Date.now() - i * 1000,
-    Members: i + 1,
-    DownLineAgents: i + 1,
-    DownLineMembers: i + 1,
-    CommissionRate: `${i + 1}`,
-    Name: `Agent${i + 1}`,
-    ParentTree: `Agent${i + 1}`,
-    Remark: `Agent${i + 1}`,
-  } as NetcashmultiListItem)
-  )
+  const items = res.data.Data.Items || []
 
   agentList.value = netcashmultiListQuery.value.Page === 1 ? items : [...agentList.value, ...items]
   loading.value = false
