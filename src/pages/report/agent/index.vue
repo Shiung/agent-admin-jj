@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { storeToRefs } from 'pinia'
 import dayjs from 'dayjs'
 import Big from 'big.js'
@@ -7,6 +7,7 @@ import AgentDataCard from './components/agentDataCard.vue'
 import AgentCard from './components/agentCard.vue'
 import AgentDetailSheet from './components/agentDetailSheet.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import SearchBar from '@/components/SearchBar/index.vue'
 import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import apis from '@/apis'
 import type { HistoryItem, RealTimeItem, DownLineItem, MemberFinanceReportTotalItem } from '@/apis/codegen/data-contracts'
@@ -19,7 +20,7 @@ const agentContainerRef = ref<HTMLElement | null>(null)
 const userStore = useUserStore()
 
 // 从 store 获取下级代理相关数据
-const { subAgentList, currentAdminLevel, selfAdminId, maxSubAgentLevel, hasTeam, isMainLine } = storeToRefs(userStore)
+const { subAgentList, isSingleAgent, hasTeam, isMainLine, userInfo } = storeToRefs(userStore)
 
 // API Data
 const reportSummary = ref<MemberFinanceReportTotalItem>({
@@ -66,11 +67,48 @@ const switchBtns = [
 const isHistoryMode = computed(() => viewType.value === 1)
 
 // 月报/日报切换（只在历史模式下有效）
-const reportType = ref(0)  // 0: 月报, 1: 日报
+const reportType = ref(0)  // 1: 日报, 2: 月报
 
 // 计算 ReportType (API 参数: 1=日报, 2=月报)
 const currentReportType = computed<1 | 2>(() => reportType.value === 1 ? 1 : 2)
 
+// ============ 实时模式 total（今日）时间范围 ============
+const totalBeginTime = computed(() => {
+  // 历史模式：与卡片数据相同
+  if (isHistoryMode.value) {
+    if (reportType.value === 0) {
+      return dayjs().subtract(6, 'month').format('YYYY-MM')
+    }
+    return statsBeginTime.value
+  }
+
+  // 实时模式：固定为今日
+  return dayjs().format('YYYY-MM-DD')
+})
+
+const totalEndTime = computed(() => {
+  // 历史模式：与卡片数据相同
+  if (isHistoryMode.value) {
+    if (reportType.value === 0) {
+      return dayjs().subtract(1, 'month').format('YYYY-MM')
+    }
+    return statsEndTime.value
+  }
+
+  // 实时模式：固定为今日
+  return dayjs().format('YYYY-MM-DD')
+})
+
+// 实时模式 total 固定使用日报
+const totalReportType = computed<1 | 2>(() => {
+  if (isHistoryMode.value) {
+    return currentReportType.value
+  }
+  // 实时模式固定为日报
+  return 1
+})
+
+// ============ 卡片数据（近7日不含今日）时间范围 ============
 const beginTime = computed(() => {
   // 历史模式
   if (isHistoryMode.value) {
@@ -84,16 +122,9 @@ const beginTime = computed(() => {
     return statsBeginTime.value
   }
 
-  // 实时模式根据报表类型
-  // reportType: 0=月报, 1=日报
-  // API ReportType: 1=日报, 2=月报
-  if (reportType.value === 1) {
-    // 日报：返回当天日期 YYYY-MM-DD
-    return dayjs().format('YYYY-MM-DD')
-  } else {
-    // 月报：返回当前月份 YYYY-MM
-    return dayjs().format('YYYY-MM')
-  }
+  // 实时模式：固定为近7日日报模式，不含今日
+  // 例如今天是 2025-12-11，则范围为 2025-12-04 ~ 2025-12-10
+  return dayjs().subtract(7, 'day').format('YYYY-MM-DD')
 })
 
 const endTime = computed(() => {
@@ -108,15 +139,17 @@ const endTime = computed(() => {
     return statsEndTime.value
   }
 
-  // 实时模式根据报表类型
-  // reportType: 0=月报, 1=日报
-  if (reportType.value === 1) {
-    // 日报：返回当天日期 YYYY-MM-DD
-    return dayjs().format('YYYY-MM-DD')
-  } else {
-    // 月报：返回当前月份 YYYY-MM
-    return dayjs().format('YYYY-MM')
+  // 实时模式：固定为近7日日报模式，不含今日（结束时间为昨天）
+  return dayjs().subtract(1, 'day').format('YYYY-MM-DD')
+})
+
+// 卡片数据固定使用日报
+const cardReportType = computed<1 | 2>(() => {
+  if (isHistoryMode.value) {
+    return currentReportType.value
   }
+  // 实时模式固定为日报
+  return 1
 })
 
 // 数字转中文
@@ -187,17 +220,14 @@ const historyData = computed(() => {
   }
 })
 
-// 搜索关键字
-const searchKeyword = ref('')
-
 // 代理类型判断（从 userStore 获取）
 // 'single': 单层代理, 'single_team_sub': 单层团队副线, 'single_team_main': 单层团队主线, 'multi': 多层代理
 const agentType = computed<'single' | 'single_team_sub' | 'single_team_main' | 'multi'>(() => {
-  if (userStore.isSingleAgent) {
+  if (isSingleAgent.value) {
     // 单层代理
-    if (userStore.hasTeam) {
+    if (hasTeam.value) {
       // 有团队，根据 isMainLine 判断主线/副线
-      if (userStore.isMainLine) {
+      if (isMainLine.value) {
         return 'single_team_main'
       } else {
         return 'single_team_sub'
@@ -267,19 +297,83 @@ watch(agentType, (newType) => {
   }
 }, { immediate: true })
 
-// ==================== 代理账号筛选（实时 + 历史共用）====================
+// ==================== 实时模式：层级筛选 + 代理选择 ====================
 
-// 代理账号筛选（'all' = 全部层级, number = AdminId）
-const selectedAgent = ref<'all' | number>('all')
+// 实时模式：层级筛选（0 = 全部层级, number = 具体层级）
+const selectedLevel = ref<number>(0)
 
-// 代理账号下拉选单选项（后端已将自身放在 index 0）
-const agentListOptions = computed(() => {
-  const options: Array<{ label: string; value: 'all' | number }> = []
+// 实时模式：层级筛选选项（基于实时数据动态生成）
+const levelFilterOptions = computed(() => {
+  const options: Array<{ label: string; value: number }> = [
+    { label: '全部层级', value: 0 }
+  ]
 
-  // 实时模式：第一个选项是"全部层级"
-  if (!isHistoryMode.value) {
-    options.push({ label: '全部层级', value: 'all' })
+  // 从实时代理列表中提取所有唯一层级
+  if (realtimeAgentList.value.length > 0) {
+    const levels = new Set<number>()
+    realtimeAgentList.value.forEach(agent => {
+      if ('rawData' in agent && agent.rawData && 'AccountLevel' in agent.rawData) {
+        levels.add(agent.rawData.AccountLevel)
+      }
+    })
+
+    // 排序并生成选项
+    const sortedLevels = Array.from(levels).sort((a, b) => a - b)
+    sortedLevels.forEach(level => {
+      options.push({
+        label: `${numberToChinese(level)}级代理`,
+        value: level
+      })
+    })
   }
+
+  return options
+})
+
+// 实时模式：代理选择（用于搜索和选择具体代理）
+const selectedRealtimeAgent = ref<SearchType | null>(null)
+
+// 实时模式：代理搜索列表（根据 selectedLevel 过滤）
+const realtimeAgentListOptions = computed<SearchType[]>(() => {
+  const options: SearchType[] = []
+
+  // 先根据层级筛选
+  let filteredList = [...realtimeAgentList.value]
+  if (selectedLevel.value !== 0) {
+    filteredList = filteredList.filter(agent => {
+      if ('rawData' in agent && agent.rawData && 'AccountLevel' in agent.rawData) {
+        return agent.rawData.AccountLevel === selectedLevel.value
+      }
+      return false
+    })
+  }
+
+  // 转换为 SearchType 格式
+  filteredList.forEach(agent => {
+    if ('rawData' in agent && agent.rawData && 'AdminId' in agent.rawData) {
+      options.push({
+        id: agent.rawData.AdminId,
+        text: agent.username || String(agent.rawData.AdminId)
+      })
+    }
+  })
+
+  return options
+})
+
+// ==================== 历史模式：代理账号筛选 ====================
+
+type SearchType = {
+  id: number | string
+  text: string
+}
+
+// 历史模式：代理账号筛选
+const selectedAgent = ref<SearchType | null>(null)
+
+// 历史模式：代理账号搜索列表（后端已将自身放在 index 0）
+const agentListOptions = computed<SearchType[]>(() => {
+  const options: SearchType[] = []
 
   // subAgentList 的第一个元素是自身
   const selfAgent = subAgentList.value[0]
@@ -291,26 +385,29 @@ const agentListOptions = computed(() => {
     if (hasTeam.value && isMainLine.value) {
       selfLabel += ' (主线)'
     } else {
-      selfLabel += ' (自身)'
+      // selfLabel += ' (自身)'
     }
 
     options.push({
-      label: selfLabel,
-      value: selfAgent.AdminId // 自身使用自己的 AdminId
+      id: selfAgent.AdminId,
+      text: selfLabel
     })
 
     // 其余是下级代理
     for (let i = 1; i < subAgentList.value.length; i++) {
       const agent = subAgentList.value[i]
       if (agent) {
-        let label = agent.Username
+        const label = agent.Username
 
         // 多层代理需标注"代理层级"
         if (isMultiLevelAgent.value) {
-          label = `${agent.Username} (${numberToChinese(agent.AccountLevel)}级)`
+          // label = `${agent.Username} (${numberToChinese(agent.AccountLevel)}级)`
         }
 
-        options.push({ label, value: agent.AdminId })
+        options.push({
+          id: agent.AdminId,
+          text: label
+        })
       }
     }
   }
@@ -391,13 +488,11 @@ const onConfirmDateRange = (values: Date | Date[]) => {
 // 初始化下级代理列表并设置默认值
 const initSubAgentList = async () => {
   await userStore.fetchSubAgentList()
-
-  // 设置初始默认值
-  if (isHistoryMode.value && selfAdminId.value !== null) {
-    // 历史模式：默认选择自身
-    selectedAgent.value = selfAdminId.value
+  // 历史模式：设置默认 selectedAgent（自身）
+  if (isHistoryMode.value && agentListOptions.value.length > 0) {
+    selectedAgent.value = agentListOptions.value[0] || null // 第一个是自身
   }
-  // 实时模式已在 ref 初始化时默认为 'all'
+  // 实时模式：使用 selectedLevel（默认为 0 = 全部层级），不需要设置
 }
 
 // 转换下级代理数据为卡片格式
@@ -409,12 +504,23 @@ const formatAgentData = (agent: DownLineItem) => {
   // 构建层级标签
   let levelLabel = ''
 
-  // 如果是团队主线（单层代理有团队且是主线，且是自身）
-  if (hasTeam.value && isMainLine.value && agent.AdminId === selfAdminId.value) {
-    levelLabel = '(主线)'
-  } else if (hasTeam.value && isMainLine.value) {
-    // 团队主线的副线：不显示层级标签
-    levelLabel = ''
+  // 判断是否是自身
+  const isSelf = agent.AdminId === userInfo.value?.NetCashAccount?.AdminId
+
+  if (isSingleAgent.value) {
+    // 单层代理
+    if (hasTeam.value && isMainLine.value) {
+      // 团队主线
+      if (isSelf) {
+        levelLabel = '(主线)'
+      } else {
+        // 副线：不显示层级标签
+        levelLabel = ''
+      }
+    } else {
+      // 无团队的单层代理 或 团队副线：不显示层级
+      levelLabel = ''
+    }
   } else {
     // 多层代理：显示层级
     levelLabel = `${numberToChinese(agent.AccountLevel)}级代理`
@@ -466,21 +572,43 @@ const historyAgentList = computed(() => {
 
 // 计算需要查询的 AdminId 字符串
 const queryAdminIdStr = computed<string | undefined>(() => {
-  // 'all' 表示查询全部（自身+所有下级），不传 AdminId
-  if (selectedAgent.value === 'all') {
+  // 实时模式：始终不传 AdminId（获取全部代理，前端进行层级过滤）
+  if (!isHistoryMode.value) {
     return undefined
   }
-  // number 表示查询指定的代理（包括自身），传该 AdminId
-  return String(selectedAgent.value)
+
+  // 历史模式：根据 selectedAgent 决定是否传 AdminId
+  // null 表示查询全部（自身+所有下级），不传 AdminId
+  if (selectedAgent.value === null) {
+    return undefined
+  }
+  // 有值则传该代理的 AdminId
+  return String(selectedAgent.value.id)
 })
 
-// 获取财务报表总计数据
+// 将前端排序映射到 API 的 Sort 参数
+const apiSortParam = computed<string | undefined>(() => {
+  if (!sortType.value) return undefined
+
+  const sortMap: Record<string, string> = {
+    '新增时间降序': '-TeamCreateTime',
+    '新增时间升序': 'TeamCreateTime',
+    '总盈利降序': '-Profit',
+    '总盈利升序': 'Profit',
+    '代理层级降序': '-AccountLevel',
+    '代理层级升序': 'AccountLevel',
+  }
+
+  return sortMap[sortType.value]
+})
+
+// 获取财务报表总计数据（实时模式：今日数据；历史模式：根据筛选条件）
 const fetchReportTotal = async () => {
   try {
     const response = await apis.admin.getMemberFinanceReportTotal({
-      BeginTime: beginTime.value,
-      EndTime: endTime.value,
-      ReportType: currentReportType.value,
+      BeginTime: totalBeginTime.value,
+      EndTime: totalEndTime.value,
+      ReportType: totalReportType.value,
       SearchType: isHistoryMode.value ? 'old' : 'today',
       PackageId: selectedProduct.value || undefined,
       AdminId: queryAdminIdStr.value
@@ -496,7 +624,7 @@ const fetchReportTotal = async () => {
   }
 }
 
-// 获取财务报表列表数据
+// 获取财务报表列表数据（实时模式：近7日不含今日；历史模式：根据筛选条件）
 const fetchReportList = async () => {
   loading.value = true
   error.value = false
@@ -504,11 +632,12 @@ const fetchReportList = async () => {
     const response = await apis.admin.getMemberFinanceReport({
       BeginTime: beginTime.value,
       EndTime: endTime.value,
-      ReportType: currentReportType.value,
+      ReportType: cardReportType.value,
       SearchType: isHistoryMode.value ? 'old' : 'today',
       PackageId: selectedProduct.value || undefined,
-      AdminId: queryAdminIdStr.value
-    })
+      AdminId: queryAdminIdStr.value,
+      Sort: isHistoryMode.value ? undefined : apiSortParam.value
+    } as any)
 
     if (response.data.Code === 200) {
       if (isHistoryMode.value) {
@@ -517,7 +646,29 @@ const fetchReportList = async () => {
       } else {
         // 实时模式
         realtimeReportData.value = response.data.Data.TodayItems
-        realtimeAgentsReport.value = response.data.Data.AdminsReport || []
+
+        // 单层代理或团队副线：TodayItems 是自身数据（对象），AdminsReport 为 null
+        // 需要将 TodayItems 转换成数组格式
+        if ((isSingleAgent.value && !hasTeam.value) || !userStore.isMainLine) {
+          // 将 TodayItems 转换成 DownLineItem 格式的数组
+          const todayItems = response.data.Data.TodayItems
+          if (todayItems && userInfo.value?.NetCashAccount?.AdminId) {
+            realtimeAgentsReport.value = [{
+              ...todayItems,
+              AdminId: userInfo.value.NetCashAccount.AdminId,
+              AccountLevel: userInfo.value.NetCashAccount.AccountLevel || 1,
+              // 补充 RealTimeItem 中没有但 DownLineItem 需要的字段
+              SumChangeWithdrawMoney: 0,
+              SumCustomerWithdrawMoney: 0,
+              Username: userInfo.value.Admin.Username || ''
+            }]
+          } else {
+            realtimeAgentsReport.value = []
+          }
+        } else {
+          // 单层团队主线或多层代理：AdminsReport 是数组
+          realtimeAgentsReport.value = response.data.Data.AdminsReport || []
+        }
       }
       finished.value = true
     } else {
@@ -553,53 +704,27 @@ const agentList = computed(() => {
   }
 
   // 以下逻辑仅适用于实时模式
-  // 1. 代理账号搜索过滤
-  if (searchKeyword.value.trim().length >= 1) {
+  // 1. 层级过滤
+  if (selectedLevel.value !== 0) {
     list = list.filter(agent => {
-      const username = 'username' in agent ? agent.username : ''
-      return username?.toLowerCase().includes(searchKeyword.value.toLowerCase())
-    })
-  }
-
-  // 2. 排序
-  if (sortType.value) {
-    list.sort((a, b) => {
-      switch (sortType.value) {
-        // 单层团队主线的排序
-        case '新增时间降序':
-          // TODO: 需要 API 返回创建时间字段
-          return 0 // 暂时无法排序，需要 API 支持
-        case '新增时间升序':
-          return 0 // 暂时无法排序，需要 API 支持
-
-        // 多层代理的排序
-        case '代理层级降序':
-          if ('rawData' in a && 'rawData' in b && a.rawData && b.rawData) {
-            const aLevel = 'AccountLevel' in a.rawData ? a.rawData.AccountLevel : 0
-            const bLevel = 'AccountLevel' in b.rawData ? b.rawData.AccountLevel : 0
-            return aLevel - bLevel // 1级最高
-          }
-          return 0
-        case '代理层级升序':
-          if ('rawData' in a && 'rawData' in b && a.rawData && b.rawData) {
-            const aLevel = 'AccountLevel' in a.rawData ? a.rawData.AccountLevel : 0
-            const bLevel = 'AccountLevel' in b.rawData ? b.rawData.AccountLevel : 0
-            return bLevel - aLevel
-          }
-          return 0
-
-        // 通用：总盈利排序
-        case '总盈利降序':
-          return b.totalProfit - a.totalProfit
-        case '总盈利升序':
-          return a.totalProfit - b.totalProfit
-
-        default:
-          return 0
+      if ('rawData' in agent && agent.rawData && 'AccountLevel' in agent.rawData) {
+        return agent.rawData.AccountLevel === selectedLevel.value
       }
+      return false
     })
   }
 
+  // 2. 代理选择过滤（通过 SearchBar 选择的代理）
+  if (selectedRealtimeAgent.value !== null) {
+    list = list.filter(agent => {
+      if ('rawData' in agent && agent.rawData && 'AdminId' in agent.rawData) {
+        return agent.rawData.AdminId === selectedRealtimeAgent.value?.id
+      }
+      return false
+    })
+  }
+
+  // 3. 排序由后端处理（通过 Sort 参数），前端不需要再排序
   return list
 })
 
@@ -617,34 +742,84 @@ const onLoad = () => {
   // 数据在 onMounted 和 watch 中获取，这里不需要做任何事
 }
 
-// 搜索处理（搜索已在 agentList computed 中自动处理）
-const handleSearch = () => {
-  // 搜索过滤已在 computed 中实现，这里不需要额外操作
-  // 保留此函数以支持点击搜索按钮的交互
-}
-
 // 监听切换事件
-watch([viewType, reportType], () => {
+watch(reportType, () => {
   finished.value = false
   error.value = false
   fetchAllData()
 })
 
-// 监听模式切换，设置默认筛选值
-watch(isHistoryMode, (newIsHistoryMode) => {
-  if (newIsHistoryMode) {
-    // 切换到历史模式：默认选择自身
-    if (selfAdminId.value !== null) {
-      selectedAgent.value = selfAdminId.value
-    }
-  } else {
-    // 切换到实时模式：默认选择全部层级
-    selectedAgent.value = 'all'
-  }
+// 标记是否已完成初始化
+const isInitialized = ref(false)
+
+// 监听排序变化（排序由后端处理，需要重新调用 API）
+watch(sortType, () => {
+  // 初始化时跳过（由 onMounted 统一处理）
+  if (!isInitialized.value) return
+
+  // 如果是模式切换触发的，跳过（由 watch(isHistoryMode) 处理）
+  if (isSwitchingMode.value) return
+
+  finished.value = false
+  error.value = false
+  fetchAllData()
 })
 
-// 监听筛选条件变化（实时 + 历史共用）
-watch([selectedAgent, selectTimeRange, selectedProduct], () => {
+// 防止模式切换时重复调用 API 的标志
+const isSwitchingMode = ref(false)
+
+// 监听模式切换，设置默认筛选值
+watch(isHistoryMode, async (newIsHistoryMode) => {
+  isSwitchingMode.value = true
+
+  if (newIsHistoryMode) {
+    // 切换到历史模式：默认选择自身（第一个选项）
+    if (agentListOptions.value.length > 0) {
+      selectedAgent.value = agentListOptions.value[0] || null
+    }
+  } else {
+    // 切换到实时模式：重置层级筛选为全部
+    selectedLevel.value = 0
+    selectedRealtimeAgent.value = null
+    selectedAgent.value = null
+  }
+
+  // 等待响应式更新完成
+  await nextTick()
+
+  // 模式切换时统一在这里调用 fetchAllData
+  finished.value = false
+  error.value = false
+  fetchAllData()
+
+  // 重置标志
+  isSwitchingMode.value = false
+})
+
+// 监听实时模式层级变化，清空代理选择
+watch(selectedLevel, () => {
+  // 层级改变时清空代理选择
+  selectedRealtimeAgent.value = null
+})
+
+// 监听产品筛选变化（实时 + 历史共用，都需要调用 API）
+watch(selectedProduct, () => {
+  // 如果是模式切换触发的，跳过（由 watch(isHistoryMode) 处理）
+  if (isSwitchingMode.value) return
+
+  finished.value = false
+  error.value = false
+  fetchAllData()
+})
+
+// 监听历史模式筛选条件变化（仅历史模式，调用 API）
+watch([selectedAgent, selectTimeRange], () => {
+  // 仅在历史模式下触发
+  if (!isHistoryMode.value) return
+
+  // 如果是模式切换触发的，跳过（由 watch(isHistoryMode) 处理）
+  if (isSwitchingMode.value) return
+
   finished.value = false
   error.value = false
   fetchAllData()
@@ -652,8 +827,23 @@ watch([selectedAgent, selectTimeRange, selectedProduct], () => {
 
 // 组件挂载时获取初始数据
 onMounted(async () => {
-  await initSubAgentList() // 获取下级代理列表并设置默认值
-  fetchAllData()
+  // 获取下级代理列表并设置默认值
+  await initSubAgentList()
+
+  // 实时模式：始终调用 fetchAllData（不依赖 watch）
+  // 历史模式：如果 initSubAgentList 中设置了 selectedAgent，watch 会自动触发
+  if (!isHistoryMode.value) {
+    fetchAllData()
+  } else {
+    // 历史模式：检查 selectedAgent 是否被修改
+    if (selectedAgent.value === null) {
+      // 如果没有修改，手动调用
+      fetchAllData()
+    }
+  }
+
+  // 标记初始化完成
+  isInitialized.value = true
 })
 
 // 详情 sheet 状态
@@ -703,20 +893,31 @@ const handleAgentClick = (agent: any) => {
     let agentName = '-'
     let agentLevel = ''
 
-    if (selectedAgent.value === 'all') {
-      agentName = '全部层级'
-    } else if (typeof selectedAgent.value === 'number') {
+    if (selectedAgent.value === null) {
+      agentName = userInfo.value?.Admin?.Username || ''
+    } else {
       // 从 subAgentList 中找到对应的代理
-      const agent = subAgentList.value.find(a => a.AdminId === selectedAgent.value)
+      const agent = subAgentList.value.find(a => a.AdminId === selectedAgent.value?.id)
       if (agent) {
         agentName = agent.Username
 
-        // 如果是团队主线（单层代理有团队且是主线，且是自身）
-        if (hasTeam.value && isMainLine.value && agent.AdminId === selfAdminId.value) {
-          agentLevel = '(主线)'
-        } else if (hasTeam.value && isMainLine.value) {
-          // 团队主线的副线：不显示层级标签
-          agentLevel = ''
+        // 判断是否是自身
+        const isSelf = agent.AdminId === userInfo.value?.NetCashAccount?.AdminId
+
+        if (isSingleAgent.value) {
+          // 单层代理
+          if (hasTeam.value && isMainLine.value) {
+            // 团队主线
+            if (isSelf) {
+              agentLevel = '(主线)'
+            } else {
+              // 副线：不显示层级标签
+              agentLevel = ''
+            }
+          } else {
+            // 无团队的单层代理 或 团队副线：不显示层级
+            agentLevel = ''
+          }
         } else {
           // 多层代理：显示层级
           agentLevel = `${numberToChinese(agent.AccountLevel)}级代理`
@@ -772,7 +973,7 @@ const closeDetailSheet = () => {
       <div class="px-3 py-2">
         <!-- 实时数据 -->
         <AgentDataCard
-          v-if="!isHistoryMode"
+          v-if="!isHistoryMode && (agentType === 'single_team_main' || agentType === 'multi')"
           class="shadow-sm"
           title="实时数据"
           :date="realtimeData.date"
@@ -792,7 +993,7 @@ const closeDetailSheet = () => {
 
         <!-- 历史数据 -->
         <AgentDataCard
-          v-else
+          v-else-if="isHistoryMode"
           class="shadow-sm"
           title="历史数据"
           :show-report-tabs="true"
@@ -817,43 +1018,38 @@ const closeDetailSheet = () => {
         <!-- 占位元素（fixed 时避免内容跳动） -->
         <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }"></div>
         <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
-          <!-- 实时模式：搜索框 -->
-          <van-search
+          <!-- 实时模式：代理账号搜索 -->
+          <SearchBar
             v-if="!isHistoryMode"
-            v-model="searchKeyword"
+            v-model:selected="selectedRealtimeAgent"
+            :search-ls="realtimeAgentListOptions"
             placeholder="代理账号"
-            shape="round"
-            background="transparent"
-            clearable
-            left-icon=""
-            @search="handleSearch"
-            @clear="searchKeyword = ''"
-            @keyup.enter="handleSearch"
-          >
-            <template #right-icon>
-              <van-icon name="search" size="18" @click="handleSearch" />
-            </template>
-          </van-search>
-
+          />
+          <!-- 历史模式：代理账号筛选（多层代理和单层团队主线显示） -->
+          <SearchBar
+            v-if="isHistoryMode && (agentType === 'multi' || agentType === 'single_team_main')"
+            v-model:selected="selectedAgent"
+            :search-ls="agentListOptions"
+            placeholder="代理账号"
+          />
           <!-- 筛选条件行 -->
           <div class="filter-scroll-container">
-            <!-- 代理账号筛选（单层团队主线、多层代理显示） -->
-            <Dropdown
-              v-if="agentType === 'single_team_main' || agentType === 'multi'"
-              v-model="selectedAgent"
-              :options="agentListOptions"
-              height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
-            />
+            <!-- 实时模式：层级筛选 -->
+            <div v-if="agentType === 'multi' && !isHistoryMode" class="filter-dropdown">
+              <Dropdown
+                v-model="selectedLevel"
+                :options="levelFilterOptions"
+                height="1.5rem"
+              />
+            </div>
             <!-- 实时模式：排序方式 -->
-            <Dropdown
-              v-if="!isHistoryMode"
-              v-model="sortType"
-              :options="sortOptions"
-              height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
-            />
-
+            <div v-if="!isHistoryMode" class="filter-dropdown">
+              <Dropdown
+                v-model="sortType"
+                :options="sortOptions"
+                height="1.5rem"
+              />
+            </div>
             <!-- 历史模式：统计时间筛选（僅日報顯示） -->
             <TimeFilterDropdown
               v-if="isHistoryMode && reportType === 1"
@@ -862,17 +1058,15 @@ const closeDetailSheet = () => {
               height="1.5rem"
               :options="historyTimeRangeOptions"
               :maxDate="new Date(dayjs().subtract(1, 'day').toDate())"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
-
             <!-- 历史模式：产品包筛选 -->
-            <Dropdown
-              v-if="isHistoryMode"
-              v-model="selectedProduct"
-              :options="productOptions"
-              height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
-            />
+            <div v-if="isHistoryMode" class="filter-dropdown">
+              <Dropdown
+                v-model="selectedProduct"
+                :options="productOptions"
+                height="1.5rem"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -1067,6 +1261,7 @@ const closeDetailSheet = () => {
     justify-content: flex-start;
     gap: 0.25rem;
     white-space: nowrap;
+    background: var(--color-bg-floor-1-2);
   }
 
   :deep(.dropdown-button [data-placeholder]) {

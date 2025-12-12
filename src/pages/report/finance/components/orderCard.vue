@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatSignedMoney } from '@/utils/formatNumber'
 interface Order {
   orderNo: string
   status: 'completed' | 'pending' | 'cancelled'
@@ -71,7 +72,7 @@ const getStatusConfig = (status: string) => {
       </div>
       <div class="data-item">
         <span class="data-label">盈利</span>
-        <span class="data-value profit">{{ order.profit }}</span>
+        <span class="text-[14px] font-semibold" :class="formatSignedMoney(order.profit).color">{{ formatSignedMoney(order.profit).text }}</span>
       </div>
     </div>
 
@@ -184,10 +185,6 @@ const getStatusConfig = (status: string) => {
   font-size: 14px;
   font-weight: 600;
   color: var(--color-neutral-basic);
-}
-
-.data-value.profit {
-  color: var(--color-error-normal);
 }
 
 /* 底部信息 */

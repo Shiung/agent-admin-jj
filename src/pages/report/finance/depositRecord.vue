@@ -332,16 +332,16 @@ onMounted(() => {
               v-model:show-calendar="showCalendar"
               title="账变时间"
               height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
 
             <!-- 排序方式 -->
-            <Dropdown
-              v-model="sortType"
-              :options="sortOptions"
-              height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
-            />
+            <div class="filter-dropdown">
+              <Dropdown
+                v-model="sortType"
+                :options="sortOptions"
+                height="1.5rem"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -544,6 +544,7 @@ onMounted(() => {
     justify-content: flex-start;
     gap: 0.25rem;
     white-space: nowrap;
+    background: var(--color-bg-floor-1-2);
   }
 
   :deep(.dropdown-button [data-placeholder]) {

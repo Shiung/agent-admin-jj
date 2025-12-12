@@ -50,9 +50,14 @@ const initTimeRange = () => {
     }
   }
 
+  // 获取当前月的开始和结束时间戳（秒）
+  const startOfMonth = dayjs().startOf('month')
+  const endOfMonth = dayjs().endOf('month')
+
+  // 确保时间戳与 TimeFilterDropdown 中的计算方式一致
   return {
-    startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
-    endTime: timestampToSecond(dayjs().endOf('month').valueOf())
+    startTime: timestampToSecond(startOfMonth.startOf('day').valueOf()),
+    endTime: timestampToSecond(endOfMonth.endOf('day').valueOf())
   }
 }
 
@@ -334,7 +339,6 @@ const handleCardClick = (cardName: string) => {
             v-model:show-calendar="showCalendar"
             title="统计时间"
             height="2.5rem"
-            class="finance-time-filter"
           />
         </div>
       </div>
@@ -427,13 +431,22 @@ const handleCardClick = (cardName: string) => {
     left: 0;
     right: 0;
   }
-    :deep(.dropdown-button) {
+  :deep(.dropdown-button) {
     width: 100%;
     border: 1px solid var(--color-neutral2-seventh);
     background: white;
     padding-left: 12px;
     font-size: 0.875rem;
     box-shadow: none;
+  }
+  :deep(.dropdown-button:hover:not(.is-disabled)) {
+    border: 1px solid var(--color-neutral2-seventh);
+    box-shadow: none;
+  }
+
+  :deep(.dropdown-button[data-state="open"]) {
+      border: 1px solid var(--color-neutral2-seventh);
+      box-shadow: none;
   }
 }
 

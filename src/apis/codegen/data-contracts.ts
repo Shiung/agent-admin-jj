@@ -1141,6 +1141,7 @@ export interface GameDetailItem {
 export interface SumItem {
   GameId: number // 游戏ID
   SumAddGold: number // 总增加金额，单位:分
+  SumApiFee: number // 場館費，单位:分
   SumBetGold: number // 总投注，单位:分
   SumPlayerWinLose: number // 会员总输赢，单位:分
   SumProfitGold: number // 总盈利，单位:分
@@ -1500,6 +1501,7 @@ export interface BonusRecordQuery {
   BeginTime: number // 查询开始时间（Unix时间戳）
   EndTime: number // 查询结束时间（Unix时间戳）
   Sort?: string // 排序字段(send_time:领奖时间 bonus:红利金额)，前面带正负号代表排序方式
+  Status?: number // 状态(2:申請成功 5:待領取)
   LoginAccount?: string // 会员账号
 }
 

@@ -18,7 +18,7 @@ const commissionContainerRef = ref<HTMLElement | null>(null)
 
 // 用户信息
 const userStore = useUserStore()
-const { isSingleAgent, hasTeam, subAgentList } = storeToRefs(userStore)
+const { isSingleAgent, hasTeam, isMainLine, subAgentList } = storeToRefs(userStore)
 
 // 提取吸顶逻辑到 composable
 const {
@@ -41,8 +41,8 @@ const viewType = ref(0)
 const switchBtns = computed(() => {
   if (isSingleAgent.value) {
     // 单层代理
-    if (hasTeam.value) {
-      // 有团队：显示 [个人+团队]
+    if (hasTeam.value && isMainLine.value) {
+      // 有团队(主线)：显示 [个人+团队]
       return [
         { id: 0, title: '个人' },
         { id: 1, title: '团队' }
@@ -134,16 +134,16 @@ const fetchCommissionData = async (skipLoading = false) => {
       loadingPersonalData.value = true
     }
 
-    // 将选中的月份转换为开始和结束的 Unix 时间戳
-    const startDate = dayjs(selectedDate.value).startOf('month')
-    const endDate = dayjs(selectedDate.value).endOf('month')
-
     const res = await API.report.getReportCenterCommission({
-      ReportBeginTime: startDate.unix(),
-      ReportEndTime: endDate.unix(),
-    })
+      ReportMonth: selectedDate.value,
+    } as any)
 
-    if (res.data.Code !== 200) return
+    // 請求失敗或 Data 為空時，清空 commissionData 並結束
+    if (res.data.Code !== 200 || !res.data.Data) {
+      commissionData.value = null
+      viewDataLoaded.value.personal = true
+      return
+    }
 
     const data = res.data.Data
 
@@ -164,6 +164,8 @@ const fetchCommissionData = async (skipLoading = false) => {
     viewDataLoaded.value.personal = true
   } catch (error) {
     console.error('获取佣金数据失败:', error)
+    // 請求異常時也清空，避免殘留舊資料
+    commissionData.value = null
   } finally {
     if (!skipLoading) {
       loadingPersonalData.value = false
