@@ -210,6 +210,16 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/pages/mine/withdrawAccount.vue'),
   },
   {
+    path: '/mine/memberRecharge',
+    name: 'memberRecharge',
+    component: () => import('@/pages/mine/memberRecord/memberRecharge.vue'),
+  },
+  {
+    path: '/mine/memberRechargeRecord',
+    name: 'memberRechargeRecord',
+    component: () => import('@/pages/mine/memberRecord/memberRechargeRecord.vue'),
+  },
+  {
     path: '/mine/security',
     name: 'security',
     component: () => import('@/pages/mine/security/index.vue'),

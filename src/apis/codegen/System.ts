@@ -11,7 +11,8 @@ import type {
   SendPhoneVerifyCodeQuery,
   SendPhoneVerifyCodeResponse,
   SendEmailVerifyCodeQuery,
-  SendEmailVerifyCodeResponse
+  SendEmailVerifyCodeResponse,
+  UploadImageMd5Response
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -196,6 +197,23 @@ export class System<SecurityDataType = unknown> {
       secure: true,
       format: "json",
       query,
+      ...params,
+    });
+
+  /** 圖片上傳 */
+  uploadImageMd5 = (
+    data: {
+      upfile: File
+    },
+    params: RequestParams = {},
+  ) => 
+    this.http.request<UploadImageMd5Response, any>({
+      path: '/api/resource/uploadimagemd5',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
       ...params,
     });
 }

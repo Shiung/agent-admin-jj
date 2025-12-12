@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import { getWithdrawAccountType, getWithdrawAccountName } from '@/utils/finance'
-import { rulesRequired } from '@/utils/formRules'
+import { rulesRequired, rulesPositiveIntegerNumber } from '@/utils/formRules'
 import Big from 'big.js'
 import API from '@/apis'
 
@@ -257,7 +257,9 @@ onMounted(() => {
             <span class="inline-block ml-2 text-primary-normal">{{ USDTRate }}</span>
             RMB
             <span class="inline-block ml-2">≈</span>
-            <span class="inline-block ml-2 text-primary-normal">{{ formData.Amount ? formatMoneyWithComma((formData.Amount / USDTRate), 2, false) : 0 }}</span>
+            <span class="inline-block ml-2 text-primary-normal">
+              {{ formData.Amount && !isNaN(formData.Amount) ? formatMoneyWithComma((formData.Amount / USDTRate), 2, false) : 0 }}
+            </span>
             USDT
           </div>
         </div>
@@ -275,6 +277,7 @@ onMounted(() => {
         :disabled="selectPayTypeItem?.AllowInput === 0"
         :rules="[
           rulesRequired(),
+          rulesPositiveIntegerNumber({ message: '请输入正确的金额' }),
           {
             validator: (value: number) => {
               if (value < selectPayTypeItem?.MinAmount) return '提现金额不能小于最小提现金额'
