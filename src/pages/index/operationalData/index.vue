@@ -155,10 +155,10 @@ const generateDayChartsData = (res: ReportChartItems) => {
       name: typeMapping[data[0]?.ParamName as keyof typeof typeMapping],
       // 取當前月份的前180天
       data: Array.from({ length: 180 }, (_, index) => {
-        const currentDay = dayjs(dayjs()).subtract(index + 1, 'day').format('YYYY-MM-DD')
+        const currentDay = dayjs().subtract(index, 'day').format('YYYY-MM-DD')
         const dataItem = data.find((item) => item.ReportDay === currentDay)
         return {
-          ReportDay: dayjs(dayjs()).subtract(index + 1, 'day').format('YYYY-MM-DD'),
+          ReportDay: currentDay,
           ParamName: dataItem?.ParamName ?? '',
           ParamValue: ['ParamAmountLeft', 'ParamAmountRight'].includes(key) ? formatMoney(dataItem?.ParamValue ?? '0') : dataItem?.ParamValue ?? '0',
         }
