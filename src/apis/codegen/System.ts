@@ -11,8 +11,14 @@ import type {
   SendPhoneVerifyCodeQuery,
   SendPhoneVerifyCodeResponse,
   SendEmailVerifyCodeQuery,
+  UploadImageMd5Response,
   SendEmailVerifyCodeResponse,
-  UploadImageMd5Response
+  Registerv2FormData,
+  Registerv2Response,
+  PhoneRegisterv2FormData,
+  EmailRegisterv2FormData,
+  PhoneSendCodeQuery,
+  EmailSendCodeQuery,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -145,6 +151,27 @@ export class System<SecurityDataType = unknown> {
       ...params,
     });
 
+  /**
+   * 手機驗證碼(需要驗證彈窗)
+   *
+   * @tags System
+   * @name PhoneSendCode
+   * @request POST:/api/phonesendcode/
+   * @secure
+   */
+  phoneSendCode = (
+    query: PhoneSendCodeQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<IsLoginResponse, any>({
+      path: '/api/phonesendcode/',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+
   /** 郵件獲取驗證碼 */
   emailVerify = (
     query: {
@@ -197,6 +224,93 @@ export class System<SecurityDataType = unknown> {
       secure: true,
       format: "json",
       query,
+      ...params,
+    });
+
+  /**
+   * email驗證碼(需要驗證彈窗)
+   *
+   * @tags System
+   * @name EmailSendCode
+   * @request POST:/api/emailsendcode/
+   * @secure
+   */
+  emailSendCode = (
+    query: EmailSendCodeQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<IsLoginResponse, any>({
+      path: '/api/emailsendcode/',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+
+  /**
+   * 一般註冊
+   *
+   * @tags System
+   * @name Registerv2
+   * @request POST:/api/netcashregister/registerv2
+   * @secure
+   */
+  registerv2 = (
+    data: Registerv2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<Registerv2Response, any>({
+      path: '/api/netcashregister/registerv2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 手機驗證註冊
+   *
+   * @tags System
+   * @name PhoneRegisterv2
+   * @request POST:/api/netcashregister/phoneregisterv2
+   * @secure
+   */
+  phoneRegisterv2 = (
+    data: PhoneRegisterv2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<Registerv2Response, any>({
+      path: '/api/netcashregister/phoneregisterv2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * email驗證註冊
+   *
+   * @tags System
+   * @name EmailRegisterv2
+   * @request POST:/api/netcashregister/emailregisterv2
+   * @secure
+   */
+  emailRegisterv2 = (
+    data: EmailRegisterv2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<Registerv2Response, any>({
+      path: '/api/netcashregister/emailregisterv2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
       ...params,
     });
 

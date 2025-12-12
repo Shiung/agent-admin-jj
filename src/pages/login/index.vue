@@ -1,202 +1,189 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import getDeviceId from '@/utils/getDeviceId'
-import { useUserStore } from '@/stores/user'
-import AppField from '@/components/AppField/index.vue'
-import API from '@/apis'
+import { ref } from 'vue'
+import LoginForm from './components/LoginForm.vue'
+import RegisterForm from './components/RegisterForm.vue'
+import GoogleVerifyForm from './components/GoogleVerifyForm.vue'
 
-const router = useRouter()
-const userStore = useUserStore()
+declare const __APP_VERSION__: string
+const APP_VERSION = `v${__APP_VERSION__}`
 
-const IS_SERVE = import.meta.env.DEV
+// 當前 Tab: 'login' 或 'register'
+const activeTab = ref<'login' | 'register'>('login')
 
-const formData = ref({
-  Username: IS_SERVE ? 'rtest1105' : '',
-  Password: IS_SERVE ? 'test1234' : '',
-  ValidCode: '',
-  KeyCode: '',
-  FromType: 7,
-  Domain: IS_SERVE ? import.meta.env.VITE_PROXY_TARGET : window.location.host,
-  IsApp: 0,
-  UseNewPermission: true,
-  Platform: 'H5',
-  DeviceId: getDeviceId() ?? '',
-  remember: false,
+// Google 驗證狀態
+const showGoogleVerify = ref(false)
+const googleVerifyData = ref({
+  username: '',
+  password: ''
 })
 
-const loading = ref(false)
-const showPassword = ref(false)
-const captchaCode = ref('')
-const showGoogleLogin = ref(false)
-
-const googleCode = ref('')
-
-const fetchCaptcha = async () => {
-  try {
-    const res = await API.system.imageValidCode()
-    if (res.data.Code !== 200) {
-      console.error('### fetchCaptcha Code != 200', res.data)
-      return
-    }
-
-    captchaCode.value = res.data.Data.Item
-    formData.value.ValidCode = '' // 清空输入
-    formData.value.KeyCode = res.data.Data.KeyCode
-  } catch (err) {
-    console.error('取得验证码失败', err)
-  }
+const handleShowGoogleVerify = (username: string, password: string) => {
+  googleVerifyData.value = { username, password }
+  showGoogleVerify.value = true
 }
 
-onMounted(() => {
-  fetchCaptcha()
-})
-
-const handleLoginBtnClick = () => {
-  if (showGoogleLogin.value) handleVLogin()
-  else handleLogin()
+const handleCloseGoogleVerify = () => {
+  showGoogleVerify.value = false
 }
 
-const handleLogin = async () => {
-  if (!formData.value.Username || !formData.value.Password) {
-    showToast('请输入帐号和密码')
-    return
-  }
-
-  if (!formData.value.ValidCode) {
-    showToast('请输入验证码')
-    return
-  }
-
-  loading.value = true
-
-  try {
-    const res = await API.system.login(formData.value)
-    if (res.data.Code !== 200) {
-      showToast(res.data.Msg || '登录失败，请检查帐号密码')
-      // 失敗就更新驗證碼
-      fetchCaptcha()
-      return
-    }
-
-    const data = res.data.Data as any
-
-    // Google驗證
-    if (data.LoginType === 3) {
-      showGoogleLogin.value = true
-      return
-    }
-
-    userStore.setToken(data.Token)
-    userStore.fetchIsLogin()
-
-    // 登录成功後導向首頁
-    router.replace({ name: 'index' })
-    showToast('登录成功！')
-  } catch (error) {
-    console.error('登录失败：', error)
-    showToast('登录失败，请检查帐号密码')
-    fetchCaptcha()
-  } finally {
-    loading.value = false
-  }
+const handleRegisterSuccess = () => {
+  activeTab.value = 'login'
 }
-
-const handleVLogin = async () => {
-  if (!googleCode.value) {
-    showToast('请输入Google验证码')
-    return
-  }
-
-  loading.value = true
-
-  try {
-    const payload = {
-      Username: formData.value.Username,
-      Password: formData.value.Password,
-      ValidCode: googleCode.value,
-    }
-    const res = await API.system.vLogin(payload)
-
-
-    if (res.data.Code !== 200) {
-      showToast(res.data.Msg || '登录失败，请检查帐号密码')
-      return
-    }
-
-    userStore.setToken(res.data.Data?.Token as any)
-    userStore.fetchIsLogin()
-
-    // 登录成功後導向首頁
-    router.replace({ name: 'index' })
-    showToast('登录成功！')
-  } catch (error) {
-    console.error('登录失败：', error)
-    showToast('登录失败，请检查帐号密码')
-  } finally {
-    loading.value = false
-  }
-}
-
-const togglePassword = () => showPassword.value = !showPassword.value
 </script>
 
 <template>
-  <div
-    class="flex-1 flex items-center justify-center bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 px-4 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md">
-      <h2 class="text-center text-2xl sm:text-3xl font-bold text-gray-900 mb-2">登录</h2>
+  <div class="login-page">
+    <!-- 頂部背景區域 -->
+    <div class="header-section">
+      <img src="/static/images/login/title.png" alt="title" class="title-image" />
+    </div>
 
-      <van-form @submit="handleLoginBtnClick" class="bg-white rounded-2xl shadow-xl p-4">
-        <!-- 账号 -->
-        <AppField v-model="formData.Username" name="Username" label="账号" placeholder="请输入账号" clearable
-          :rules="[{ required: true, message: '请输入账号' }]">
-        </AppField>
+    <!-- 內容區域 -->
+    <div class="content-section">
+      <!-- Tab 切換 -->
+      <van-tabs v-model:active="activeTab" class="login-tabs">
+        <van-tab title="登录" name="login">
+          <LoginForm @show-google-verify="handleShowGoogleVerify" />
+        </van-tab>
+        
+        <van-tab title="注册" name="register">
+          <RegisterForm @register-success="handleRegisterSuccess" />
+        </van-tab>
+      </van-tabs>
 
-        <!-- 密码 -->
-        <AppField v-model="formData.Password" name="Password" label="密码" :type="showPassword ? 'text' : 'password'"
-          placeholder="请输入密码" :rules="[{ required: true, message: '请输入密码' }]">
-          <template #right-icon>
-            <van-icon :name="showPassword ? 'eye-o' : 'closed-eye'" @click.stop="togglePassword" />
-          </template>
-        </AppField>
+      <!-- 版本號 -->
+      <div class="version">{{ APP_VERSION }}</div>
 
-        <!-- 验证码 -->
-        <AppField v-model="formData.ValidCode" name="ValidCode" label="验证码" placeholder="请输入验证码"
-          :rules="[{ required: true, message: '请输入验证码' }]" autocomplete="off">
-          <template #button>
-            <div
-              class="flex items-center justify-center w-26 h-10 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg border border-gray-300"
-              @click.stop="fetchCaptcha">
-              <img v-if="captchaCode" :src="`data:image/png;base64,${captchaCode}`" alt="验证码" />
-            </div>
-          </template>
-        </AppField>
-
-        <!-- Google 驗證碼（第二階段） -->
-        <AppField v-if="showGoogleLogin" v-model="googleCode" name="GoogleValidCode" label="Google 验证码"
-          label-align="top" placeholder="请输入 Google 验证码" autocomplete="off"
-          :rules="[{ required: true, message: '请输入 Google 验证码' }]">
-        </AppField>
-
-        <!-- 記住我＆忘記密碼 -->
-        <div class="flex items-center justify-between text-sm mt-2">
-          <van-checkbox v-model="formData.remember" shape="round" icon-size="16px">
-            记住我
-          </van-checkbox>
-          <!-- <a href="#" class="font-medium text-indigo-600 hover:text-indigo-500 transition-colors">
-              忘記密碼？
-            </a> -->
-        </div>
-
-        <!-- 登录按鈕 -->
-        <div class="mt-4">
-          <van-button block round type="primary" native-type="submit" :loading="loading" loading-text="登录中...">
-            登录
-          </van-button>
-        </div>
-      </van-form>
+      <!-- Google 驗證 Popup (在 content-section 內從右側滑入) -->
+      <van-popup
+        v-model:show="showGoogleVerify"
+        position="right"
+        :overlay="false"
+        class="google-popup"
+      >
+        <GoogleVerifyForm 
+          v-if="showGoogleVerify"
+          :username="googleVerifyData.username"
+          :password="googleVerifyData.password"
+          @close="handleCloseGoogleVerify"
+        />
+        <!-- 版本號 -->
+        <div class="version">{{ APP_VERSION }}</div>
+      </van-popup>
     </div>
   </div>
 </template>
-<style scoped></style>
+
+<style scoped>
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: url('/static/images/login/bg.png') no-repeat center center;
+  background-size: cover;
+}
+
+/* 頂部區域 */
+.header-section {
+  position: relative;
+  height: 10rem;
+  overflow: hidden;
+}
+
+.title-image {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 1rem;
+}
+
+/* 內容區域 */
+.content-section {
+  flex: 1;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border-radius: 1.25rem 1.25rem 0 0;
+  box-shadow: -1px 1px 6px 0px rgba(0, 0, 0, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+/* van-tabs 樣式覆蓋 */
+.login-tabs {
+  --van-tabs-bottom-bar-height: 2px;
+  --van-tab-active-text-color: var(--color-primary-normal);
+  --van-tab-text-color: var(--color-neutral2-secondary);
+  --van-tabs-bottom-bar-color: var(--color-primary-normal);
+  --van-tabs-nav-background: transparent;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-tabs :deep(.van-tabs__nav) {
+  padding: 0;
+  justify-content: space-around;
+  gap: 2rem;
+}
+
+.login-tabs :deep(.van-tab) {
+  flex: none;
+  padding: 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* 兩個 tab 之間的垂直分隔線 - 置於正中間 */
+.login-tabs :deep(.van-tabs__nav::after) {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 1px;
+  height: 1rem;
+  background-color: var(--color-neutral2-sixth);
+}
+
+.login-tabs :deep(.van-tabs__line) {
+  bottom: 0;
+}
+
+.login-tabs :deep(.van-tabs__content) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-tabs :deep(.van-tab__panel) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 版本號 */
+.version {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--color-neutral2-secondary);
+  padding: 1rem 0;
+}
+
+/* Google 驗證 Popup - 只在 content-section 內滑動 */
+.google-popup {
+  position: absolute !important;
+  left: 0;
+  bottom: 0;
+  width: 100% !important;
+  height: 100% !important;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  padding: 0 1.5rem;
+  border-radius: 1.25rem 1.25rem 0 0;
+}
+</style>

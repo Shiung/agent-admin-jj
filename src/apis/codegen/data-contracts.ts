@@ -66,6 +66,16 @@ export interface IsLoginResponse {
   Id: string
 }
 
+export interface PhoneSendCodeQuery {
+  DeviceId: string
+  OpType: number
+  Number: string
+  KeyCode: string // imagevalidcode回的KeyCode
+  ValidCode: string // imagevalidcode的驗證碼
+  AgentId: number
+  Username: string
+}
+
 export interface SendPhoneVerifyCodeQuery {
   DeviceId: string
   OpType: number
@@ -90,6 +100,16 @@ export interface SendEmailVerifyCodeResponse {
   Data: string
   Msg: string
   Id: string
+}
+
+export interface EmailSendCodeQuery {
+  DeviceId: string
+  OpType: number
+  Email: string
+  KeyCode: string // imagevalidcode回的KeyCode
+  ValidCode: string // imagevalidcode的驗證碼
+  AgentId: number
+  Username: string
 }
 
 export interface MineResponse {
@@ -120,6 +140,32 @@ export interface GoogleValidResponseData {
 export interface GoogleCodeResponse {
   Code: number
   Data: GoogleValidResponseData | null
+  Msg: string
+}
+
+export interface Registerv2FormData {
+  Username: string // 代理帳號
+  Password: string // 密碼
+  Invt: string // 邀請碼
+  DevicePlatform: string // 設備類型 Example : H5
+  AgentId: number // 代理ID
+  DeviceId: string // 設備ID Example : 51t1h23q-w841--57mt--n541-1l986yh8kmpf
+}
+
+export interface PhoneRegisterv2FormData extends Registerv2FormData {
+  IAC: string // 國際區號
+  Number: string // 手機號
+  Code: string // 手機驗證碼
+}
+
+export interface EmailRegisterv2FormData extends Registerv2FormData {
+  Email: string // 郵件
+  Code: string // 郵件驗證碼
+}
+
+export interface Registerv2Response {
+  Code: number
+  Data: any
   Msg: string
 }
 
