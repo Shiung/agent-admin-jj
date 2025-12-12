@@ -227,3 +227,25 @@ export interface PlayermanageApplyRequest {
 }
 
 export type PlayermanageApplyResponse = BaseResponse
+
+export interface PlayermanagePlayerchannelv2Request {
+  /** 會員ID (Required)  */
+  PlayerId: number
+}
+
+export interface PlayermanagePlayerchannelv2ResponseData {
+  Items: Array<{
+    /** 代理ID */
+    AdminId: number
+    /** 渠道號 */
+    ChannelId: string
+    /** 渠道名稱 */
+    ChannelName: string
+    /** 代理名稱 */
+    Name: string
+    /** 代理帳號 */
+    UserName: string
+  }>
+}
+
+export type PlayermanagePlayerchannelv2Response = BaseResponse<PlayermanagePlayerchannelv2ResponseData>
