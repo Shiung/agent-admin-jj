@@ -346,7 +346,7 @@ onMounted(async () => {
     <div class="fixed-header">
        <div class="flex items-center justify-between h-11 px-3 bg-white">
         <van-icon name="arrow-left" size="24" @click="handleBack" />
-        <span class="text-base font-semibold text-neutral-basic">充提手续费</span>
+        <span class="text-base font-semibold text-neutral-basic">充提手续费记录</span>
         <div style="width: 24px;"></div>
       </div>
     </div>
