@@ -1,4 +1,5 @@
 export type * from './Finance/type.d.ts'
+export type * from './MemberRecharge/types.d.ts'
 
 export interface LoginFormData {
   Username: string
@@ -1962,6 +1963,38 @@ export interface WithdrawAccountData {
   /** 虛擬幣協議 */
   Protocol: string
   CreateTime: number,
+}
+
+export interface WithdrawAccountResponse {
+  Code: number
+  Data: WithdrawAccountData[]
+  Msg: string
+  Id: string
+}
+
+export interface WithdrawAccountData {
+  /** 提現帳號 */
+  AccountNum: string,
+  /** 銀行代號(銀行卡用) */
+  BankCode: string,
+  /** 帳號類型 */
+  Name: string,
+  /** 虛擬幣協議 */
+  Protocol: string
+  CreateTime: number,
+}
+
+export interface UploadImageMd5Response {
+  Code: number
+  Data: {
+    original: string
+    smallUrl: string
+    state: string
+    title: string
+    url: string
+  }
+  Msg: string
+  Id: string
 }
 
 export interface CommissionToQuotaRequest {

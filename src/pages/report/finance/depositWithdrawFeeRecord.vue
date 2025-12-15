@@ -110,7 +110,7 @@ const formatPayRecord = (item: PayRecordItem) => {
     applyAmount: item.Amount || 0,
     actualAmount: (item.Amount || 0) - (item.Fee || 0), // 实际金额 = 充值金额 - 手续费
     depositType: payTypeName,
-    depositRate: item.FeeRate ? `${(item.FeeRate / 10)}%` : '0%', // 千分比转百分比
+    depositRate: item.FeeRate ? `${(item.FeeRate / 100)}%` : '0%', // 千分比转百分比
     depositFee: item.Fee || 0,
     time: item.TransactionTime ? dayjs.unix(item.TransactionTime).format('YYYY-MM-DD HH:mm:ss') : '-',
     rawData: item
@@ -346,7 +346,7 @@ onMounted(async () => {
     <div class="fixed-header">
        <div class="flex items-center justify-between h-11 px-3 bg-white">
         <van-icon name="arrow-left" size="24" @click="handleBack" />
-        <span class="text-base font-semibold text-neutral-basic">充提手续费</span>
+        <span class="text-base font-semibold text-neutral-basic">充提手续费记录</span>
         <div style="width: 24px;"></div>
       </div>
     </div>

@@ -6,6 +6,14 @@ export const rulesRequired = (params: any = {}) => {
     ...(params)
   }
 }
+/** 正整數 */
+export const rulesPositiveIntegerNumber = (params: any = {}) => {
+  return {
+    pattern: /^[1-9]\d*$/,
+    message: '请输入正确的數字',
+    ...(params)
+  }
+}
 /** TRC20 */
 export const rulesTRC20 = (params: any = {}) => {
   return {

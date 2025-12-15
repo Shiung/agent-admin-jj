@@ -327,7 +327,7 @@ onUnmounted(() => {
     :title="`添加${getWithdrawAccountName(selectPayTypeItem.PayType ?? 0)}账号`"
     confirmText="绑定"
     :confirmDisabled="isConfirmDisabled"
-    @cancel="handleAddAccountCancel"
+    @close="handleAddAccountCancel"
     @confirm="handleAddAccountConfirm"
   >
     <van-form ref="formDataRef" :trigger="['onBlur', 'onChange']" @submit="handleAddAccountConfirm">
