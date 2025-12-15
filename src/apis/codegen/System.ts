@@ -19,6 +19,10 @@ import type {
   EmailRegisterv2FormData,
   PhoneSendCodeQuery,
   EmailSendCodeQuery,
+  GoogleLoginAuthFormData,
+  GoogleLoginAuthResponse,
+  GoogleLoginAuthBindFormData,
+  GoogleLoginAuthBindResponse,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -323,6 +327,36 @@ export class System<SecurityDataType = unknown> {
   ) => 
     this.http.request<UploadImageMd5Response, any>({
       path: '/api/resource/uploadimagemd5',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** google驗證登入綁定資訊 */
+  googleLoginAuth = (
+    data: GoogleLoginAuthFormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<GoogleLoginAuthResponse, any>({
+      path: '/system/user/googleloginauth',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** google驗證綁定 */
+  googleLoginAuthBind = (
+    data: GoogleLoginAuthBindFormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<GoogleLoginAuthBindResponse, any>({
+      path: '/system/user/googleloginauthbind',
       method: "POST",
       body: data,
       secure: true,

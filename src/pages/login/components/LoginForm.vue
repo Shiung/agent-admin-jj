@@ -10,13 +10,14 @@ const router = useRouter()
 
 const emit = defineEmits<{
   showGoogleVerify: [username: string, password: string]
+  showGoogleBind: [username: string, password: string, googleLoginAuthToken: string]
 }>()
 
 const IS_SERVE = import.meta.env.DEV
 
 const formData = ref({
-  Username: IS_SERVE ? 'rtest1105' : '',
-  Password: IS_SERVE ? 'test1234' : '',
+  Username: IS_SERVE ? 'ian001' : '',
+  Password: IS_SERVE ? 'jaybest07' : '',
   ValidCode: '',
   KeyCode: '',
   FromType: 7,
@@ -78,6 +79,12 @@ const handleLogin = async () => {
     // 需要 Google 驗證
     if (data.LoginType === 3) {
       emit('showGoogleVerify', formData.value.Username, formData.value.Password)
+      return
+    }
+
+    // 需要綁定 Google 驗證器
+    if (data.IsRequireGoogleAuthBinding === 1) {
+      emit('showGoogleBind', formData.value.Username, formData.value.Password, data.GoogleLoginAuthToken || '')
       return
     }
 

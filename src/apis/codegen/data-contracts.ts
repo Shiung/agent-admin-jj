@@ -143,6 +143,34 @@ export interface GoogleCodeResponse {
   Msg: string
 }
 
+export interface GoogleLoginAuthFormData {
+  Username: string // 代理帳號
+  GoogleLoginAuthToken: string // 請求綁定 google 驗證碼 token (來自 /system/user/login 回傳的 GoogleLoginAuthToken)
+}
+
+export interface GoogleLoginAuthResponse {
+  Code: number
+  Data: string
+  Msg: string
+}
+
+export interface GoogleLoginAuthData {
+  QrCode: string
+  Secret: string
+}
+
+export interface GoogleLoginAuthBindFormData {
+  Username: string // 代理帳號
+  GoogleLoginAuthToken: string // 請求綁定 google 驗證碼 token (來自 /system/user/login 回傳的 GoogleLoginAuthToken)
+  ValidCode: string // google驗證碼
+}
+
+export interface GoogleLoginAuthBindResponse {
+  Code: number
+  Data: any
+  Msg: string
+}
+
 export interface Registerv2FormData {
   Username: string // 代理帳號
   Password: string // 密碼

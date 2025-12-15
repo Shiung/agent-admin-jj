@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import LoginForm from './components/LoginForm.vue'
 import RegisterForm from './components/RegisterForm.vue'
 import GoogleVerifyForm from './components/GoogleVerifyForm.vue'
+import GoogleBindForm from './components/GoogleBindForm.vue'
 
 declare const __APP_VERSION__: string
 const APP_VERSION = `v${__APP_VERSION__}`
@@ -17,6 +18,14 @@ const googleVerifyData = ref({
   password: ''
 })
 
+// Google 綁定狀態
+const showGoogleBind = ref(false)
+const googleBindData = ref({
+  username: '',
+  password: '',
+  googleLoginAuthToken: ''
+})
+
 const handleShowGoogleVerify = (username: string, password: string) => {
   googleVerifyData.value = { username, password }
   showGoogleVerify.value = true
@@ -24,6 +33,21 @@ const handleShowGoogleVerify = (username: string, password: string) => {
 
 const handleCloseGoogleVerify = () => {
   showGoogleVerify.value = false
+}
+
+const handleShowGoogleBind = (username: string, password: string, googleLoginAuthToken: string) => {
+  googleBindData.value = { username, password, googleLoginAuthToken }
+  showGoogleBind.value = true
+}
+
+const handleCloseGoogleBind = () => {
+  showGoogleBind.value = false
+}
+
+// 綁定成功後，關閉綁定彈窗，跳轉到驗證彈窗
+const handleGoogleBindSuccess = (username: string, password: string) => {
+  showGoogleBind.value = false
+  handleShowGoogleVerify(username, password)
 }
 
 const handleRegisterSuccess = () => {
@@ -43,7 +67,10 @@ const handleRegisterSuccess = () => {
       <!-- Tab 切換 -->
       <van-tabs v-model:active="activeTab" class="login-tabs">
         <van-tab title="登录" name="login">
-          <LoginForm @show-google-verify="handleShowGoogleVerify" />
+          <LoginForm 
+            @show-google-verify="handleShowGoogleVerify" 
+            @show-google-bind="handleShowGoogleBind"
+          />
         </van-tab>
         
         <van-tab title="注册" name="register">
@@ -66,6 +93,25 @@ const handleRegisterSuccess = () => {
           :username="googleVerifyData.username"
           :password="googleVerifyData.password"
           @close="handleCloseGoogleVerify"
+        />
+        <!-- 版本號 -->
+        <div class="version">{{ APP_VERSION }}</div>
+      </van-popup>
+
+      <!-- Google 綁定 Popup (在 content-section 內從右側滑入) -->
+      <van-popup
+        v-model:show="showGoogleBind"
+        position="right"
+        :overlay="false"
+        class="google-popup"
+      >
+        <GoogleBindForm 
+          v-if="showGoogleBind"
+          :username="googleBindData.username"
+          :password="googleBindData.password"
+          :google-login-auth-token="googleBindData.googleLoginAuthToken"
+          @close="handleCloseGoogleBind"
+          @bound="handleGoogleBindSuccess"
         />
         <!-- 版本號 -->
         <div class="version">{{ APP_VERSION }}</div>
