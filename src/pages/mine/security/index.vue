@@ -18,12 +18,12 @@ const goLoginSetting = () => {
 const goPrivatePassword = () => {
   router.push({ name: 'privatePassword' })
 }
-const goGesturePassword = () => {
-  router.push({ name: 'gesturePassword' })
-}
-const gesturePassword = computed(() => {
-  return localStorage.getItem('gesturePassword') ?? ''
-})
+// const goGesturePassword = () => {
+//   router.push({ name: 'gesturePassword' })
+// }
+// const gesturePassword = computed(() => {
+//   return !!localStorage.getItem('gesturePassword')
+// })
 
 onMounted(async () => {
   await userStore.fetchAccountInfo()
@@ -55,16 +55,17 @@ onMounted(async () => {
             {{ personalInfo?.IsSetPrivatePassword === 1 ? '修改' : '设置' }}
           </van-button>
         </van-cell>
-        <van-cell title="手势密码" :class="gesturePassword ? 'success' : 'danger'">
+        <!-- 暫且隱藏 -->
+        <!-- <van-cell title="手势密码" :class="gesturePassword ? 'success' : 'danger'">
           <template #label>
             <van-skeleton :loading="isReady" :row="1">
               {{ gesturePassword ? '已设置' : '尚未设置' }}
             </van-skeleton>
           </template>
-          <van-button round :plain="!!gesturePassword" size="small" type="primary" class="px-11" @click="goGesturePassword">
+          <van-button round :plain="gesturePassword" size="small" type="primary" class="px-11" @click="goGesturePassword">
             {{ gesturePassword ? '修改' : '设置' }}
           </van-button>
-        </van-cell>
+        </van-cell> -->
       </van-cell-group>
     </div>
   </div>

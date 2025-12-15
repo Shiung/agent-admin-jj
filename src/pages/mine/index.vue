@@ -154,9 +154,12 @@ onMounted(async () => {
 
     <!-- 設置列表 -->
     <div class="px-3 py-2">
-      <div v-for="item in MENUS" :key="item.key"
+      <div
+        v-for="item in MENUS"
+        :key="item.key"
         class="flex items-center px-3 h-12 border-b border-dashed border-neutral2-sixth last:border-b-0"
-        @click="handleMenuClick(item.key)">
+        @click="handleMenuClick(item.key)"
+      >
         <van-image :src="`./static/images/mine/${item.key}.svg`" size="24" class="pr-3" />
         <span class="flex-1 text-sm text-neutral-basic">
           {{ item.title }}

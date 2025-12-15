@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast } from 'vant'
+import { showToast, showFailToast } from 'vant'
 import GestureLock from './components/GestureLock.vue'
 import GestureConfirm from './components/GestureConfirm.vue'
 
@@ -50,9 +50,8 @@ const saveGesturePassword = (pattern: number[]) => {
     showToast('手势密码设置成功')
 
     router.replace({ name: 'security' })
-  } catch (error) {
-    showToast('设置失败，请重试')
-    console.error('保存手势密码失败:', error)
+  } catch (error: any) {
+    showFailToast(error?.response?.data?.Msg)
   }
 }
 </script>

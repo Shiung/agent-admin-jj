@@ -39,6 +39,7 @@ const fetchGoogleCode = async () => {
     const res = await API.system.googleCode({ Username: username.value })
     if (res.data.Code !== 200) {
       console.error(res.data)
+      showFailToast(res.data.Msg)
       return
     }
     const data = res.data.Data as GoogleValidResponseData
@@ -68,9 +69,9 @@ const submit = async () => {
       }
       showToast('编辑成功')
       router.replace({ name: 'mineProfile' })
-    } catch (error) {
+    } catch (error: any) {
       console.error('更新失败：', error)
-      showFailToast('更新失败')
+      showFailToast(error?.response?.data?.Msg)
     } finally {
       loading.value = false
     }
@@ -136,19 +137,19 @@ const submit = async () => {
           type="number"
         >
           <template #input>
-          <input
-            :value="verificationCode"
-            type="text"
-            inputmode="numeric"
-            pattern="[0-9]*"
-            class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-            placeholder="请输入6位数验证码"
-            maxlength="6"
-            @input="(e: Event) => {
-              const value = (e.target as HTMLInputElement).value.replace(/\D/g, '')
-              verificationCode = value.slice(0, 6)
-            }"
-          />
+            <input
+              :value="verificationCode"
+              type="text"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              placeholder="请输入6位数验证码"
+              maxlength="6"
+              @input="(e: Event) => {
+                const value = (e.target as HTMLInputElement).value.replace(/\D/g, '')
+                verificationCode = value.slice(0, 6)
+              }"
+            />
           </template>
         </AppField>
         <div class="px-4 my-4">
