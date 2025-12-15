@@ -40,6 +40,7 @@ const getVerificationCode = async () => {
     const res = await API.system.emailVerify({ Email: email.value.trim() })
     if (res.data.Code !== 200) {
       console.error(res.data)
+      showFailToast(res.data.Msg)
       return
     }
 
@@ -51,8 +52,9 @@ const getVerificationCode = async () => {
         clearInterval(timer)
       }
     }, 1000)
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取验证码失败：', error)
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     codeLoading.value = false
   }
@@ -72,8 +74,9 @@ const submit = async () => {
       }
       showToast('修改成功')
       router.replace({ name: 'mineProfile' })
-      } catch (error) {
+      } catch (error: any) {
         console.error('更新失败：', error)
+        showFailToast(error?.response?.data?.Msg)
       } finally {
         loading.value = false
       }
@@ -85,76 +88,75 @@ const submit = async () => {
   <div class="flex flex-col pb-6">
     <NavBar title="邮箱地址" />
 
-    <div class="py-3">
-      <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
-        <AppField
-          v-model="email"
-          name="email"
-          label-align="top"
-          label="邮箱地址"
-          placeholder="请输入"
-          required
-          :rules="[rulesRequired()]"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :value="email"
-                type="email"
-                class="flex-1 outline-none pl-2.5"
-                placeholder="请输入"
-                @input="(e: Event) => { email = (e.target as HTMLInputElement).value }"
-              />
-            </div>
-          </template>
-        </AppField>
+    <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
+      <AppField
+        v-model="email"
+        name="email"
+        label-align="top"
+        label="邮箱地址"
+        placeholder="请输入"
+        required
+        :rules="[rulesRequired()]"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :value="email"
+              type="email"
+              class="flex-1 outline-none pl-2.5"
+              placeholder="请输入"
+              @input="(e: Event) => { email = (e.target as HTMLInputElement).value }"
+            />
+          </div>
+        </template>
+      </AppField>
 
-        <AppField
-          v-model="verificationCode"
-          name="verificationCode"
-          label-align="top"
-          label="邮箱验证码"
-          placeholder="请输入"
-          required
-          autocomplete="off"
+      <AppField
+        v-model="verificationCode"
+        name="verificationCode"
+        label-align="top"
+        label="邮箱验证码"
+        placeholder="请输入"
+        required
+        autocomplete="off"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :value="verificationCode"
+              type="text"
+              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              placeholder="请输入"
+              @input="(e: Event) => { verificationCode = (e.target as HTMLInputElement).value }"
+            />
+            <van-button
+              :loading="codeLoading"
+              :disabled="!email.trim() || countdown > 0"
+              size="small"
+              type="primary"
+              round
+              class="verificationBtn"
+              @click.stop="getVerificationCode"
+            >
+              {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
+            </van-button>
+          </div>
+        </template>
+      </AppField>
+      <div class="px-4 my-4">
+        <van-button
+          block
+          round
+          type="primary"
+          :loading="loading"
+          :disabled="!email.trim() || !verificationCode.trim()"
+          native-type="submit"
         >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :value="verificationCode"
-                type="text"
-                class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                placeholder="请输入"
-                @input="(e: Event) => { verificationCode = (e.target as HTMLInputElement).value }"
-              />
-              <van-button
-                :loading="codeLoading"
-                :disabled="!email.trim() || countdown > 0"
-                size="small"
-                type="primary"
-                round
-                class="verificationBtn"
-                @click.stop="getVerificationCode"
-              >
-                {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
-              </van-button>
-            </div>
-          </template>
-        </AppField>
-        <div class="px-4 my-4">
-          <van-button
-            block
-            round
-            type="primary"
-            :loading="loading"
-            :disabled="!email.trim() || !verificationCode.trim()"
-            native-type="submit"
-          >
-            提交
-          </van-button>
-        </div>
-      </van-form>
-    </div>
+          提交
+        </van-button>
+      </div>
+    </van-form>
+
   </div>
 </template>
 

@@ -59,72 +59,70 @@ const submit = async () => {
 <template>
   <div class="flex flex-col pb-6">
     <NavBar title="私人密码" />
-    <div class="py-3">
-      <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
-        <AppField
-          v-model="privatePassword"
-          name="privatePassword"
-          label-align="top"
-          label="私人密码"
-          placeholder="请输入"
-          required
-          :rules="[rulesRequired()]"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :type="showPassword.current.value ? 'text' : 'password'"
-                :value="privatePassword"
-                class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                placeholder="请输入"
-                @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
-              />
-              <van-icon
-                :name="showPassword.current.value ? 'eye-o' : 'closed-eye'"
-                class="cursor-pointer"
-                @click.stop="togglePassword('current')"
-              />
-            </div>
-          </template>
-        </AppField>
-        <AppField
-          v-model="confirmPrivatePassword"
-          name="confirmPassword"
-          label-align="top"
-          label="确认私人密码"
-          placeholder="请输入"
-          required
-          :rules="[rulesRequired()]"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :type="showPassword.confirm.value ? 'text' : 'password'"
-                :value="confirmPrivatePassword"
-                class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                placeholder="请输入"
-                @input="(e: Event) => { confirmPrivatePassword = (e.target as HTMLInputElement).value }"
-              />
-              <van-icon
-                :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
-                class="cursor-pointer"
-                @click.stop="togglePassword('confirm')"
-              />
-            </div>
-          </template>
-        </AppField>
-        <VerificationMethods
-          :ValidType="validType"
-          :VerifyCode="verificationCode"
-          :verifiable="canGetVerificationCode"
-          @update:ValidType="validType = $event"
-          @update:VerifyCode="verificationCode = $event"
-        />
-        <div class="px-4 my-4">
-          <van-button block round type="primary" :disabled="!privatePassword || !confirmPrivatePassword" :loading="loading" native-type="submit">提交</van-button>
-        </div>
-      </van-form>
-    </div>
+    <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
+      <AppField
+        v-model="privatePassword"
+        name="privatePassword"
+        label-align="top"
+        label="私人密码"
+        placeholder="请输入"
+        required
+        :rules="[rulesRequired()]"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :type="showPassword.current.value ? 'text' : 'password'"
+              :value="privatePassword"
+              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              placeholder="请输入"
+              @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
+            />
+            <van-icon
+              :name="showPassword.current.value ? 'eye-o' : 'closed-eye'"
+              class="cursor-pointer"
+              @click.stop="togglePassword('current')"
+            />
+          </div>
+        </template>
+      </AppField>
+      <AppField
+        v-model="confirmPrivatePassword"
+        name="confirmPassword"
+        label-align="top"
+        label="确认私人密码"
+        placeholder="请输入"
+        required
+        :rules="[rulesRequired()]"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :type="showPassword.confirm.value ? 'text' : 'password'"
+              :value="confirmPrivatePassword"
+              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              placeholder="请输入"
+              @input="(e: Event) => { confirmPrivatePassword = (e.target as HTMLInputElement).value }"
+            />
+            <van-icon
+              :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
+              class="cursor-pointer"
+              @click.stop="togglePassword('confirm')"
+            />
+          </div>
+        </template>
+      </AppField>
+      <VerificationMethods
+        :ValidType="validType"
+        :VerifyCode="verificationCode"
+        :verifiable="canGetVerificationCode"
+        @update:ValidType="validType = $event"
+        @update:VerifyCode="verificationCode = $event"
+      />
+      <div class="px-4 my-4">
+        <van-button block round type="primary" :disabled="!privatePassword || !confirmPrivatePassword" :loading="loading" native-type="submit">提交</van-button>
+      </div>
+    </van-form>
   </div>
 </template>
 

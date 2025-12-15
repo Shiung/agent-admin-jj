@@ -40,8 +40,9 @@ const submit = async () => {
     }
     showToast('修改成功')
     router.push({ name: 'security' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('更新失败：', error)
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     loading.value = false
   }
@@ -51,67 +52,65 @@ const submit = async () => {
 <template>
   <div class="flex flex-col pb-6">
     <NavBar title="登录设置" />
-    <div class="py-3">
-      <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
-        <AppField required name="isAllowOtherDeviceLogin" label-align="top" label="多设备同时登录" class="radio-field">
-          <template #input>
-            <div class="radio-group">
-              <label
-                v-for="option in allowOtherDeviceLoginOptions"
-                :key="option.value"
-                class="radio-item"
-              >
-                <input
-                  v-model="isAllowOtherDeviceLogin"
-                  type="radio"
-                  :value="option.value"
-                  class="radio-input"
-                />
-                <span class="ml-2">{{ option.label }}</span>
-              </label>
-            </div>
-          </template>
-        </AppField>
-        <AppField
-          v-model="privatePassword"
-          name="PrivatePassword"
-          label-align="top"
-          label="私人密码"
-          placeholder="请输入"
-          required
-          :rules="[rulesRequired()]"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
+    <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
+      <AppField required name="isAllowOtherDeviceLogin" label-align="top" label="多设备同时登录" class="radio-field">
+        <template #input>
+          <div class="radio-group">
+            <label
+              v-for="option in allowOtherDeviceLoginOptions"
+              :key="option.value"
+              class="radio-item"
+            >
               <input
-                :type="showPassword ? 'text' : 'password'"
-                :value="privatePassword"
-                class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth disabled:opacity-50 disabled:cursor-not-allowed"
-                placeholder="请输入"
-                @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
+                v-model="isAllowOtherDeviceLogin"
+                type="radio"
+                :value="option.value"
+                class="radio-input"
               />
-              <van-icon
-                :name="showPassword ? 'eye-o' : 'closed-eye'"
-                class="cursor-pointer"
-                @click.stop="togglePassword"
-              />
-            </div>
-          </template>
-        </AppField>
-        <div class="px-4 my-4">
-          <van-button
-            block
-            round
-            type="primary"
-            :loading="loading"
-            native-type="submit"
-            :disabled="!privatePassword"
-          >
-            提交
-          </van-button>
-        </div>
-      </van-form>
-    </div>
+              <span class="ml-2">{{ option.label }}</span>
+            </label>
+          </div>
+        </template>
+      </AppField>
+      <AppField
+        v-model="privatePassword"
+        name="PrivatePassword"
+        label-align="top"
+        label="私人密码"
+        placeholder="请输入"
+        required
+        :rules="[rulesRequired()]"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :type="showPassword ? 'text' : 'password'"
+              :value="privatePassword"
+              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth disabled:opacity-50 disabled:cursor-not-allowed"
+              placeholder="请输入"
+              @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
+            />
+            <van-icon
+              :name="showPassword ? 'eye-o' : 'closed-eye'"
+              class="cursor-pointer"
+              @click.stop="togglePassword"
+            />
+          </div>
+        </template>
+      </AppField>
+      <div class="px-4 my-4">
+        <van-button
+          block
+          round
+          type="primary"
+          :loading="loading"
+          native-type="submit"
+          :disabled="!privatePassword"
+        >
+          提交
+        </van-button>
+      </div>
+    </van-form>
   </div>
 </template>
 
