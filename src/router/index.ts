@@ -80,6 +80,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/agent/depositRecord/index.vue'),
       },
       {
+        path: 'agent/transfer',
+        name: 'agentTransfer',
+        component: () => import('@/pages/agent/transfer/index.vue'),
+      },
+      {
+        path: 'agent/transferRecord',
+        name: 'agentTransferRecord',
+        component: () => import('@/pages/agent/transferRecord/index.vue'),
+      },
+      {
         path: 'team',
         name: 'manageTeam',
         component: () => import('@/pages/manage/team/index.vue'),

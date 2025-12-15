@@ -241,18 +241,18 @@ export interface AgentCreditLimitPermissionResponse {
 }
 
 export interface AgentCreditLimitTransactionInsertRequest {
-  TransferType: number // 充值类型：2=代存, 10=红利
-  ReferenceAccount: string // 会员账号，批量时用逗号或分号分隔
-  PackageId: number // 产品包ID
-  Amount: number // 代存金额（分）
-  DisplayAmount: number // 显示金额（元）
-  WithdrawWaterMultiply: number // 提现流水倍数
+  TransferType: number // 充值类型：1=转账, 2=代存, 10=红利
+  ReferenceAccount: string // 会员/代理账号，批量时用逗号或分号分隔
+  PackageId?: number // 产品包ID（代存时需要）
+  Amount: number // 金额（分）
+  DisplayAmount: number | string // 显示金额（元）
+  WithdrawWaterMultiply?: number // 提现流水倍数（代存时需要）
   PayPassword: string // 私人密码
   Remarks?: string // 备注
   WalletType: number // 钱包类型：1=佣金，2=额度
-  IsSendNotification: number // 是否发送通知：0=否，1=是
+  IsSendNotification?: number // 是否发送通知：0=否，1=是（代存时需要）
   IsMultiLevel: number // 账号类型：1=单层，2=多层
-  IsBatch: number // 是否批量：0=单一，1=批量
+  IsBatch?: number // 是否批量：0=单一，1=批量（代存时需要）
 }
 
 export interface AgentCreditLimitTransactionInsertResponseData {
@@ -273,8 +273,8 @@ export interface AgentCreditLimitTransactionListQuery {
   PageSize: number
   BeginTime: number // 开始时间（秒）
   EndTime: number // 结束时间（秒）
-  TransferType?: string | number // 充值类型：''=全部, 2=代存, 10=红利
-  IsAgentDeposit: boolean // 是否代理代存
+  TransferType?: string | number // 充值类型：1=转账, 2=代存, 10=红利
+  IsAgentDeposit?: boolean // 是否代理代存（可选，代存记录时使用）
   Status?: string | number // 状态：''=全部, 2=已到账
   AccountName?: string // 下级账号搜索
   PackageId?: string | number // 产品包ID

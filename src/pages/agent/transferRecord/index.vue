@@ -10,7 +10,6 @@ import Big from 'big.js'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
 import { useSticky } from '@/composables/useSticky'
 import API from '@/apis'
-import type { AgentCreditLimitTransactionItem } from '@/apis/codegen/data-contracts'
 
 const router = useRouter()
 
@@ -31,10 +30,10 @@ const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
 // 时间戳转秒
 const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-// 初始化时间范围（默认今天）
+// 初始化时间范围（默认本月）
 const selectTimeRange = ref({
-  startTime: timestampToSecond(dayjs().startOf('day').valueOf()),
-  endTime: timestampToSecond(dayjs().endOf('day').valueOf())
+  startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+  endTime: timestampToSecond(dayjs().endOf('month').valueOf())
 })
 
 // Calendar 打开状态
@@ -43,18 +42,18 @@ const showCalendar = ref(false)
 // 综合判断是否禁用下拉刷新
 const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
 
-// 代存金额总计
-const totalDepositAmount = ref(0)
+// 转账金额总计
+const totalTransferAmount = ref(0)
 
 // 会员账号搜索
 const searchKeyword = ref('')
 
-// 代存类型筛选
-const depositTypeFilter = ref<string | number>('all')
-const depositTypeOptions = [
-  { label: '全部代存', value: 'all' },
-  { label: '佣金代存', value: 1 },
-  { label: '额度代存', value: 2 }
+// 转账类型筛选
+const transferTypeFilter = ref<string | number>('all')
+const transferTypeOptions = [
+  { label: '全部转账', value: 'all' },
+  { label: '额度转账', value: 0 },
+  { label: '佣金转账', value: 1 }
 ]
 
 // 排序筛选
@@ -62,12 +61,12 @@ const sortType = ref('账变时间降序')
 const sortOptions = [
   { label: '账变时间降序', value: '账变时间降序' },
   { label: '账变时间升序', value: '账变时间升序' },
-  { label: '代存金额降序', value: '代存金额降序' },
-  { label: '代存金额升序', value: '代存金额升序' }
+  { label: '转账金额降序', value: '转账金额降序' },
+  { label: '转账金额升序', value: '转账金额升序' }
 ]
 
-// 代存记录列表数据
-const depositRecords = ref<AgentCreditLimitTransactionItem[]>([])
+// 转账记录列表数据
+const transferRecords = ref<any[]>([])
 
 // 分页和加载状态
 const loading = ref(false)
@@ -103,15 +102,15 @@ watch(selectTimeRange, () => {
 }, { deep: true })
 
 // 处理筛选变化
-watch([depositTypeFilter, sortType], () => {
+watch([transferTypeFilter, sortType], () => {
   resetList()
 })
 
 // 重置列表
 const resetList = () => {
   currentPage.value = 1
-  depositRecords.value = []
-  totalDepositAmount.value = 0
+  transferRecords.value = []
+  totalTransferAmount.value = 0
   finished.value = false
   error.value = false
   loadMore()
@@ -137,8 +136,7 @@ const loadMore = async () => {
       PageSize: pageSize,
       BeginTime: selectTimeRange.value.startTime,
       EndTime: selectTimeRange.value.endTime,
-      TransferType: 2, // 固定为2（代存），1=转账
-      IsAgentDeposit: true, // 代理代存标识
+      TransferType: 1, // 固定为1（转账），2=代存
       AccountName: searchKeyword.value
     }
 
@@ -147,19 +145,16 @@ const loadMore = async () => {
     if (response.data.Code === 200) {
       let items = response.data.Data.Items || []
 
-      // 填充产品名称
-      items = items.map((item, index) => {
-        const selectedPackage = productPackages.value.find(p => p.PackageId === item.PackageId)
-        return {
-          ...item,
-          PackageName: selectedPackage ? selectedPackage.PackageName : '',
-          index: (currentPage.value - 1) * pageSize + index + 1
-        }
-      })
+      // 添加序号
+      items = items.map((item, index) => ({
+        ...item,
+        index: (currentPage.value - 1) * pageSize + index + 1
+      }))
 
-      // 根据代存类型过滤
-      if (depositTypeFilter.value !== 'all') {
-        items = items.filter(item => item.WalletType === depositTypeFilter.value)
+      // 根据转账类型过滤
+      if (transferTypeFilter.value !== 'all') {
+        const walletType = transferTypeFilter.value === 0 ? 2 : 1 // 0=额度转账->WalletType=2, 1=佣金转账->WalletType=1
+        items = items.filter(item => item.WalletType === walletType)
       }
 
       // 根据排序类型排序
@@ -167,25 +162,25 @@ const loadMore = async () => {
         items.sort((a, b) => a.CreateTime - b.CreateTime)
       } else if (sortType.value === '账变时间降序') {
         items.sort((a, b) => b.CreateTime - a.CreateTime)
-      } else if (sortType.value === '代存金额升序') {
+      } else if (sortType.value === '转账金额升序') {
         items.sort((a, b) => a.ApplyAmount - b.ApplyAmount)
-      } else if (sortType.value === '代存金额降序') {
+      } else if (sortType.value === '转账金额降序') {
         items.sort((a, b) => b.ApplyAmount - a.ApplyAmount)
       }
 
       if (currentPage.value === 1) {
-        depositRecords.value = items
+        transferRecords.value = items
       } else {
-        depositRecords.value = [...depositRecords.value, ...items]
+        transferRecords.value = [...transferRecords.value, ...items]
       }
 
       // 更新总计
-      totalDepositAmount.value = response.data.Data.Total?.TotalAmount || 0
+      totalTransferAmount.value = response.data.Data.Total?.TotalAmount || 0
 
       // 更新分页状态
       totalCount.value = response.data.Data.Pagination?.MaxCount || 0
 
-      if (depositRecords.value.length >= totalCount.value) {
+      if (transferRecords.value.length >= totalCount.value) {
         finished.value = true
       } else {
         currentPage.value++
@@ -198,7 +193,7 @@ const loadMore = async () => {
       })
     }
   } catch (err) {
-    console.error('加载代存记录失败:', err)
+    console.error('加载转账记录失败:', err)
     error.value = true
     showToast({
       message: '加载失败，请稍后重试',
@@ -215,18 +210,9 @@ const formatTime = (timestamp: number) => {
   return dayjs.unix(timestamp).format('YYYY-MM-DD HH:mm:ss')
 }
 
-// 格式化充值类型
-const formatTransferType = (type: number) => {
-  const types: Record<number, string> = {
-    2: '代存',
-    10: '红利'
-  }
-  return types[type] || '-'
-}
-
-// 格式化代存类型
-const formatDepositType = (walletType: number) => {
-  return walletType === 1 ? '佣金代存' : '额度代存'
+// 格式化转账类型
+const formatTransferType = (walletType: number) => {
+  return walletType === 1 ? '佣金转账' : '额度转账'
 }
 
 // 复制订单号
@@ -252,10 +238,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="deposit-record-page">
+  <div ref="containerRef" class="transfer-record-page">
     <!-- 导航栏 -->
     <van-nav-bar
-      title="代存记录"
+      title="转账记录"
       left-arrow
       @click-left="handleBack"
       fixed
@@ -289,11 +275,11 @@ onMounted(() => {
             v-model:show-calendar="showCalendar"
           />
 
-          <!-- 代存类型 -->
+          <!-- 转账类型 -->
           <Dropdown
-            v-model="depositTypeFilter"
-            :options="depositTypeOptions"
-            placeholder="代存类型"
+            v-model="transferTypeFilter"
+            :options="transferTypeOptions"
+            placeholder="转账类型"
           />
 
           <!-- 排序 -->
@@ -307,8 +293,8 @@ onMounted(() => {
 
       <!-- 总计卡片 -->
       <div class="summary-card">
-        <div class="summary-label">代存金额总计</div>
-        <div class="summary-value">{{ formatMoneyWithCommas(totalDepositAmount, 2, true) }}</div>
+        <div class="summary-label">转账金额总计</div>
+        <div class="summary-value">{{ formatMoneyWithCommas(totalTransferAmount, 2, true) }}</div>
       </div>
 
       <!-- 记录列表 -->
@@ -321,16 +307,13 @@ onMounted(() => {
         @load="loadMore"
       >
         <div
-          v-for="record in depositRecords"
+          v-for="record in transferRecords"
           :key="record.OrderId"
           class="record-item"
         >
-          <!-- 头部：会员账号 + VIP等级 -->
+          <!-- 头部：代理账号 -->
           <div class="record-header">
-            <div class="member-info">
-              <span class="member-account">{{ record.ReferenceAccount }}</span>
-              <span class="vip-level">VIP{{ record.VipLevel || 0 }}</span>
-            </div>
+            <div class="member-account">{{ record.ReferenceAccount }}</div>
           </div>
 
           <!-- 详情列表 -->
@@ -344,42 +327,18 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- 代存类型 -->
+            <!-- 转账类型 -->
             <div class="detail-row">
-              <span class="detail-label">代存类型</span>
-              <span class="detail-value">{{ formatDepositType(record.WalletType) }}</span>
+              <span class="detail-label">转账类型</span>
+              <span class="detail-value">{{ formatTransferType(record.WalletType) }}</span>
             </div>
 
-            <!-- 代存金额 -->
+            <!-- 转账金额 -->
             <div class="detail-row">
-              <span class="detail-label">代存金额</span>
-              <span
-                class="detail-value amount"
-                :class="{
-                  'amount-positive': record.ApplyAmount > 0,
-                  'amount-negative': record.ApplyAmount < 0
-                }"
-              >
-                {{ record.ApplyAmount > 0 ? '+' : '' }}{{ formatMoneyWithCommas(record.ApplyAmount, 2, true) }}
+              <span class="detail-label">转账金额</span>
+              <span class="detail-value amount">
+                {{ formatMoneyWithCommas(record.ApplyAmount, 2, true) }}
               </span>
-            </div>
-
-            <!-- 流水倍数 -->
-            <div class="detail-row">
-              <span class="detail-label">流水倍数</span>
-              <span class="detail-value">{{ record.WithdrawWaterMultiply || 0 }}</span>
-            </div>
-
-            <!-- 代存回馈 -->
-            <div class="detail-row">
-              <span class="detail-label">代存回馈</span>
-              <span class="detail-value">{{ formatMoneyWithCommas(record.DepositRebate || 0, 2, true) }}</span>
-            </div>
-
-            <!-- 充值类型 -->
-            <div class="detail-row">
-              <span class="detail-label">充值类型</span>
-              <span class="detail-value">{{ formatTransferType(record.TransferType) }}</span>
             </div>
 
             <!-- 备注（完整显示） -->
@@ -399,7 +358,7 @@ onMounted(() => {
 
       <!-- 空状态 -->
       <van-empty
-        v-if="!loading && !refreshing && depositRecords.length === 0"
+        v-if="!loading && !refreshing && transferRecords.length === 0"
         description="暂无记录"
       />
     </van-pull-refresh>
@@ -407,7 +366,7 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.deposit-record-page {
+.transfer-record-page {
   min-height: 100vh;
   background-color: var(--color-bg-floor-1-2);
   padding-bottom: 20px;
@@ -488,24 +447,10 @@ onMounted(() => {
   border-bottom: 1px solid var(--color-neutral2-seventh);
 }
 
-.member-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .member-account {
   font-size: 16px;
   font-weight: 600;
   color: var(--color-neutral-basic);
-}
-
-.vip-level {
-  font-size: 12px;
-  color: var(--color-neutral2-secondary);
-  padding: 2px 8px;
-  background: var(--color-bg-floor-1-2);
-  border-radius: 4px;
 }
 
 /* 详情列表 */
@@ -549,14 +494,7 @@ onMounted(() => {
 .detail-value.amount {
   font-weight: 600;
   font-size: 16px;
-}
-
-.amount-positive {
-  color: var(--color-error-normal);
-}
-
-.amount-negative {
-  color: var(--color-success-normal);
+  color: var(--color-neutral-basic);
 }
 
 /* 备注完整显示 */

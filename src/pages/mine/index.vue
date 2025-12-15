@@ -95,11 +95,19 @@ const depositLimitInfo = ref<{
   isShowMultiple: number
 } | null>(null)
 
+const transferLimitInfo = ref<{
+  minAmount: number
+  maxAmount: number
+  dailyAmount: number
+  isActive: number
+} | null>(null)
+
 const fetchAccountBalance = async () => {
   const res = await API.finance.getAccountBalance()
   if (res.data.Code !== 200) return
   creditWalletBalance.value = res.data.Data.Items.Credit
 console.log('代存限额信息Items3',res.data.Data.Items3)
+console.log('转账限额信息Items2',res.data.Data.Items2)
   // 保存代存限额信息
   if (res.data.Data.Items3) {
     depositLimitInfo.value = {
@@ -109,6 +117,16 @@ console.log('代存限额信息Items3',res.data.Data.Items3)
       maxWithdrawMultiple: res.data.Data.Items3.WithdrawWaterMultiply || 1,
       isActive: res.data.Data.IsActiveLimit3 || 0,
       isShowMultiple: res.data.Data.IsShowMultiple || 0,
+    }
+  }
+
+  // 保存转账限额信息
+  if (res.data.Data.Items2) {
+    transferLimitInfo.value = {
+      minAmount: (res.data.Data.Items2.MinTransferAmount || 0) / 100,
+      maxAmount: (res.data.Data.Items2.MaxTransferAmount || 0) / 100,
+      dailyAmount: (res.data.Data.Items2.DailyTransferAmount || 0) / 100,
+      isActive: res.data.Data.IsActiveTransfer || 0,
     }
   }
 }
@@ -129,6 +147,25 @@ const handleMenuClick = (key: string) => {
       query.maxWithdrawMultiple = String(depositLimitInfo.value.maxWithdrawMultiple)
       query.isActive = String(depositLimitInfo.value.isActive)
       query.isShowMultiple = String(depositLimitInfo.value.isShowMultiple)
+    }
+
+    router.push({
+      name: key,
+      query,
+    })
+  } else if (key === 'agentTransfer') {
+    // 跳转到代理转账页面时，传递余额数据和限额信息
+    const query: Record<string, string> = {
+      commission: String(commissionWalletBalance.value),
+      credit: String(creditWalletBalance.value),
+    }
+
+    // 传递转账限额信息（Items2）
+    if (transferLimitInfo.value) {
+      query.minAmount = String(transferLimitInfo.value.minAmount)
+      query.maxAmount = String(transferLimitInfo.value.maxAmount)
+      query.dailyAmount = String(transferLimitInfo.value.dailyAmount)
+      query.isActive = String(transferLimitInfo.value.isActive)
     }
 
     router.push({
