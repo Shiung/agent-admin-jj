@@ -4,9 +4,18 @@ import type {
   PlayermanageSearchRequest,
   PlayermanageSearchResponse,
   PlayermanagePlayerdetailv2Request,
-  PlayermanagePlayerdetailv2Response
+  PlayermanagePlayerdetailv2Response,
+  PlayermanageApplyRequest,
+  PlayermanageApplyResponse,
+  PlayermanageApplycheckRequest,
+  PlayermanageApplycheckResponse,
+  PlayermanageApplylistv2Request,
+  PlayermanageApplylistv2Response,
+  PlayermanagePlayerchannelv2Request,
+  PlayermanagePlayerchannelv2Response
 } from '../data-contracts'
 import type { HttpClient, RequestParams } from '../http-client'
+import { ContentType } from '../http-client'
 
 export class PlayerManage<SecurityDataType = unknown> {
   http: HttpClient<SecurityDataType>;
@@ -50,6 +59,63 @@ export class PlayerManage<SecurityDataType = unknown> {
   ) =>
     this.http.request<PlayermanagePlayerdetailv2Response, any>({
       path: '/admin/playermanage/playerdetailv2',
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: "json",
+      ...params
+    })
+
+  /** 管理>會員管理>申請調線 */
+  postApply = (
+    data: PlayermanageApplyRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PlayermanageApplyResponse, any>({
+      path: '/admin/playermanage/apply',
+      method: 'POST',
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params
+    })
+
+  /** 管理>會員管理>驗證會員是否可以申請調線 */
+  getApplycheck = (
+    query: PlayermanageApplycheckRequest,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PlayermanageApplycheckResponse, any>({
+      path: '/admin/playermanage/applycheck',
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: "json",
+      ...params
+    })
+
+  /** 管理>會員管理>獲取代理底下可綁定的渠道號 */
+  getPlayerchannelv2 = (
+    query: PlayermanagePlayerchannelv2Request,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PlayermanagePlayerchannelv2Response, any>({
+      path: '/admin/playermanage/playerchannelv2',
+      method: 'GET',
+      query: query,
+      secure: true,
+      format: "json",
+      ...params
+    })
+
+  /** 管理>會員管理>調線記錄V2 */
+  getApplylistv2 = (
+    query: PlayermanageApplylistv2Request,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<PlayermanageApplylistv2Response, any>({
+      path: '/admin/playermanage/applylistv2',
       method: 'GET',
       query: query,
       secure: true,

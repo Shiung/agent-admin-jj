@@ -12,7 +12,7 @@ watchOnce(filtersBox, (el) => {
 </script>
 
 <template>
-  <div class="flex px-4 my-2 overflow-x-auto space-x-2" ref="filtersBox">
+  <div class="flex items-center px-4 my-2 overflow-x-auto space-x-2" ref="filtersBox">
     <slot />
   </div>
 </template>
