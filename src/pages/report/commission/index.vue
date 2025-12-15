@@ -8,8 +8,14 @@ import CommissionSummaryCard from './components/commissionSummaryCard.vue'
 import ReportSwitchBtn from './components/reportSwitchBtn.vue'
 import AgentList from './components/agentList.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import SearchBar from '@/components/SearchBar/index.vue'
 import API from '@/apis'
 import dayjs from 'dayjs'
+
+type SearchType = {
+  id: number | string
+  text: string
+}
 
 import { useSticky } from '@/composables/useSticky'
 
@@ -18,7 +24,7 @@ const commissionContainerRef = ref<HTMLElement | null>(null)
 
 // 用户信息
 const userStore = useUserStore()
-const { isSingleAgent, hasTeam, isMainLine, subAgentList } = storeToRefs(userStore)
+const { isSingleAgent, hasTeam, isMainLine, subAgentList, selfAdminId } = storeToRefs(userStore)
 
 // 提取吸顶逻辑到 composable
 const {
@@ -203,7 +209,7 @@ const fetchSubordinateAgentList = async (skipLoading = false) => {
       Page: subordinatePagination.value.currPage,
       PageSize: subordinatePagination.value.pageSize,
       AccountLevel: levelFilter.value, // 直接使用 levelFilter.value (0 或具体层级数字)
-      AgentAccount: searchKeyword.value || undefined,
+      AgentAccount: selectedAgent.value?.text || undefined,
       IsSettlement: settlementStatusMap[statusFilter.value] || 0,
       Sort: sortMap[commissionSortType.value] || '-AccountLevel', // 默认代理层级降序
     })
@@ -256,7 +262,7 @@ const fetchTeamAgentList = async (skipLoading = false) => {
       ReportMonth: selectedDate.value,
       Page: teamPagination.value.currPage,
       PageSize: teamPagination.value.pageSize,
-      Username: searchKeyword.value || undefined,
+      Username: selectedAgent.value?.text || undefined,
     })
 
     if (res.data.Code !== 200) return
@@ -310,8 +316,47 @@ const dateOptions = computed(() => {
   return options
 })
 
-// 代理账号搜索
-const searchKeyword = ref('')
+// 代理账号搜索选择
+const selectedAgent = ref<SearchType | null>(null)
+
+// 代理账号搜索列表（基于当前视图的代理列表生成）
+const agentSearchOptions = computed<SearchType[]>(() => {
+  const options: SearchType[] = []
+
+  if (viewType.value === 2) {
+    // 下级视图：排除自己，根据层级筛选
+    subAgentList.value.forEach((agent: any) => {
+      // 排除自己的 AdminId
+      if (agent.Username && selfAdminId.value && agent.AdminId === selfAdminId.value) {
+        return
+      }
+
+      // 根据层级筛选：levelFilter === 0 表示全部层级
+      if (levelFilter.value !== 0 && agent.AccountLevel !== levelFilter.value) {
+        return
+      }
+
+      if (agent.Username) {
+        options.push({
+          id: agent.AdminId,
+          text: agent.Username
+        })
+      }
+    })
+  } else if (viewType.value === 1) {
+    // 团队视图
+    subAgentList.value.forEach((agent: any) => {
+      if (agent.Username) {
+        options.push({
+          id: agent.AdminId,
+          text: agent.Username
+        })
+      }
+    })
+  }
+
+  return options
+})
 
 
 // 数字转中文
@@ -463,8 +508,8 @@ const onRefresh = async () => {
   refreshing.value = false
 }
 
-// 搜索处理
-const handleSearch = () => {
+// 监听代理选择变化
+watch(selectedAgent, () => {
   if (viewType.value === 2) {
     // 下级视图：搜索下级代理
     fetchSubordinateAgentList()
@@ -472,11 +517,14 @@ const handleSearch = () => {
     // 团队视图：搜索团队成员
     fetchTeamAgentList()
   }
-}
+})
 
 // 监听视图类型变化
 watch(viewType, (newType) => {
   updateStickyDimensions()
+
+  // 清空搜索选择
+  selectedAgent.value = null
 
   // 检查当前选中的日期是否在新视图的日期范围内
   const availableDates = dateOptions.value.map(opt => opt.value)
@@ -515,6 +563,12 @@ watch(selectedDate, () => {
   if (viewType.value === 1) {
     fetchTeamAgentList()
   }
+})
+
+// 监听层级筛选变化，清空代理选择
+watch(levelFilter, () => {
+  // 层级筛选改变时，清空已选代理（因为可能不在新的筛选结果中）
+  selectedAgent.value = null
 })
 
 // 监听筛选条件变化（下级视图）
@@ -580,12 +634,11 @@ onMounted(async () => {
         <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }"></div>
         <div class="sticky-filter-bar px-3 py-1 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
         <!-- 代理账号搜索框 -->
-        <div class="search-input-wrapper">
-          <input v-model="searchKeyword" type="text" placeholder="代理账号" class="search-input"
-            @keyup.enter="handleSearch" />
-          <van-icon name="search" size="18" color="var(--color-neutral-secondary)" class="search-icon"
-            @click="handleSearch" />
-        </div>
+        <SearchBar
+          v-model:selected="selectedAgent"
+          :search-ls="agentSearchOptions"
+          placeholder="代理账号"
+        />
 
         <!-- 团队视图筛选条件 -->
         <div v-if="!isSubordinateView" class="filter-scroll-container">
@@ -693,44 +746,6 @@ onMounted(async () => {
   // flex: 1;
   margin-top: 8px;
   padding: 0 0.75rem 0.75rem;
-}
-
-/* 搜索框容器 - 假 input 结构 */
-.search-input-wrapper {
-  position: relative;
-  width: 100%;
-  height: 40px;
-  background-color: white;
-  border: 1px solid var(--color-neutral2-seventh);
-  border-radius: 20px;
-  /* height / 2 */
-  display: flex;
-  align-items: center;
-}
-
-.search-input {
-  flex: 1;
-  height: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  padding-left: 12px;
-  padding-right: 40px;
-  /* 为 icon 预留空间 */
-  font-size: 14px;
-  color: var(--color-neutral-basic);
-}
-
-.search-input::placeholder {
-  color: var(--color-neutral-secondary);
-}
-
-.search-icon {
-  position: absolute;
-  right: 12px;
-  cursor: pointer;
-  pointer-events: auto;
-  /* 确保可点击 */
 }
 
 /* 筛选器横向滚动容器 */

@@ -218,7 +218,7 @@ const agentList = computed<AgentData[]>(() => {
       const currentMonth = item.CurrentMonth || {}
       const lastMonth = item.LastMonth || {}
 
-      const isMainAgent = currentMonth.AdminId === currentMonth.TeamLeaderId
+      const isMainAgent = currentMonth.IsMain
 
       return {
         id: currentMonth.Username || currentMonth.Id?.toString() || '',
