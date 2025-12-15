@@ -209,7 +209,7 @@ export type PlayermanageApplycheckResponse = BaseResponse<PlayermanageApplycheck
 
 export interface PlayermanageApplyRequest {
   /** 上傳圖片，多個用逗號分割 */
-  Image: string
+  Image?: string
   /** 會員ID */
   PlayerId: number
   /** 引導連結(必填) (Required) */
@@ -217,9 +217,9 @@ export interface PlayermanageApplyRequest {
   /** 綁定渠道號(必填) (Required) */
   ChannelId: string
   /** 設備類型(android,ios,h5,pc) (Allowed values: android, ios, h5, pc) */
-  Platform: string
+  Platform?: string
   /** 備註(最多1024字) (Maximum: 1024) */
-  Desc: string
+  Desc?: string
   /** 產品ID (Required) */
   PackageId: number
   /** 會員帳號 (Required) */
