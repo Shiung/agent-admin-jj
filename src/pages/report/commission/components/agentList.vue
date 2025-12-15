@@ -5,7 +5,11 @@ import { formatNumberWithCommas as formatNumber, formatMoneyWithCommas, formatSi
 import AdjustCommissionSheet from './adjustCommissionSheet.vue'
 import dayjs from 'dayjs'
 import api from '@/apis'
+import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'
 
+const userStore = useUserStore()
+const { isSingleAgent } = storeToRefs(userStore)
 interface Props {
   viewType: number
   selectedDate: string // 格式: 'YYYY-MM'
@@ -253,7 +257,7 @@ const agentList = computed<AgentData[]>(() => {
 const formatCommissionRate = (rate: string | number): string => {
   const numRate = typeof rate === 'string' ? parseFloat(rate) : rate
   if (isNaN(numRate)) return '-'
-  return `${formatNumber(numRate / 100, 2)}%`
+  return isSingleAgent.value ? `${formatNumber(numRate, 2)}%` : `${formatNumber(numRate / 100, 2)}%`
 }
 
 // 格式化发放时间（从当月数据获取）
@@ -478,8 +482,8 @@ const handleAgentClick = (agent: AgentData) => {
       },
       detailInfo: {
         memberCommission: {
-          lastMonth: lastMonth.CommissionTotal || 0,
-          currentMonth: currentMonth.CommissionTotal || 0,
+          lastMonth: isSingleAgent.value ? lastMonth.CommissionTotal : lastMonth.CommissionSelfTotal || 0,
+          currentMonth: isSingleAgent.value ? currentMonth.CommissionTotal : currentMonth.CommissionSelfTotal || 0,
         },
         netProfit: {
           lastMonth: lastMonth.CleanBetWinTotal || 0,
@@ -692,7 +696,7 @@ const handleReleaseConfirm = async () => {
           </div>
 
           <!-- 下级贡献 -->
-          <div class="table-row">
+          <div v-if="!isSingleAgent" class="table-row">
             <div class="text-card">下级贡献</div>
             <div class="text-card" :class="formatSignedMoney(personalData.card1.subordinateContribution.lastMonth).color">{{ formatSignedMoney(personalData.card1.subordinateContribution.lastMonth).text }}</div>
             <div class="text-card font-semibold" :class="formatSignedMoney(personalData.card1.subordinateContribution.currentMonth).color">{{ formatSignedMoney(personalData.card1.subordinateContribution.currentMonth).text }}</div>
