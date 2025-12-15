@@ -267,6 +267,51 @@ export interface AgentCreditLimitTransactionInsertResponse {
   Msg: string
 }
 
+// 代存记录列表查询参数
+export interface AgentCreditLimitTransactionListQuery {
+  Page: number
+  PageSize: number
+  BeginTime: number // 开始时间（秒）
+  EndTime: number // 结束时间（秒）
+  TransferType?: string | number // 充值类型：''=全部, 2=代存, 10=红利
+  IsAgentDeposit: boolean // 是否代理代存
+  Status?: string | number // 状态：''=全部, 2=已到账
+  AccountName?: string // 下级账号搜索
+  PackageId?: string | number // 产品包ID
+}
+
+// 代存记录列表项
+export interface AgentCreditLimitTransactionItem {
+  OrderId: string // 订单号
+  ReferenceAccount: string // 下级会员账号
+  VipLevel: number // VIP等级
+  PackageId: number // 产品包ID
+  PackageName?: string // 产品名称（前端填充）
+  WalletType: number // 代存类型：1=佣金代存, 2=额度代存
+  TransferType: number // 充值类型：2=代存, 10=红利
+  ApplyAmount: number // 转账金额（分）
+  WithdrawWaterMultiply: number // 流水倍数
+  DepositRebate: number // 代存回馈（分）
+  Status: number // 状态：2=已到账, 其他=已拒绝
+  Remarks: string // 备注
+  CreateTime: number // 操作时间（秒）
+}
+
+// 代存记录列表响应
+export interface AgentCreditLimitTransactionListResponse {
+  Code: number
+  Data: {
+    Items: AgentCreditLimitTransactionItem[]
+    Pagination: {
+      MaxCount: number // 总条数
+    }
+    Total: {
+      TotalAmount: number // 总金额（分）
+    }
+  }
+  Msg: string
+}
+
 export interface CompareCommissionResponse {
   Code: number
   Data: CompareCommissionResponseData
