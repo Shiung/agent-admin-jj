@@ -94,7 +94,7 @@ const getStatusConfig = (status: string, type: string): { text: string; class: s
           <span class="detail-label">{{ type === 'deposit' ? '申请充值' : '申请提现' }}</span>
           <span class="detail-value">{{ formatMoneyWithCommas(record.applyAmount, 2, true) }}</span>
         </li>
-        <li v-if="isDepositWithdrawFee" class="detail-item">
+        <li class="detail-item">
           <span class="detail-label">{{ type === 'deposit' ? '实际充值' : '实际提现' }}</span>
           <span class="detail-value">{{ formatMoneyWithCommas(record.actualAmount, 2, true) }}</span>
         </li>

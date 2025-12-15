@@ -120,7 +120,7 @@ const depositStatusOptions = [
   { label: '充值失败', value: '充值失败' },
   { label: '已审核', value: '已审核' },
   { label: '充值取消', value: '充值取消' },
-  { label: '用戶取消', value: '用戶取消' }
+  { label: '用户取消', value: '用户取消' }
 ]
 
 // 提现状态选项
@@ -146,7 +146,7 @@ const depositStatusMap: Record<string, number> = {
   '充值失败': 3,
   '已审核': 4,
   '充值取消': 12,
-  '用戶取消': 13
+  '用户取消': 13
 }
 
 // 提现状态映射：UI显示 -> API参数（用于筛选）

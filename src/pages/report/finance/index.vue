@@ -209,20 +209,10 @@ const bonusData = computed(() => {
         label: '红利金额',
         value: formatMoneyWithCommas(data.SumRedGold, 2, true)
       },
-      {
-        label: '红利人数',
-        value: formatNumberWithCommas(data.SumRedCount, 0, true)
-      }
-    ],
-    [
-      {
+          {
         label: '返水金额',
         value: formatMoneyWithCommas(data.SumBackWaterGold, 2, true)
       },
-      {
-        label: '返水人数',
-        value: formatNumberWithCommas(data.SumBackWaterCount, 0, true)
-      }
     ]
   ]
 })
