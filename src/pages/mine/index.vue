@@ -4,10 +4,9 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import API from '@/apis'
-import pkgJson from '../../../package.json'
 
-// 解決 ts 報錯
-const pkg = pkgJson
+declare const __APP_VERSION__: string
+const APP_VERSION = `v${__APP_VERSION__}`
 
 // 常用功能
 const SHORTCUTS = [
@@ -122,30 +121,31 @@ onMounted(async () => {
     </div>
 
     <!-- 我的錢包 -->
-    <div class="flex items-center justify-between gap-2 mx-3 mt-2 p-3 bg-white rounded-2xl shadow-[-0.5px_0.5px_3px_0px_rgba(0,0,0,0.15)]">
+    <div
+      class="flex items-center justify-between gap-2 mx-3 mt-2 p-3 bg-white rounded-2xl shadow-[-0.5px_0.5px_3px_0px_rgba(0,0,0,0.15)]">
       <div class="flex-1 min-w-0 px-3 py-2 bg-bg-floor-1-2 rounded-2xl">
         <div class="text-xs leading-5 text-neutral-basic">佣金钱包</div>
-        <div class="text-xl leading-7 truncate font-semibold text-primary-normal">{{ formatMoneyWithComma(commissionWalletBalance) }}</div>
-        <van-button type="primary" size="small" plain round class="w-full !font-semibold !bg-bg-floor-1-2" @click="goWithdraw">提现</van-button>
+        <div class="text-xl leading-7 truncate font-semibold text-primary-normal">{{
+          formatMoneyWithComma(commissionWalletBalance) }}</div>
+        <van-button type="primary" size="small" plain round class="w-full !font-semibold !bg-bg-floor-1-2"
+          @click="goWithdraw">提现</van-button>
       </div>
       <div class="flex-1 min-w-0 px-3 py-2 bg-bg-floor-1-2 rounded-2xl">
         <div class="text-xs leading-5 text-neutral-basic">额度钱包</div>
-        <div class="text-xl leading-7 truncate font-semibold text-primary-normal">{{ formatMoneyWithComma(creditWalletBalance) }}</div>
-        <van-button type="primary" size="small" plain round class="w-full !font-semibold !bg-bg-floor-1-2" @click="goRecharge">充值</van-button>
+        <div class="text-xl leading-7 truncate font-semibold text-primary-normal">{{
+          formatMoneyWithComma(creditWalletBalance) }}</div>
+        <van-button type="primary" size="small" plain round class="w-full !font-semibold !bg-bg-floor-1-2"
+          @click="goRecharge">充值</van-button>
       </div>
     </div>
 
     <!-- 常用功能 -->
     <div class="px-3 py-3 bg-white rounded-2xl border border-neutral2-seventh mx-3 mt-4">
       <div class="flex items-center justify-between gap-2">
-        <div
-          v-for="item in SHORTCUTS"
-          :key="item.key"
-          class="flex-1 flex flex-col items-center cursor-pointer"
-          @click="handleMenuClick(item.key)"
-        >
+        <div v-for="item in SHORTCUTS" :key="item.key" class="flex-1 flex flex-col items-center cursor-pointer"
+          @click="handleMenuClick(item.key)">
           <div class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-2">
-            <van-image :src="`./static/images/mine/${item.key}.svg`" size="24"/>
+            <van-image :src="`./static/images/mine/${item.key}.svg`" size="24" />
           </div>
           <span class="text-sm text-neutral-basic text-center">{{ item.title }}</span>
         </div>
@@ -154,18 +154,15 @@ onMounted(async () => {
 
     <!-- 設置列表 -->
     <div class="px-3 py-2">
-      <div
-        v-for="item in MENUS"
-        :key="item.key"
+      <div v-for="item in MENUS" :key="item.key"
         class="flex items-center px-3 h-12 border-b border-dashed border-neutral2-sixth last:border-b-0"
-        @click="handleMenuClick(item.key)"
-      >
+        @click="handleMenuClick(item.key)">
         <van-image :src="`./static/images/mine/${item.key}.svg`" size="24" class="pr-3" />
         <span class="flex-1 text-sm text-neutral-basic">
           {{ item.title }}
         </span>
         <span v-if="item.isVersion" class="text-sm text-neutral-basic">
-          {{ pkg.version }}
+          {{ APP_VERSION }}
         </span>
         <van-icon v-else name="arrow" size="16" class="text-neutral2-tertiary" />
       </div>
