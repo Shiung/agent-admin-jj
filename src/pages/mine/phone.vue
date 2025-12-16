@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { showToast, showFailToast } from 'vant'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
@@ -77,6 +78,7 @@ const getVerificationCode = async () => {
     )
     if (res.data.Code !== 200) {
       console.error(res.data)
+      showFailToast(res.data.Msg)
       return
     }
 
@@ -88,8 +90,9 @@ const getVerificationCode = async () => {
         clearInterval(timer)
       }
     }, 1000)
-  } catch (error) {
+  } catch (error: any) {
     console.error('获取验证码失败：', error)
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     codeLoading.value = false
   }
@@ -124,87 +127,83 @@ const submit = async () => {
   <div class="flex flex-col pb-6">
     <NavBar title="手机号" />
 
-    <div class="py-3">
+    <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
       <!-- 手机号输入 -->
-      <div>
-        <AppField
-          v-model="mobile"
-          name="mobile"
-          label-align="top"
-          label="手机号"
-          placeholder="请输入"
-          required
-          :rules="[rulesRequired()]"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <div class="flex items-center">
-                <Dropdown
-                  v-model="countryCode"
-                  :options="countryCodeOptions"
-                  class="mobile-country-code"
-                />
-              </div>
-              <input
-                :value="mobile"
-                type="tel"
-                class="flex-1 outline-none pl-2.5"
-                placeholder="请输入"
-                @input="(e: Event) => { mobile = (e.target as HTMLInputElement).value }"
+      <AppField
+        v-model="mobile"
+        name="mobile"
+        label-align="top"
+        label="手机号"
+        placeholder="请输入"
+        required
+        :rules="[rulesRequired()]"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <div class="flex items-center">
+              <Dropdown
+                v-model="countryCode"
+                :options="countryCodeOptions"
+                class="mobile-country-code"
               />
             </div>
-          </template>
-        </AppField>
-      </div>
+            <input
+              :value="mobile"
+              type="tel"
+              class="flex-1 outline-none pl-2.5"
+              placeholder="请输入"
+              @input="(e: Event) => { mobile = (e.target as HTMLInputElement).value }"
+            />
+          </div>
+        </template>
+      </AppField>
 
       <!-- 验证码输入 -->
-      <div>
-        <AppField
-          v-model="verificationCode"
-          name="verificationCode"
-          label-align="top"
-          label="验证码"
-          placeholder="请输入"
-          required
-          autocomplete="off"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :value="verificationCode"
-                type="text"
-                class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                placeholder="请输入"
-                @input="(e: Event) => { verificationCode = (e.target as HTMLInputElement).value }"
-              />
-              <van-button
-                :loading="codeLoading"
-                :disabled="!mobile.trim() || countdown > 0"
-                size="small"
-                type="primary"
-                round
-                class="verificationBtn"
-                @click.stop="getVerificationCode"
-              >
-                {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
-              </van-button>
-            </div>
-          </template>
-        </AppField>
-      </div>
-    </div>
-    <div class="px-4 my-4">
-      <van-button
-        block
-        round
-        type="primary"
-        :loading="loading"
-        :disabled="!canSubmit"
-        @click="submit"
+      <AppField
+        v-model="verificationCode"
+        name="verificationCode"
+        label-align="top"
+        label="验证码"
+        placeholder="请输入"
+        required
+        autocomplete="off"
       >
-        提交
-      </van-button>
-    </div>
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :value="verificationCode"
+              type="text"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              placeholder="请输入"
+              @input="(e: Event) => { verificationCode = (e.target as HTMLInputElement).value }"
+            />
+            <van-button
+              :loading="codeLoading"
+              :disabled="!mobile.trim() || countdown > 0"
+              size="small"
+              type="primary"
+              round
+              class="verificationBtn"
+              @click.stop="getVerificationCode"
+            >
+              {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
+            </van-button>
+          </div>
+        </template>
+      </AppField>
+      <div class="px-4 my-4">
+        <van-button
+          block
+          round
+          type="primary"
+          :loading="loading"
+          :disabled="!canSubmit"
+          @click="submit"
+        >
+          提交
+        </van-button>
+      </div>
+    </van-form>
   </div>
 </template>
 

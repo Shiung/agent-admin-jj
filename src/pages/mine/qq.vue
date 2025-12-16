@@ -21,8 +21,9 @@ const submit = async () => {
     }
     showToast('编辑成功')
     router.replace({ name: 'mineProfile' })
-  } catch (error) {
+  } catch (error: any) {
     console.error('更新失败：', error)
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     loading.value = false
   }
@@ -32,7 +33,7 @@ const submit = async () => {
 <template>
   <div class="flex flex-col pb-6">
     <NavBar title="QQ号码" />
-    <div class="py-3">
+    <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
       <AppField
         v-model="qq"
         name="qq"
@@ -42,9 +43,9 @@ const submit = async () => {
         required
         :rules="[rulesRequired()]"
       />
-    </div>
-    <div class="px-4 my-4">
-      <van-button block round type="primary" :loading="loading" :disabled="!qq" @click="submit">提交</van-button>
-    </div>
+      <div class="px-4 my-4">
+        <van-button block round type="primary" :loading="loading" :disabled="!qq" native-type="submit">提交</van-button>
+      </div>
+    </van-form>
   </div>
 </template>

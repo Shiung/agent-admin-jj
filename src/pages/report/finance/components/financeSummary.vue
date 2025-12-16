@@ -17,9 +17,8 @@ const props = defineProps<Props>()
       </div>
 
       <!-- 右侧：装饰图标 -->
-      <div class="relative">
-        <img src="/static/images/common/creditWalletIcon.png" alt="总盈利"
-          class="h-[76px] w-[124px]" />
+      <div class="h-[76px] w-[124px]">
+        <van-image src="./static/images/common/creditWalletIcon.png" alt="总盈利" fit="contain"/>
       </div>
     </div>
   </div>

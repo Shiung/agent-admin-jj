@@ -22,7 +22,8 @@ const containerRef = ref<HTMLElement | null>(null)
 const gameStore = useGameStore()
 
 // From route query
-const gameName = computed(() => route.query.game as string || '游戏详情')
+const gameName = computed(() => route.query.gameName as string || '游戏详情')
+const gameType = computed(() => route.query.gameType as string || '-')
 
 // 游戏注单数据
 const gameDetailData = ref<GameDetailData | null>(null)
@@ -128,7 +129,7 @@ const fetchGameDetail = async (isRefreshing = false) => {
       PageSize: pageSize.value,
       BeginTime,
       EndTime,
-      GameType: gameName.value, // 游戏场馆代码
+      GameType: gameType.value, // 游戏场馆代码
       LoginAccount: searchKeyword.value || undefined, // 会员账号搜索
       SelectTimeType: 2, // 2=结算时间
       Status: statusMap[statusFilter.value],
@@ -170,9 +171,9 @@ const orderList = computed(() => {
   return gameDetailData.value.Items.map(item => ({
     orderNo: item.TransactionId,
     status: formatStatus(item.Status),
-    betAmount: formatMoneyWithCommas(item.TotalBetGold, 2, true),
-    validBet: formatMoneyWithCommas(item.ValidWater, 2, true),
-    profit: formatMoneyWithCommas(item.CompanyWinLose, 2, true),
+    betAmount: item.TotalBetGold,
+    validBet: item.ValidWater,
+    profit: item.CompanyWinLose,
     username: item.LoginAccount,
     vipLevel: `VIP${item.VipLevel || 0}`,
     time: dayjs.unix(item.SettlementTime).format('YYYY-MM-DD HH:mm:ss'),
@@ -216,7 +217,6 @@ const handleBack = () => {
 
 // Search
 const handleSearch = () => {
-  console.log('搜索会员账号:', searchKeyword.value)
   currentPage.value = 1 // 重置到第一页
   fetchGameDetail()
 }
@@ -257,7 +257,7 @@ const handleOrderClick = (order: any) => {
       <!-- 提示信息 -->
       <div class="px-3">
         <div class="info-tip">
-          <img src="/static/images/common/lightBulb.png" alt="提示" class="tip-icon" />
+          <van-image src="./static/images/common/lightBulb.png" alt="提示" class="tip-icon" fit="contain" />
           <span class="tip-text">以下数据仅统计「已结算」的订单</span>
         </div>
       </div>
@@ -317,7 +317,6 @@ const handleOrderClick = (order: any) => {
               v-model="selectTimeRange"
               title="结算时间"
               height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
 
             <!-- 状态筛选 -->

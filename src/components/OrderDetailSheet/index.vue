@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import dayjs from 'dayjs'
-import { formatMoneyWithCommas, formatNumberWithCommas } from '@/utils/formatNumber'
+import { formatMoneyWithCommas, formatSignedMoney } from '@/utils/formatNumber'
 import { useGameStore } from '@/stores/game'
 import { storeToRefs } from 'pinia'
 import type { GameDetailItem } from '@/apis/codegen/data-contracts'
@@ -229,32 +229,8 @@ const parseOrderDetail = (rawData: GameDetailItem): OrderDetail | null => {
 // 获取订单详情的游戏名称（根据游戏类型）
 const orderGameName = computed(() => {
   if (!props.rawData) return '-'
-
   const rawData = props.rawData
-
-  // Funky火箭
-  if (rawData.FunkyDetails && rawData.FunkyDetails.length > 0) {
-    return rawData.FunkyDetails[0]?.GameName || 'Funky火箭'
-  }
-
-  // 真人游戏
-  if (rawData.GameLiveDetails && rawData.GameLiveDetails.length > 0) {
-    return rawData.GameLiveDetails[0]?.PlatformName || '真人游戏'
-  }
-
-  // 直播竞猜
-  if (rawData.LiveDetails && rawData.LiveDetails.length > 0) {
-    return '直播竞猜'
-  }
-
-  // 体育投注
-  if (rawData.SportDetails && rawData.SportDetails.length > 0) {
-    const sport = rawData.SportDetails[0]
-    return sport?.VenueName || sport?.GameType || '体育投注'
-  }
-
-  // 默认使用场馆代码
-  return rawData.GameType || '-'
+  return gameStore.allGameTypeMapping[rawData.GameType] ?? rawData.GameType
 })
 
 // 获取订单摘要字段（根据游戏类型动态显示）
@@ -268,95 +244,6 @@ const orderSummaryFields = computed(() => {
   }
 
   const rawData = props.rawData
-
-  // Funky火箭 - 显示 Funky 特有字段
-  if (rawData.FunkyDetails && rawData.FunkyDetails.length > 0) {
-    const funky = rawData.FunkyDetails[0]
-    if (funky) {
-      return [
-        {
-          label: '投注金额',
-          value: formatMoneyWithCommas(funky.TotalBet || 0, 2, true)
-        },
-        {
-          label: '有效投注',
-          value: formatMoneyWithCommas(funky.ValidBet || 0, 2, true)
-        },
-        {
-          label: '盈利',
-          value: formatMoneyWithCommas(funky.PlayerWin || 0, 2, true),
-          isProfit: true
-        }
-      ]
-    }
-  }
-
-  // 真人游戏 - 显示真人游戏特有字段
-  if (rawData.GameLiveDetails && rawData.GameLiveDetails.length > 0) {
-    const live = rawData.GameLiveDetails[0]
-    if (live) {
-      return [
-        {
-          label: '投注金额',
-          value: formatMoneyWithCommas((live as any).BetAmount || 0, 2, true)
-        },
-        {
-          label: '有效投注',
-          value: formatMoneyWithCommas((live as any).ValidBetAmount || 0, 2, true)
-        },
-        {
-          label: '盈利',
-          value: formatMoneyWithCommas((live as any).WinLoss || 0, 2, true),
-          isProfit: true
-        }
-      ]
-    }
-  }
-
-  // 直播竞猜 - 显示直播特有字段
-  if (rawData.LiveDetails && rawData.LiveDetails.length > 0) {
-    const stream = rawData.LiveDetails[0]
-    if (stream) {
-      return [
-        {
-          label: '投注金额',
-          value: formatMoneyWithCommas((stream as any).TotalBetAmount || 0, 2, true)
-        },
-        {
-          label: '投注数量',
-          value: formatNumberWithCommas((stream as any).BetCount || 0, 0, true)
-        },
-        {
-          label: '派彩',
-          value: formatMoneyWithCommas(stream.Payout || 0, 2, true),
-          isProfit: true
-        }
-      ]
-    }
-  }
-
-  // 体育投注 - 显示体育特有字段
-  if (rawData.SportDetails && rawData.SportDetails.length > 0) {
-    const sport = rawData.SportDetails[0]
-    if (sport) {
-      return [
-        {
-          label: '投注金额',
-          value: formatMoneyWithCommas(sport.BetStake || 0, 2, true)
-        },
-        {
-          label: '有效投注',
-          value: formatMoneyWithCommas((sport as any).ValidBetAmount || 0, 2, true)
-        },
-        {
-          label: '盈利',
-          value: formatMoneyWithCommas(sport.PlayerWinLoss || 0, 2, true),
-          isProfit: true
-        }
-      ]
-    }
-  }
-
   // 默认使用父级字段（通用字段）
   return [
     {
@@ -369,7 +256,7 @@ const orderSummaryFields = computed(() => {
     },
     {
       label: '盈利',
-      value: formatMoneyWithCommas(rawData.PlayerWinLose || 0, 2, true),
+      value: rawData.CompanyWinLose,
       isProfit: true
     }
   ]
@@ -451,7 +338,7 @@ const copyOrderNo = (orderNo: string) => {
             <van-image
               width="12"
               height="12"
-              src="/static/images/common/copy.png"
+              src="./static/images/common/copy.png"
               @click.stop="copyOrderNo(orderInfo.orderNo)"
               style="cursor: pointer;"
             />
@@ -469,10 +356,8 @@ const copyOrderNo = (orderNo: string) => {
           >
             <span class="data-label">{{ field.label }}</span>
             <span
-              class="data-value"
-              :class="{ 'profit': field.isProfit }"
-            >
-              {{ field.value }}
+              class="text-[14px] font-semibold"
+              :class="field.isProfit ? formatSignedMoney(field.value).color : ''">{{ field.isProfit ? formatSignedMoney(field.value).text : field.value }}
             </span>
           </div>
         </div>
@@ -688,10 +573,6 @@ const copyOrderNo = (orderNo: string) => {
   font-size: 14px;
   font-weight: 600;
   color: var(--color-neutral-basic);
-
-  &.profit {
-    color: var(--color-error-normal);
-  }
 }
 
 .game-info {

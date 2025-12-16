@@ -84,7 +84,7 @@ const getStatusConfig = (status: string, type: string): { text: string; class: s
             <van-image
               width="12"
               height="12"
-              src="/static/images/common/copy.png"
+              src="./static/images/common/copy.png"
               @click.stop="copyOrderNo(record.orderNo)"
               style="cursor: pointer;"
             />

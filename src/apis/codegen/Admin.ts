@@ -727,7 +727,7 @@ export class Admin<SecurityDataType = unknown> {
    *
    * @tags Admin
    * @name BonusRecord
-   * @request GET:/admin/netcashplayergame/redlist
+   * @request GET:/admin/netcashplayergame/bonuslist
    * @secure
    */
   getBonusRecord = (
@@ -735,7 +735,7 @@ export class Admin<SecurityDataType = unknown> {
     params: RequestParams = {},
   ) =>
     this.http.request<BonusRecordResponse, any>({
-      path: '/admin/netcashplayergame/redlist',
+      path: '/admin/netcashplayergame/bonuslist',
       method: "GET",
       query: query,
       secure: true,
