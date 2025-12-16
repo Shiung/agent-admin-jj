@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { formatSignedMoney } from '@/utils/formatNumber'
+import { formatSignedMoney, formatMoneyWithCommas } from '@/utils/formatNumber'
 interface Order {
   orderNo: string
   status: 'completed' | 'pending' | 'cancelled'
@@ -64,11 +64,11 @@ const getStatusConfig = (status: string) => {
     <div class="order-data">
       <div class="data-item">
         <span class="data-label">投注金额</span>
-        <span class="data-value">{{ order.betAmount }}</span>
+        <span class="data-value">{{ formatMoneyWithCommas(order.betAmount, 2, true) }}</span>
       </div>
       <div class="data-item">
         <span class="data-label">有效投注</span>
-        <span class="data-value">{{ order.validBet }}</span>
+        <span class="data-value">{{ formatMoneyWithCommas(order.validBet, 2, true) }}</span>
       </div>
       <div class="data-item">
         <span class="data-label">盈利</span>

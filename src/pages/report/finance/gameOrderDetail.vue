@@ -170,9 +170,9 @@ const orderList = computed(() => {
   return gameDetailData.value.Items.map(item => ({
     orderNo: item.TransactionId,
     status: formatStatus(item.Status),
-    betAmount: formatMoneyWithCommas(item.TotalBetGold, 2, true),
-    validBet: formatMoneyWithCommas(item.ValidWater, 2, true),
-    profit: formatMoneyWithCommas(item.CompanyWinLose, 2, true),
+    betAmount: item.TotalBetGold,
+    validBet: item.ValidWater,
+    profit: item.CompanyWinLose,
     username: item.LoginAccount,
     vipLevel: `VIP${item.VipLevel || 0}`,
     time: dayjs.unix(item.SettlementTime).format('YYYY-MM-DD HH:mm:ss'),
@@ -317,7 +317,6 @@ const handleOrderClick = (order: any) => {
               v-model="selectTimeRange"
               title="结算时间"
               height="1.5rem"
-              class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]"
             />
 
             <!-- 状态筛选 -->
