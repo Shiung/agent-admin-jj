@@ -74,6 +74,10 @@ const fetchWithdrawRecordConfig = async () => {
   } finally {}
 }
 const fetchWithdrawRecordList = async () => {
+  if (!checkTimeRange()) {
+    finished.value = true
+    return 
+  }
   const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
     const params = {
@@ -145,7 +149,6 @@ const fetchWithdrawList = async () => {
   }
 }
 
-// TODO: 功能怪怪的
 const checkTimeRange = () => {
   if (withdrawRecordConfig.value.IsOpen === 2) return true
 
