@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
@@ -15,6 +15,85 @@ import API from '@/apis'
 import type { AgentCreditLimitTransactionItem } from '@/apis/codegen/data-contracts'
 
 const router = useRouter()
+const route = useRoute()
+
+// 根据路由判断记录类型：deposit(代存) 或 transfer(转账)
+const recordType = computed(() => route.meta.recordType as 'deposit' | 'transfer')
+
+// 页面配置
+const pageConfig = computed(() => {
+  if (recordType.value === 'deposit') {
+    return {
+      title: '代存记录',
+      summaryLabel: '代存金额总计',
+      summaryIcon: '/static/images/common/depositRecordIcon.png',
+      summaryColorType: 'signed' as const,
+      searchPlaceholder: '会员账号',
+      amountLabel: '代存金额',
+      typeLabel: '代存类型',
+      typeFilterOptions: [
+        { label: '全部代存', value: 'all' },
+        { label: '佣金代存', value: 1 },
+        { label: '额度代存', value: 2 }
+      ],
+      sortOptions: [
+        { label: '账变时间降序', value: '账变时间降序' },
+        { label: '账变时间升序', value: '账变时间升序' },
+        { label: '代存金额降序', value: '代存金额降序' },
+        { label: '代存金额升序', value: '代存金额升序' }
+      ],
+      sortMap: {
+        '账变时间降序': '-CreateTime',
+        '账变时间升序': 'CreateTime',
+        '代存金额降序': '-ApplyAmount',
+        '代存金额升序': 'ApplyAmount'
+      } as Record<string, string>,
+      transferType: 2, // 代存
+      isAgentDeposit: true,
+      defaultTimeRange: 'today' as const, // 默认今天
+      showVipLevel: true, // 显示VIP等级
+      needProductName: true // 需要填充产品名称
+    }
+  } else {
+    return {
+      title: '转账记录',
+      summaryLabel: '转账金额总计',
+      summaryIcon: '/static/images/common/transferRecordIcon.png',
+      summaryColorType: 'signed' as const,
+      searchPlaceholder: '代理账号',
+      amountLabel: '转账金额',
+      typeLabel: '转账类型',
+      typeFilterOptions: [
+        { label: '全部转账', value: 'all' },
+        { label: '额度转账', value: 0 },
+        { label: '佣金转账', value: 1 }
+      ],
+      sortOptions: [
+        { label: '账变时间降序', value: '账变时间降序' },
+        { label: '账变时间升序', value: '账变时间升序' },
+        { label: '转账金额降序', value: '转账金额降序' },
+        { label: '转账金额升序', value: '转账金额升序' }
+      ],
+      // sortMap: {
+      //   '账变时间降序': '-update_time',
+      //   '账变时间升序': 'update_time',
+      //   '转账金额降序': '-amount',
+      //   '转账金额升序': 'amount'
+      // } as Record<string, string>,
+      sortMap: {
+        '账变时间降序': '-CreateTime',
+        '账变时间升序': 'CreateTime',
+        '代存金额降序': '-ApplyAmount',
+        '代存金额升序': 'ApplyAmount'
+      } as Record<string, string>,
+      transferType: 1, // 转账
+      isAgentDeposit: undefined,
+      defaultTimeRange: 'month' as const, // 默认本月
+      showVipLevel: false, // 不显示VIP等级
+      needProductName: false // 不需要填充产品名称
+    }
+  }
+})
 
 // 用户信息
 const userStore = useUserStore()
@@ -33,11 +112,22 @@ const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
 // 时间戳转秒
 const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
-// 初始化时间范围（默认今天）
-const selectTimeRange = ref({
-  startTime: timestampToSecond(dayjs().startOf('day').valueOf()),
-  endTime: timestampToSecond(dayjs().endOf('day').valueOf())
-})
+// 初始化时间范围
+const getDefaultTimeRange = () => {
+  if (pageConfig.value.defaultTimeRange === 'today') {
+    return {
+      startTime: timestampToSecond(dayjs().startOf('day').valueOf()),
+      endTime: timestampToSecond(dayjs().endOf('day').valueOf())
+    }
+  } else {
+    return {
+      startTime: timestampToSecond(dayjs().startOf('month').valueOf()),
+      endTime: timestampToSecond(dayjs().endOf('month').valueOf())
+    }
+  }
+}
+
+const selectTimeRange = ref(getDefaultTimeRange())
 
 // Calendar 打开状态
 const showCalendar = ref(false)
@@ -45,31 +135,20 @@ const showCalendar = ref(false)
 // 综合判断是否禁用下拉刷新
 const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
 
-// 代存金额总计
-const totalDepositAmount = ref(0)
+// 金额总计
+const totalAmount = ref(0)
 
-// 会员账号搜索
+// 会员/代理账号搜索
 const searchKeyword = ref('')
 
-// 代存类型筛选
-const depositTypeFilter = ref<string | number>('all')
-const depositTypeOptions = [
-  { label: '全部代存', value: 'all' },
-  { label: '佣金代存', value: 1 },
-  { label: '额度代存', value: 2 }
-]
+// 类型筛选
+const typeFilter = ref<string | number>('all')
 
 // 排序筛选
 const sortType = ref('账变时间降序')
-const sortOptions = [
-  { label: '账变时间降序', value: '账变时间降序' },
-  { label: '账变时间升序', value: '账变时间升序' },
-  { label: '代存金额降序', value: '代存金额降序' },
-  { label: '代存金额升序', value: '代存金额升序' }
-]
 
-// 代存记录列表数据
-const depositRecords = ref<AgentCreditLimitTransactionItem[]>([])
+// 记录列表数据
+const records = ref<AgentCreditLimitTransactionItem[]>([])
 
 // 分页和加载状态
 const loading = ref(false)
@@ -92,7 +171,7 @@ const handleSearch = () => {
   }
 }
 
-// 会员账号输入监听（当输入字元>=1自动加载清单）
+// 会员/代理账号输入监听（当输入字元>=1自动加载清单）
 watch(searchKeyword, (newVal) => {
   if (newVal.length === 0) {
     resetList()
@@ -105,7 +184,7 @@ watch(selectTimeRange, () => {
 }, { deep: true })
 
 // 处理筛选变化
-watch([depositTypeFilter, sortType], () => {
+watch([typeFilter, sortType], () => {
   resetList()
 })
 
@@ -113,8 +192,8 @@ watch([depositTypeFilter, sortType], () => {
 const resetList = (keepData = false) => {
   currentPage.value = 1
   if (!keepData) {
-    depositRecords.value = []
-    totalDepositAmount.value = 0
+    records.value = []
+    totalAmount.value = 0
   }
   finished.value = false
   error.value = false
@@ -130,13 +209,7 @@ const onRefresh = () => {
 
 // 排序类型映射到API参数
 const getSortParam = (sortType: string): string => {
-  const sortMap: Record<string, string> = {
-    '账变时间降序': '-CreateTime',
-    '账变时间升序': 'CreateTime',
-    '代存金额降序': '-ApplyAmount',
-    '代存金额升序': 'ApplyAmount'
-  }
-  return sortMap[sortType] || '-CreateTime'
+  return pageConfig.value.sortMap[sortType] || pageConfig.value.sortMap['账变时间降序']
 }
 
 // 加载更多
@@ -155,19 +228,29 @@ const loadMore = async () => {
       PageSize: pageSize,
       BeginTime: selectTimeRange.value.startTime,
       EndTime: selectTimeRange.value.endTime,
-      TransferType: 2, // 固定为2（代存），1=转账
-      IsAgentDeposit: true, // 代理代存标识
-      Sort: getSortParam(sortType.value) // 排序参数
+      TransferType: pageConfig.value.transferType,
+      Sort: getSortParam(sortType.value)
     }
 
-    // 会员账号搜索
+    // 代存特有参数
+    if (pageConfig.value.isAgentDeposit !== undefined) {
+      query.IsAgentDeposit = pageConfig.value.isAgentDeposit
+    }
+
+    // 会员/代理账号搜索
     if (searchKeyword.value) {
       query.AccountName = searchKeyword.value
     }
 
-    // 代存类型筛选（WalletType: 1=佣金钱包, 2=额度钱包）
-    if (depositTypeFilter.value !== 'all') {
-      query.WalletType = depositTypeFilter.value
+    // 类型筛选（WalletType: 1=佣金钱包, 2=额度钱包）
+    if (typeFilter.value !== 'all') {
+      if (recordType.value === 'transfer') {
+        // 转账：0=额度转账->WalletType=2, 1=佣金转账->WalletType=1
+        query.WalletType = typeFilter.value === 0 ? 2 : 1
+      } else {
+        // 代存：直接使用 WalletType
+        query.WalletType = typeFilter.value
+      }
     }
 
     const response = await API.admin.getAgentCreditLimitTransactionList(query)
@@ -177,31 +260,38 @@ const loadMore = async () => {
       const responseData = response.data.Data || {}
       let items = responseData.Items || []
 
-      // 填充产品名称
-      items = items.map((item, index) => {
-        const selectedPackage = productPackages.value.find(p => p.PackageId === item.PackageId)
-        return {
+      // 填充产品名称和序号
+      if (pageConfig.value.needProductName) {
+        items = items.map((item, index) => {
+          const selectedPackage = productPackages.value.find(p => p.PackageId === item.PackageId)
+          return {
+            ...item,
+            PackageName: selectedPackage ? selectedPackage.PackageName : '',
+            index: (currentPage.value - 1) * pageSize + index + 1
+          }
+        })
+      } else {
+        items = items.map((item, index) => ({
           ...item,
-          PackageName: selectedPackage ? selectedPackage.PackageName : '',
           index: (currentPage.value - 1) * pageSize + index + 1
-        }
-      })
+        }))
+      }
 
       if (currentPage.value === 1) {
-        depositRecords.value = items
+        records.value = items
       } else {
-        depositRecords.value = [...depositRecords.value, ...items]
+        records.value = [...records.value, ...items]
       }
 
       // 更新总计
-      totalDepositAmount.value = responseData.Total?.TotalAmount || 0
+      totalAmount.value = responseData.Total?.TotalAmount || 0
 
       // 更新分页状态
       totalCount.value = responseData.Pagination?.MaxCount || 0
 
       // 判断是否已加载完所有数据
       // 如果返回的数据少于 pageSize，或已加载数量达到总数，说明没有更多数据了
-      if (items.length < pageSize || depositRecords.value.length >= totalCount.value) {
+      if (items.length < pageSize || records.value.length >= totalCount.value) {
         finished.value = true
       } else {
         currentPage.value++
@@ -215,7 +305,7 @@ const loadMore = async () => {
       })
     }
   } catch (err) {
-    console.error('加载代存记录失败:', err)
+    console.error(`加载${pageConfig.value.title}失败:`, err)
     error.value = true
     finished.value = true // 出错时也设置 finished，避免无限重试
     showToast({
@@ -233,7 +323,7 @@ const formatTime = (timestamp: number) => {
   return dayjs.unix(timestamp).format('YYYY-MM-DD HH:mm:ss')
 }
 
-// 格式化充值类型
+// 格式化充值类型（仅代存使用）
 const formatTransferType = (type: number) => {
   const types: Record<number, string> = {
     2: '代存',
@@ -242,9 +332,13 @@ const formatTransferType = (type: number) => {
   return types[type] || '-'
 }
 
-// 格式化代存类型
-const formatDepositType = (walletType: number) => {
-  return walletType === 1 ? '佣金代存' : '额度代存'
+// 格式化代存/转账类型
+const formatRecordType = (walletType: number) => {
+  if (recordType.value === 'deposit') {
+    return walletType === 1 ? '佣金代存' : '额度代存'
+  } else {
+    return walletType === 1 ? '佣金转账' : '额度转账'
+  }
 }
 
 // 格式化金额（带符号）
@@ -255,15 +349,24 @@ const formatAmountWithSign = (amount: number) => {
 
 // 转换记录为卡片数据
 const getCardDetails = (record: AgentCreditLimitTransactionItem) => {
-  return [
-    { label: '订单号', value: record.OrderId, showCopy: true },
-    { label: '代存类型', value: formatDepositType(record.WalletType) },
-    { label: '代存金额', value: formatAmountWithSign(record.ApplyAmount), highlight: false },
-    { label: '流水倍数', value: record.WithdrawWaterMultiply || 0 },
-    { label: '代存回馈', value: formatMoneyWithCommas(record.DepositRebate || 0, 2, true) },
-    { label: '充值类型', value: formatTransferType(record.TransferType) },
-    { label: '备注', value: record.Remarks || '-', multiline: true }
-  ]
+  if (recordType.value === 'deposit') {
+    return [
+      { label: '订单号', value: record.OrderId, showCopy: true },
+      { label: '代存类型', value: formatRecordType(record.WalletType) },
+      { label: '代存金额', value: formatAmountWithSign(record.ApplyAmount), highlight: false },
+      { label: '流水倍数', value: record.WithdrawWaterMultiply || 0 },
+      { label: '代存回馈', value: formatMoneyWithCommas(record.DepositRebate || 0, 2, true) },
+      { label: '充值类型', value: formatTransferType(record.TransferType) },
+      { label: '备注', value: record.Remarks || '-', multiline: true }
+    ]
+  } else {
+    return [
+      { label: '订单号', value: record.OrderId, showCopy: true },
+      { label: '转账类型', value: formatRecordType(record.WalletType) },
+      { label: '转账金额', value: formatMoneyWithCommas(record.ApplyAmount, 2, true), highlight: false },
+      { label: '备注', value: record.Remarks || '-', multiline: true }
+    ]
+  }
 }
 
 const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
@@ -274,12 +377,12 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
 </script>
 
 <template>
-  <div ref="containerRef" class="deposit-record-container">
+  <div ref="containerRef" class="transaction-record-container">
     <!-- 头部导航 -->
     <div class="fixed-header">
       <div class="flex items-center justify-between h-11 px-3 bg-white">
         <van-icon name="arrow-left" size="24" @click="handleBack" />
-        <span class="text-base font-semibold text-neutral-basic">代存记录</span>
+        <span class="text-base font-semibold text-neutral-basic">{{ pageConfig.title }}</span>
         <div style="width: 24px;"></div>
       </div>
     </div>
@@ -289,15 +392,15 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
       v-model="refreshing"
       @refresh="onRefresh"
       :disabled="disablePullRefresh"
-      class="deposit-record-pull-refresh"
+      class="transaction-record-pull-refresh"
     >
-      <!-- 代存金额总计卡片 -->
+      <!-- 金额总计卡片 -->
       <div class="px-3 pb-2 pt-[54px]">
         <SummaryCard
-          label="代存金额总计"
-          :value="totalDepositAmount"
-          icon="/static/images/common/depositRecordIcon.png"
-          colorType="signed"
+          :label="pageConfig.summaryLabel"
+          :value="totalAmount"
+          :icon="pageConfig.summaryIcon"
+          :color-type="pageConfig.summaryColorType"
         />
       </div>
 
@@ -305,10 +408,10 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
       <div>
         <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
         <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
-          <!-- 会员账号搜索框 -->
+          <!-- 会员/代理账号搜索框 -->
           <van-search
             v-model="searchKeyword"
-            placeholder="会员账号"
+            :placeholder="pageConfig.searchPlaceholder"
             shape="round"
             background="transparent"
             clearable
@@ -332,11 +435,11 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
               height="1.5rem"
             />
 
-            <!-- 代存类型 -->
+            <!-- 类型筛选 -->
             <div class="filter-dropdown">
               <Dropdown
-                v-model="depositTypeFilter"
-                :options="depositTypeOptions"
+                v-model="typeFilter"
+                :options="pageConfig.typeFilterOptions"
                 height="1.5rem"
               />
             </div>
@@ -345,7 +448,7 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
             <div class="filter-dropdown">
               <Dropdown
                 v-model="sortType"
-                :options="sortOptions"
+                :options="pageConfig.sortOptions"
                 height="1.5rem"
               />
             </div>
@@ -365,19 +468,19 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
         @load="loadMore"
         :class="{ 'hide-list-loading': refreshing }"
       >
-        <div v-if="depositRecords.length > 0" class="record-list-container">
+        <div v-if="records.length > 0" class="record-list-container">
           <RecordCard
-            v-for="record in depositRecords"
+            v-for="record in records"
             :key="record.OrderId"
             :headerTitle="record.ReferenceAccount"
-            :headerSubtitle="`VIP${record.VipLevel || 0}`"
+            :headerSubtitle="pageConfig.showVipLevel ? `VIP${record.VipLevel || 0}` : undefined"
             :details="getCardDetails(record)"
             :times="getCardTimes(record)"
           />
         </div>
         <template #finished>
-          <div v-if="depositRecords.length === 0" class="flex items-center justify-center" style="min-height: 300px;">
-            <empty description="暂无记录" />
+          <div v-if="records.length === 0" class="flex items-center justify-center" style="min-height: 300px;">
+            <empty />
           </div>
         </template>
       </van-list>
@@ -386,7 +489,7 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
 </template>
 
 <style lang="scss" scoped>
-.deposit-record-container {
+.transaction-record-container {
   background-color: white;
   padding-bottom: 2rem;
 }
@@ -401,7 +504,7 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
   background-color: white;
 }
 
-.deposit-record-pull-refresh {
+.transaction-record-pull-refresh {
   :deep(.van-pull-refresh__track) {
     overflow: visible !important;
   }
