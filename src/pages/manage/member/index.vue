@@ -58,8 +58,8 @@ const selectedSort = ref(sortOptions.value[0]?.value ?? '-CreateTime')
 
 const info = computed(() => ([
   { title: '总会员数', amount: formatNumber(pageInfo.value?.MaxCount ?? 0) },
-  { title: '总充值', amount: formatMoney(totalInfo.value?.TotalRecharged ?? 0, 0, true) },
-  { title: '总代存', amount: formatMoney(totalInfo.value?.TotalAgentApplyGold ?? 0, 0, true) },
+  { title: '总充值', amount: formatMoney(totalInfo.value?.TotalRecharged ?? 0, 2, true) },
+  { title: '总代存', amount: formatMoney(totalInfo.value?.TotalAgentApplyGold ?? 0, 2, true) },
 ]))
 
 const searchLsLoading = ref<boolean>(false)
@@ -333,11 +333,11 @@ onMounted(() => {
               </div>
               <div class="flex-1 flex flex-col items-center justify-center">
                 <div class="text-xs text-neutral2-secondary">充值</div>
-                <ShowNumber class="text-sm font-semibold text-neutral2-basic" :format-num="formatSignedMoney(i.Recharged ?? 0, 0, false)" />
+                <ShowNumber class="text-sm font-semibold text-neutral2-basic" :format-num="{ text: formatMoney(i.Recharged ?? 0, 2, true).toString(), color: '' }" />
               </div>
               <div class="flex-1 flex flex-col items-center justify-center">
                 <div class="text-xs text-neutral2-secondary">代存</div>
-                <ShowNumber class="text-sm font-semibold text-neutral2-basic" :format-num="formatSignedMoney(i.AgentApplyGold ?? 0, 0, false)" />
+                <ShowNumber class="text-sm font-semibold text-neutral2-basic" :format-num="{ text: formatMoney(i.AgentApplyGold ?? 0, 2, true).toString(), color: '' }" />
               </div>
             </div>
 
