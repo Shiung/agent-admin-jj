@@ -229,32 +229,8 @@ const parseOrderDetail = (rawData: GameDetailItem): OrderDetail | null => {
 // 获取订单详情的游戏名称（根据游戏类型）
 const orderGameName = computed(() => {
   if (!props.rawData) return '-'
-
   const rawData = props.rawData
-
-  // Funky火箭
-  if (rawData.FunkyDetails && rawData.FunkyDetails.length > 0) {
-    return rawData.FunkyDetails[0]?.GameName || 'Funky火箭'
-  }
-
-  // 真人游戏
-  if (rawData.GameLiveDetails && rawData.GameLiveDetails.length > 0) {
-    return rawData.GameLiveDetails[0]?.PlatformName || '真人游戏'
-  }
-
-  // 直播竞猜
-  if (rawData.LiveDetails && rawData.LiveDetails.length > 0) {
-    return '直播竞猜'
-  }
-
-  // 体育投注
-  if (rawData.SportDetails && rawData.SportDetails.length > 0) {
-    const sport = rawData.SportDetails[0]
-    return sport?.VenueName || sport?.GameType || '体育投注'
-  }
-
-  // 默认使用场馆代码
-  return rawData.GameType || '-'
+  return gameStore.allGameTypeMapping[rawData.GameType] ?? rawData.GameType
 })
 
 // 获取订单摘要字段（根据游戏类型动态显示）

@@ -22,7 +22,8 @@ const containerRef = ref<HTMLElement | null>(null)
 const gameStore = useGameStore()
 
 // From route query
-const gameName = computed(() => route.query.game as string || '游戏详情')
+const gameName = computed(() => route.query.gameName as string || '游戏详情')
+const gameType = computed(() => route.query.gameType as string || '-')
 
 // 游戏注单数据
 const gameDetailData = ref<GameDetailData | null>(null)
@@ -128,7 +129,7 @@ const fetchGameDetail = async (isRefreshing = false) => {
       PageSize: pageSize.value,
       BeginTime,
       EndTime,
-      GameType: gameName.value, // 游戏场馆代码
+      GameType: gameType.value, // 游戏场馆代码
       LoginAccount: searchKeyword.value || undefined, // 会员账号搜索
       SelectTimeType: 2, // 2=结算时间
       Status: statusMap[statusFilter.value],
@@ -216,7 +217,6 @@ const handleBack = () => {
 
 // Search
 const handleSearch = () => {
-  console.log('搜索会员账号:', searchKeyword.value)
   currentPage.value = 1 // 重置到第一页
   fetchGameDetail()
 }
