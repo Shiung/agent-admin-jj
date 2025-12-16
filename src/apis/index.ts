@@ -13,6 +13,7 @@ import { Report } from './codegen/Report'
 import { Config } from './codegen/Config'
 import { Finance } from './codegen/Finance'
 import { MemberRecharge } from './codegen/MemberRecharge'
+import { Financecenter } from './codegen/Financecenter/index'
 
 export default {
   system: new System(apiClient),
@@ -27,4 +28,5 @@ export default {
   config: new Config(apiClient),
   finance: new Finance(apiClient),
   memberRecharge: new MemberRecharge(apiClient),
+  financecenter: new Financecenter(apiClient),
 }

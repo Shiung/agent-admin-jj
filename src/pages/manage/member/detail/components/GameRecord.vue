@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, defineComponent, h, watch, useAttrs, onMounted } from 'vue'
+import { ref, computed, defineComponent, h, watch, useAttrs, onMounted, watchEffect } from 'vue'
 import UnitCard from '../../../components/UnitCard.vue'
 import API from '@/apis/index'
 import type { GamedetailRequest } from '@/apis/codegen/NetCashPlayerGame/types'
@@ -12,6 +12,11 @@ import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 import { useGameStore } from '@/stores/game'
 import { useClipboard } from '@vueuse/core'
 import FilterBox from '../../components/FilterBox.vue'
+
+defineProps<{
+  /** 注单记录 page: /mine/betRecord */
+  betRecordMode?: boolean
+}>()
 
 const advanceKeyMap = {
   timeRange: 'TimeRange',
@@ -318,7 +323,15 @@ const copyHadandler = (c: string) => {
   showToast({ message: '复制成功' })
 }
 
-watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus, selectedSort], () => {
+const emit = defineEmits<{
+  (e: 'sumInfo', value: Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['MoreItems'] | null): void 
+}>()
+
+watchEffect(() => {
+  emit('sumInfo', moreItems.value)
+})
+
+watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus, playerId, selectedSort], () => {
   infinityRef.value?.fetchData()
 })
 
@@ -344,7 +357,7 @@ onMounted(() => {
     >
       <template v-slot="{ ls }">
         <div class="space-y-2 px-3">
-          <UnitCard class=" border border-primary-50 shadow-none">
+          <UnitCard v-if="!betRecordMode" class=" border border-primary-50 shadow-none">
             <template #header>
               <div class="flex items-center space-x-1">
                 <span class="text-sm font-semibold text-neutral2-basic">场馆总计</span>
@@ -366,7 +379,8 @@ onMounted(() => {
           <UnitCard v-for="l in ls" :key="l.Id" class="relative" @click="showDetailHandler(l)">
             <template #header>
               <div class="flex justify-between items-center">
-                <div class="text-xs text-neutral2-secondary space-x-1">
+                <div class="text-xs text-neutral2-secondary space-x-1 flex items-center">
+                  <div v-if="betRecordMode" class="text-sm font-semibold text-neutral2-basic">{{ gameStore.allGameTypeMapping[l.GameType] ?? '' }}</div>
                   <span>订单号</span>
                   <span>{{ l.TransactionId }}</span>
                   <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" @click.stop="copyHadandler(l.TransactionId)"/>
@@ -383,7 +397,11 @@ onMounted(() => {
 
             <template #footer>
               <div class="flex justify-between items-center">
-                <div class="text-xs text-neutral2-basic">{{ gameStore.allGameTypeMapping[l.GameType] ?? '' }}</div>
+                <div v-if="betRecordMode" class="space-x-1 flex items-center">
+                  <span class="text-sm font-semibold text-neutral2-basic">{{ l.LoginAccount }}</span>
+                  <span class="text-xs font-normal text-neutral2-secondary">VIP{{ l.VipLevel ?? 0}}</span>
+                </div>
+                <div v-else class="text-xs text-neutral2-basic">{{ gameStore.allGameTypeMapping[l.GameType] ?? '' }}</div>
                 <ShowTime class="text-xs text-neutral2-basic" :item="l" />
               </div>
             </template>
