@@ -249,7 +249,7 @@ onMounted(async () => {
             {{ personalCenterInfo?.GoogleSecret ? '已设置' : '尚未设置' }}
           </van-skeleton>
         </template>
-        <van-button v-if="!personalCenterInfo?.GoogleSecret" round size="small" type="primary" @click="router.push({ name: 'mineGoogleCode', query: { Username: personalCenterInfo?.Username } })">设置</van-button>
+        <van-button v-if="!personalCenterInfo?.GoogleSecret" round size="small" type="primary" @click="router.push({ name: 'mineGoogleCode' })">设置</van-button>
       </van-cell>
       <van-cell
         title="QQ号"

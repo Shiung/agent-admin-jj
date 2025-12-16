@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, watchEffect, onMounted } from 'vue'
-import { showToast } from 'vant'
+import { ref, watch, watchEffect, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useClipboard } from '@vueuse/core'
@@ -13,13 +12,17 @@ import type { FormInstance } from 'vant'
 
 const router = useRouter()
 const userStore = useUserStore()
-const loading = ref(false)
+const isFetching = ref(false)
+const isLoading = ref(false)
 
+const username = computed(() => userStore.accountInfo?.Username || '')
 const googleCode = ref('')
-const username = ref(userStore.accountInfo?.Username || '')
 const verificationCode = ref('')
 const formRef = ref<FormInstance | null>(null)
 const { copy, copied } = useClipboard()
+
+// 暫存，以防頁面重刷，導致重新獲取谷歌驗證碼
+const getStorageKey = () => `googleCode_${username.value}`
 
 watchEffect(() => {
   if (copied.value) {
@@ -27,14 +30,19 @@ watchEffect(() => {
   }
 })
 
-// 复制密钥
-const copySecret = (item: string) => {
-  if (!item) return
-  copy(item)
-}
-
 const fetchGoogleCode = async () => {
-  loading.value = true
+  if (!username.value || googleCode.value || isFetching.value) {
+    return
+  }
+
+  const storageKey = getStorageKey()
+  const cachedCode = sessionStorage.getItem(storageKey)
+  if (cachedCode) {
+    googleCode.value = cachedCode
+    return
+  }
+
+  isFetching.value = true
   try {
     const res = await API.system.googleCode({ Username: username.value })
     if (res.data.Code !== 200) {
@@ -44,20 +52,30 @@ const fetchGoogleCode = async () => {
     }
     const data = res.data.Data as GoogleValidResponseData
     googleCode.value = data.Secret
+    sessionStorage.setItem(storageKey, data.Secret)
   } catch (error: any) {
     console.error('获取谷歌验证失败：', error)
     showFailToast(error?.response?.data?.Msg)
   } finally {
-    loading.value = false
+    isFetching.value = false
   }
 }
 
-onMounted(() => {
-  fetchGoogleCode()
+watch(username, (newVal) => {
+  if (newVal && !googleCode.value && !isFetching.value) {
+    fetchGoogleCode()
+  }
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  // 離開頁面清除暫存
+  const storageKey = getStorageKey()
+  sessionStorage.removeItem(storageKey)
 })
 
 const submit = async () => {
   formRef.value?.validate().then(async () => {
+    isLoading.value = true
     try {
       const res = await API.admin.updateGoogleCode({
         Username: username.value,
@@ -68,32 +86,16 @@ const submit = async () => {
         return
       }
       showToast('编辑成功')
+      const storageKey = getStorageKey()
+      sessionStorage.removeItem(storageKey)
       router.replace({ name: 'mineProfile' })
     } catch (error: any) {
       console.error('更新失败：', error)
       showFailToast(error?.response?.data?.Msg)
     } finally {
-      loading.value = false
+      isLoading.value = false
     }
   })
-
-  loading.value = true
-  try {
-    const res = await API.admin.updateGoogleCode({
-      Username: username.value,
-      Code: verificationCode.value.trim(),
-    })
-    if (res.data.Code !== 200) {
-      showFailToast(res.data.Msg)
-      return
-    }
-    showToast('修改成功')
-    router.replace({ name: 'mineProfile' })
-  } catch (error: any) {
-    showFailToast(error?.response?.data?.Msg)
-  } finally {
-    loading.value = false
-  }
 }
 </script>
 <template>
@@ -105,55 +107,32 @@ const submit = async () => {
         <p class="text-primary-normal text-sm">可以在苹果商店搜索"Google Authenticator"，或安卓商店搜索"Google身份验证器" 下载安装</p>
       </div>
       <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
-        <AppField
-          v-model="googleCode"
-          name="googleCode"
-          label-align="top"
-          label="谷歌验证器密钥"
-        >
+        <AppField v-model="googleCode" name="googleCode" label-align="top" label="谷歌验证器密钥">
           <template #input>
             <div class="flex items-center w-full gap-2">
-              <input
-                :value="googleCode"
-                type="text"
-                class="flex-1 min-w-0 outline-none pl-2.5 truncate"
-                @input="(e: Event) => { googleCode = (e.target as HTMLInputElement).value }"
-              />
+              <input readonly :value="googleCode" type="text" class="flex-1 min-w-0 outline-none pl-2.5 truncate" />
             </div>
           </template>
           <template #right-icon>
-            <van-image src="./static/images/promote/copy_lite.png" width="15" height="15" @click="copySecret(googleCode.trim())" />
+            <div class="flex items-center h-full"> <van-image src="./static/images/promote/copy_lite.png" width="15"
+                height="15" @click="copy(googleCode.trim())" /></div>
           </template>
         </AppField>
-        <AppField
-          v-model="verificationCode"
-          name="verificationCode"
-          label-align="top"
-          label="谷歌验证码"
-          placeholder="请输入6位数验证码"
-          required
-          :rules="[rulesVerifyCode()]"
-          :maxlength="6"
-          type="number"
-        >
+        <AppField v-model="verificationCode" name="verificationCode" label-align="top" label="谷歌验证码"
+          placeholder="请输入6位数验证码" required :rules="[rulesVerifyCode()]" :maxlength="6" type="number">
           <template #input>
-            <input
-              :value="verificationCode"
-              type="text"
-              inputmode="numeric"
-              pattern="[0-9]*"
+            <input :value="verificationCode" type="text" inputmode="numeric" pattern="[0-9]*"
               class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入6位数验证码"
-              maxlength="6"
-              @input="(e: Event) => {
+              placeholder="请输入6位数验证码" maxlength="6" @input="(e: Event) => {
                 const value = (e.target as HTMLInputElement).value.replace(/\D/g, '')
                 verificationCode = value.slice(0, 6)
-              }"
-            />
+              }" />
           </template>
         </AppField>
         <div class="px-4 my-4">
-          <van-button block round type="primary" :loading="loading" :disabled="!verificationCode.trim() || verificationCode.trim().length !== 6" native-type="submit">提交</van-button>
+          <van-button block round type="primary"
+            :disabled="!verificationCode.trim() || verificationCode.trim().length !== 6" :loading="isLoading"
+            native-type="submit">提交</van-button>
           <span class="block text-xs font-normal my-4" style="color: #6b7190;">
             打开谷歌身份验证器，点选右下角的"+"，选择手动输入密钥，填入任意账户和上述密钥绑定
           </span>
