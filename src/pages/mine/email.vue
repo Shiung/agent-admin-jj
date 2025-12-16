@@ -6,7 +6,7 @@ import { showToast, showFailToast } from 'vant'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
 import API from '@/apis'
-import { rulesRequired } from '@/utils/formRules'
+import { rulesMail, rulesVerifyCode } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 
 const router = useRouter()
@@ -19,18 +19,8 @@ const codeLoading = ref(false)
 const countdown = ref(0)
 const formRef = ref<FormInstance | null>(null)
 
-const validateEmail = (email: string): boolean => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return emailRegex.test(email.trim())
-}
-
 // 获取验证码
 const getVerificationCode = async () => {
-  if (!validateEmail(email.value)) {
-    showFailToast('请输入正确的邮箱地址')
-    return
-  }
-
   if (countdown.value > 0) {
     return
   }
@@ -96,7 +86,7 @@ const submit = async () => {
         label="邮箱地址"
         placeholder="请输入"
         required
-        :rules="[rulesRequired()]"
+        :rules="[rulesMail()]"
       >
         <template #input>
           <div class="flex items-center w-full gap-2">
@@ -119,6 +109,7 @@ const submit = async () => {
         placeholder="请输入"
         required
         autocomplete="off"
+        :rules="[rulesVerifyCode()]"
       >
         <template #input>
           <div class="flex items-center w-full gap-2">
