@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch } from 'vue'
 import { showToast } from 'vant'
 import API from '@/apis'
 import { useGlobalStore } from '@/stores/global'
@@ -132,6 +132,7 @@ watch(show, (newVal) => {
     title="请输入图中验证码"
     :show-confirm-button="false"
     :close-on-click-overlay="true"
+    teleport="#app"
     @close="handleClose"
   >
     <div class="captcha-dialog-content">

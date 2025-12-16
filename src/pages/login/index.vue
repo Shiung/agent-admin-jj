@@ -4,6 +4,7 @@ import LoginForm from './components/LoginForm.vue'
 import RegisterForm from './components/RegisterForm.vue'
 import GoogleVerifyForm from './components/GoogleVerifyForm.vue'
 import GoogleBindForm from './components/GoogleBindForm.vue'
+import ForgotPasswordForm from './components/ForgotPasswordForm.vue'
 
 declare const __APP_VERSION__: string
 const APP_VERSION = `v${__APP_VERSION__}`
@@ -53,6 +54,17 @@ const handleGoogleBindSuccess = (username: string, password: string) => {
 const handleRegisterSuccess = () => {
   activeTab.value = 'login'
 }
+
+// 忘記密碼狀態
+const showForgotPassword = ref(false)
+
+const handleShowForgotPassword = () => {
+  showForgotPassword.value = true
+}
+
+const handleCloseForgotPassword = () => {
+  showForgotPassword.value = false
+}
 </script>
 
 <template>
@@ -70,6 +82,7 @@ const handleRegisterSuccess = () => {
           <LoginForm 
             @show-google-verify="handleShowGoogleVerify" 
             @show-google-bind="handleShowGoogleBind"
+            @show-forgot-password="handleShowForgotPassword"
           />
         </van-tab>
         
@@ -112,6 +125,22 @@ const handleRegisterSuccess = () => {
           :google-login-auth-token="googleBindData.googleLoginAuthToken"
           @close="handleCloseGoogleBind"
           @bound="handleGoogleBindSuccess"
+        />
+        <!-- 版本號 -->
+        <div class="version">{{ APP_VERSION }}</div>
+      </van-popup>
+
+      <!-- 忘記密碼 Popup (在 content-section 內從右側滑入) -->
+      <van-popup
+        v-model:show="showForgotPassword"
+        position="right"
+        :overlay="false"
+        class="google-popup"
+      >
+        <ForgotPasswordForm 
+          v-if="showForgotPassword"
+          @close="handleCloseForgotPassword"
+          @success="handleCloseForgotPassword"
         />
         <!-- 版本號 -->
         <div class="version">{{ APP_VERSION }}</div>

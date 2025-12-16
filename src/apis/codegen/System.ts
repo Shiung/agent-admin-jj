@@ -23,6 +23,12 @@ import type {
   GoogleLoginAuthResponse,
   GoogleLoginAuthBindFormData,
   GoogleLoginAuthBindResponse,
+  ValidUserV2FormData,
+  ValidUserV2Response,
+  ValideCodeV2FormData,
+  ValideCodeV2Response,
+  RetrievePasswordV2FormData,
+  RetrievePasswordV2Response,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -358,6 +364,51 @@ export class System<SecurityDataType = unknown> {
     this.http.request<GoogleLoginAuthBindResponse, any>({
       path: '/system/user/googleloginauthbind',
       method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** 重置密碼拿手機/email驗證碼 */
+  validUserV2 = (
+    data: ValidUserV2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<ValidUserV2Response, any>({
+      path: '/api/netcashregister/validuserv2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** 重置密碼確認驗證碼是否正確 */
+  valideCodeV2 = (
+    data: ValideCodeV2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<ValideCodeV2Response, any>({
+      path: '/api/netcashregister/validecodev2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** 重置密碼 */
+  retrievePasswordV2 = (
+    data: RetrievePasswordV2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<RetrievePasswordV2Response, any>({
+      path: '/api/netcashregister/retrievepasswordv2',
+      method: "PUT",
       body: data,
       secure: true,
       type: ContentType.FormData,

@@ -4,6 +4,7 @@ import { useGlobalStore } from '@/stores/global'
 import API from '@/apis'
 import getDeviceId from '@/utils/getDeviceId'
 import ImageCaptchaDialog from '@/components/ImageCaptchaDialog/index.vue'
+import DropdownFilled from '@/components/Dropdown/Filled.vue'
 
 const IS_SERVE = import.meta.env.DEV
 
@@ -24,7 +25,7 @@ const formData = ref({
   inviteCode: '',
   phone: '',
   phoneCode: '',
-  countryCode: '+86',
+  countryCode: '86',
 })
 
 // 表單錯誤訊息
@@ -158,20 +159,20 @@ const clearError = (field: keyof typeof errors) => {
 }
 
 const countryCodeOptions = [
-  { value: '86', text: '+86' },
-  { value: '1', text: '+1'},
-  { value: '60', text: '+60' },
-  { value: '62', text: '+62' },
-  { value: '63', text: '+63' },
-  { value: '65', text: '+65' },
-  { value: '66', text: '+66' },
-  { value: '81', text: '+81' },
-  { value: '82', text: '+82' },
-  { value: '84', text: '+84' },
-  { value: '853', text: '+853' },
-  { value: '855', text: '+855' },
-  { value: '886', text: '+886' },
-  { value: '852', text: '+852' }
+  { value: '86', label: '+86' },
+  { value: '1', label: '+1'},
+  { value: '60', label: '+60' },
+  { value: '62', label: '+62' },
+  { value: '63', label: '+63' },
+  { value: '65', label: '+65' },
+  { value: '66', label: '+66' },
+  { value: '81', label: '+81' },
+  { value: '82', label: '+82' },
+  { value: '84', label: '+84' },
+  { value: '853', label: '+853' },
+  { value: '855', label: '+855' },
+  { value: '886', label: '+886' },
+  { value: '852', label: '+852' },
 ]
 
 const showPassword = ref(false)
@@ -229,13 +230,6 @@ const startPhoneCountdown = () => {
   }, 1000)
 }
 
-const showCountryPicker = ref(false)
-
-const onCountryCodeConfirm = ({ selectedOptions }: { selectedOptions: { value: string }[] }) => {
-  formData.value.countryCode = selectedOptions[0]?.value || ''
-  showCountryPicker.value = false
-}
-
 const handleRegister = async () => {
   // 先驗證表單
   if (!validateForm()) return
@@ -273,7 +267,7 @@ const resetForm = () => {
     inviteCode: '',
     phone: '',
     phoneCode: '',
-    countryCode: '+86',
+    countryCode: '86',
   }
   // 清除所有錯誤訊息
   Object.keys(errors).forEach(key => {
@@ -389,9 +383,8 @@ const fullPhoneNumber = computed(() => {
         <div class="form-group">
           <label class="form-label">手机号</label>
           <div class="input-wrapper phone-wrapper" :class="{ 'input-error': errors.phone }">
-            <div class="country-code" @click="showCountryPicker = true">
-              <span>{{ formData.countryCode }}</span>
-              <van-icon name="arrow-down" size="12" />
+            <div class="country-code">
+              <DropdownFilled v-model="formData.countryCode" placeholder="请选择" height="2rem" :options="countryCodeOptions" />
             </div>
             <input 
               v-model="formData.phone"
@@ -403,15 +396,6 @@ const fullPhoneNumber = computed(() => {
           </div>
           <span v-if="errors.phone" class="error-message">{{ errors.phone }}</span>
         </div>
-
-        <!-- 國碼選擇器 -->
-        <van-popup v-model:show="showCountryPicker" position="bottom" round>
-          <van-picker
-            :columns="countryCodeOptions"
-            @confirm="onCountryCodeConfirm"
-            @cancel="showCountryPicker = false"
-          />
-        </van-popup>
 
         <!-- 手机号验证码 -->
         <div class="form-group">

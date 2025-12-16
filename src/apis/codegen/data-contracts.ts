@@ -171,6 +171,61 @@ export interface GoogleLoginAuthBindResponse {
   Msg: string
 }
 
+export interface ValidUserV2FormData {
+  Username: string // 代理帳號
+  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
+  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
+  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
+  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  AgentId: number // 代理ID
+  Code?: string // 驗證碼 (當 ValidType = 2 時需帶入)
+  Domain?: string // 域名 (目前沒有使用這個欄位)
+}
+
+export interface ValidUserV2Response {
+  Code: number
+  Data: string
+  Msg: string
+}
+
+export interface ValideCodeV2FormData {
+  Username: string // 代理帳號
+  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
+  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
+  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
+  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  AgentId: number // 代理ID
+  Code: string // 驗證碼
+  Domain?: string // 域名 (目前沒有使用這個欄位)
+}
+
+export interface ValideCodeV2Data {
+  Token: string
+}
+
+export interface ValideCodeV2Response {
+  Code: number
+  Data: ValideCodeV2Data
+  Msg: string
+}
+
+export interface RetrievePasswordV2FormData {
+  Username: string // 代理帳號
+  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
+  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
+  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
+  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  Code: string // validecodev2拿到的Token
+  Password: string // 密碼
+  ConfirmPassword: string // 確認密碼
+}
+
+export interface RetrievePasswordV2Response {
+  Code: number
+  Data: any
+  Msg: string
+}
+
 export interface Registerv2FormData {
   Username: string // 代理帳號
   Password: string // 密碼

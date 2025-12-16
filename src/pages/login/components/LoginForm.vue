@@ -11,6 +11,7 @@ const router = useRouter()
 const emit = defineEmits<{
   showGoogleVerify: [username: string, password: string]
   showGoogleBind: [username: string, password: string, googleLoginAuthToken: string]
+  showForgotPassword: []
 }>()
 
 const IS_SERVE = import.meta.env.DEV
@@ -106,7 +107,7 @@ const handleLogin = async () => {
 const togglePassword = () => showPassword.value = !showPassword.value
 
 const handleForgotPassword = () => {
-  showToast('忘记密码功能开发中')
+  emit('showForgotPassword')
 }
 </script>
 
