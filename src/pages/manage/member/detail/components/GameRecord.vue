@@ -318,7 +318,7 @@ const copyHadandler = (c: string) => {
   showToast({ message: '复制成功' })
 }
 
-watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus], () => {
+watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus, selectedSort], () => {
   infinityRef.value?.fetchData()
 })
 

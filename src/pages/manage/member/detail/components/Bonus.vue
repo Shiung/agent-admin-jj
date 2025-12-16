@@ -49,7 +49,8 @@ const fetchData = async (page: number = 0) => {
       Status: 2,
       Sort: selectedSort.value,
       PlayerId: playerId.value,
-      Page: page
+      Page: page,
+      PageSize: 20
     })
 
     return {
