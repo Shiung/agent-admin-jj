@@ -73,10 +73,6 @@ const onRefresh = async () => {
   refreshing.value = false
 }
 
-watchEffect(() => {
-  onRefresh()
-})
-
 </script>
 
 <template>
