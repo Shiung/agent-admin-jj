@@ -174,8 +174,57 @@
   -webkit-overflow-scrolling: touch;
 }
 
+/* gray-disabled 按鈕禁選灰階 */
 .gray-disabled.van-button--primary[disabled] {
   background-color: var(--color-neutral2-fifth) !important;
   border-color: transparent !important;
   opacity: 1 !important;
+}
+
+/* confirm-dialog 確認彈窗樣式 */
+.confirm-dialog.van-popup .van-dialog__header {
+  padding: calc(var(--spacing) * 3);
+  font-size: var(--text-lg);
+  font-weight: var(--font-weight-semibold);
+  line-height: calc(var(--spacing) * 7);
+  border-bottom: 1px solid var(--color-neutral2-seventh);
+  color: var(--color-neutral2-basic);
+}
+.confirm-dialog.van-popup .van-dialog__content {
+  outline: none;
+}
+.confirm-dialog.van-popup .van-dialog__content .van-dialog__message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(var(--spacing) * 27);
+  padding: calc(var(--spacing) * 4);
+  font-size: var(--text-base);
+  font-weight: var(--font-weight-normal);
+  line-height: calc(var(--spacing) * 6);
+  color: var(--color-neutral2-secondary);
+}
+.confirm-dialog.van-popup .van-dialog__footer {
+  padding: 0 calc(var(--spacing) * 4) calc(var(--spacing) * 4);
+  gap: calc(var(--spacing) * 2);
+}
+.confirm-dialog.van-popup .van-hairline--top:after {
+  border-top-width: 0;
+}
+.confirm-dialog.van-popup .van-hairline--top .van-hairline--left:after {
+  border-left-width: 0;
+}
+.confirm-dialog.van-popup .van-dialog__cancel,
+.confirm-dialog.van-popup .van-dialog__confirm {
+  height: calc(var(--spacing) * 10);
+  font-size: var(--text-sm);
+  font-weight: var(--font-weight-semibold);
+  line-height: calc(var(--spacing) * 6);
+  border-radius: 100px;
+  border: 1px solid var(--color-primary-normal);
+  color: var(--color-primary-normal);
+}
+.confirm-dialog.van-popup .van-dialog__confirm {
+  color: #ffffff;
+  background-color: var(--color-primary-normal);
 }
