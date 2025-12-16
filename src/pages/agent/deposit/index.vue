@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
+import FinanceCard from '@/pages/report/finance/components/financeCard.vue'
 import { useUserStore } from '@/stores/user'
 import type { FormInstance } from 'vant'
 import AppField from '@/components/AppField/index.vue'
@@ -458,52 +459,41 @@ const handleSubmit = async () => {
 <template>
   <div class="deposit-page">
     <!-- 导航栏 -->
-    <van-nav-bar
-      title="代理代存"
-      left-arrow
-      @click-left="handleBack"
-      fixed
-      placeholder
-    >
-      <template #right>
-        <img
-          src="/static/images/common/resultRecord.svg"
-          alt="历史记录"
-          class="nav-icon"
-          @click="handleViewHistory"
-        />
-      </template>
-    </van-nav-bar>
+    <NavBar title="代理代存" :showDetail="true" @detailClick="handleViewHistory" />
 
     <!-- 可用金额显示 -->
-    <div class="balance-card">
-      <div class="balance-item">
-        <div class="balance-label">可用佣金</div>
-        <div class="balance-value">{{ formatMoneyWithCommas(availableCommission, 2, true) }}</div>
+      <div class="px-3 pb-2 pt-[8px]">
+        <FinanceCard
+          class="shadow-sm"
+          title=""
+          :font-size="14"
+          :show-arrow="false"
+          :show-background-color="false"
+          :data="[
+            [
+              { label: '可用佣金', value: formatMoneyWithCommas(availableCommission, 2, true), highlight: true },
+              { label: '可用额度', value: formatMoneyWithCommas(availableQuota, 2, true), highlight: true },
+            ]
+          ]"
+        />
       </div>
-      <div class="balance-item">
-        <div class="balance-label">可用额度</div>
-        <div class="balance-value">{{ formatMoneyWithCommas(availableQuota, 2, true) }}</div>
-      </div>
-    </div>
 
     <!-- Tab 切换（只在有多个选项时显示） -->
-    <div v-if="tabOptions.length > 1" class="tab-container">
-      <div class="tab-buttons">
-        <button
-          v-for="tab in tabOptions"
-          :key="tab.id"
-          :class="['tab-btn', { active: activeTab === tab.id }]"
-          @click="activeTab = tab.id"
-        >
-          {{ tab.title }}
-        </button>
-      </div>
+    <div v-if="tabOptions.length > 1" class="px-3 py-2">
+      <van-tabs
+        v-model:active="activeTab"
+        color="var(--color-primary-normal)"
+        title-active-color="var(--color-white)"
+        title-inactive-color="var(--color-neutral-secondary)"
+        type="card"
+      >
+        <van-tab v-for="tab in tabOptions" :key="tab.id" :title="tab.title" :name="tab.id" />
+      </van-tabs>
     </div>
 
     <!-- 无权限提示 -->
     <div v-if="tabOptions.length === 0" class="no-permission">
-      <van-empty description="暂无代存权限" />
+      <empty description="暂无代存权限" />
     </div>
 
     <!-- 表单内容 -->
@@ -518,6 +508,7 @@ const handleSubmit = async () => {
             v-model="depositType"
             :options="depositTypeOptions"
             placeholder="请选择"
+            height="48px"
           />
         </div>
 
@@ -544,7 +535,7 @@ const handleSubmit = async () => {
         </div>
 
         <!-- 会员账号 - 批量输入 -->
-        <div v-else class="form-field">
+        <div v-else class="form-field form-field-batch-member-account">
           <div class="field-label">
             会员账号<span class="text-error-normal">*</span>
           </div>
@@ -571,6 +562,7 @@ const handleSubmit = async () => {
             v-model="selectedProduct"
             :options="productOptions"
             placeholder="请选择"
+            height="48px"
           />
         </div>
 
@@ -602,7 +594,7 @@ const handleSubmit = async () => {
             :placeholder="'请输入1~' + depositLimitInfo.maxWithdrawMultiple"
             :rules="multipleRules"
           />
-          <div class="field-hint">
+          <div v-if="false" class="field-hint">
             1≤流水倍数≤{{ depositLimitInfo.maxWithdrawMultiple }}
           </div>
           <div class="quick-btns">
@@ -623,42 +615,29 @@ const handleSubmit = async () => {
           <div class="field-label">
             私人密码<span class="text-error-normal">*</span>
           </div>
-          <div class="password-field">
-            <AppField
-              v-model="privatePassword"
-              :type="showPassword ? 'text' : 'password'"
-              placeholder="请输入"
-              :rules="passwordRules"
-            />
-            <button
-              type="button"
-              class="password-toggle"
-              @click="showPassword = !showPassword"
-            >
-              <svg
-                v-if="showPassword"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-              >
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-              <svg
-                v-else
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-              >
-                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                <line x1="1" y1="1" x2="23" y2="23" />
-              </svg>
-            </button>
-          </div>
+          <AppField
+            v-model="privatePassword"
+            placeholder="请输入"
+            :rules="passwordRules"
+            label-align="top"
+          >
+            <template #input>
+              <div class="flex items-center w-full gap-2">
+                <input
+                  :type="showPassword ? 'text' : 'password'"
+                  :value="privatePassword"
+                  class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+                  placeholder="请输入"
+                  @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
+                />
+                <van-icon
+                  :name="showPassword ? 'eye-o' : 'closed-eye'"
+                  class="cursor-pointer"
+                  @click.stop="showPassword = !showPassword"
+                />
+              </div>
+            </template>
+          </AppField>
         </div>
 
         <!-- 备注 -->
@@ -703,7 +682,7 @@ const handleSubmit = async () => {
 <style scoped>
 .deposit-page {
   min-height: 100vh;
-  background-color: var(--color-bg-floor-1-2);
+  background-color: white;
   padding-bottom: 80px;
 }
 
@@ -750,31 +729,28 @@ const handleSubmit = async () => {
 }
 
 /* Tab 切换 */
-.tab-container {
-  padding: 16px;
+:deep(.van-tabs) {
+  --van-tabs-card-height: 48px;
+  --van-padding-md: 0rem;
+  --van-radius-sm: 6.25rem;
 }
 
-.tab-buttons {
-  display: flex;
-  gap: 12px;
+:deep(.van-tabs .van-tabs__nav.van-tabs__nav--card) {
+  padding: 0.1875rem;
+  border-color: var(--color-neutral2-seventh) !important;
 }
 
-.tab-btn {
-  flex: 1;
-  height: 44px;
-  border-radius: 22px;
-  font-size: 16px;
-  font-weight: 500;
-  border: none;
-  background: white;
-  color: var(--color-neutral2-basic);
-  cursor: pointer;
-  transition: all 0.2s ease;
+:deep(.van-tabs .van-tab--card) {
+  border-right: none;
 }
 
-.tab-btn.active {
-  background: var(--color-primary-normal);
-  color: white;
+:deep(.van-tabs .van-tab.van-tab--card.van-tab--active) {
+  border-radius: var(--van-radius-sm);
+}
+
+:deep(.van-tab) {
+  font-size: 15px;
+  font-weight: 400;
 }
 
 /* 表单容器 */
@@ -833,25 +809,7 @@ const handleSubmit = async () => {
   color: white;
 }
 
-/* 密码字段 */
-.password-field {
-  position: relative;
-}
 
-.password-toggle {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: none;
-  background: transparent;
-  color: var(--color-neutral2-secondary);
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* 备注字段 */
 .form-field-remark :deep(.van-field) {
@@ -876,6 +834,39 @@ const handleSubmit = async () => {
 }
 
 .form-field-remark :deep(.van-field__word-limit) {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
+  color: var(--color-neutral2-fourth);
+  font-size: 12px;
+}
+
+/* 批量输入会员账号样式 */
+.form-field-batch-member-account :deep(.van-field) {
+  padding: 0;
+}
+
+.form-field-batch-member-account :deep(.van-field__body) {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-neutral2-seventh);
+  border-radius: 16px;
+  padding: 12px;
+}
+
+.form-field-batch-member-account :deep(.van-field__control) {
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--color-neutral-basic);
+}
+
+.form-field-batch-member-account :deep(.van-field__control::placeholder) {
+  color: var(--color-neutral2-fourth);
+}
+
+.form-field-batch-member-account :deep(.van-field__word-limit) {
+  position: absolute;
+  bottom: 8px;
+  right: 12px;
   color: var(--color-neutral2-fourth);
   font-size: 12px;
 }
@@ -889,7 +880,7 @@ const handleSubmit = async () => {
 }
 
 .remark-tag {
-  height: 32px;
+  height: 40px;
   padding: 0 16px;
   border-radius: 16px;
   font-size: 14px;
@@ -956,6 +947,7 @@ const handleSubmit = async () => {
 }
 
 :deep(.van-radio) {
+  height: 48px;
   margin-bottom: 0;
 }
 
@@ -973,5 +965,17 @@ const handleSubmit = async () => {
 :deep(.van-cell) {
   padding: 8px 0px;
   background-color: transparent;
+}
+
+/* 表单 Dropdown 样式 */
+.form-field :deep(.dropdown-button) {
+  font-size: 16px !important;
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+}
+
+.form-field :deep(.dropdown-button svg) {
+  width: 20px !important;
+  height: 20px !important;
 }
 </style>
