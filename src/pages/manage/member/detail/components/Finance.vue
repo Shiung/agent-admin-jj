@@ -18,7 +18,11 @@ const state = inject(ProviderStateSymbol)!
 const { fetchPlayerDetail } = inject(ProviderActionSymbol)!
 
 const ls = computed(() => ([
-  { id: 'TotalWinLose',title: '总盈利', value: state.playerInfo?.Total.TotalWinGold ?? 0 },
+  {
+    id: 'TotalWinLose',
+    title: '总盈利',
+    value: (state.playerInfo?.Total.TotalBetGold ?? 0) - (state.playerInfo?.Total.TotalWinGold ?? 0)
+  },
   { id: 'TotalBetGold', title: '投注金额', value: state.playerInfo?.Total.TotalBetGold ?? 0 },
   { id: 'TotalValidBet', title: '有效投注', value: state.playerInfo?.Total.TotalValidBet ?? 0 },
   { id: 'AgentApplyGold', title: '代存金额', value: state.playerInfo?.Total.TotalAgentApplyGold ?? 0 },
