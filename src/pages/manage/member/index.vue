@@ -129,7 +129,7 @@ const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['
   const productLs = userStore.productPackages
   const { phone, card } = userStore.playerInfoPermission
   return [
-    { key: advanceKeyMap.RegTime, title: '注册时间', type: 'time' },
+    { key: advanceKeyMap.RegTime, title: '注册时间', type: 'time', timeDisableTimeRange: true },
     {
       key: advanceKeyMap.packageId,
       title: '产品包',
