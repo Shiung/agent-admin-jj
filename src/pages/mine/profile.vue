@@ -29,6 +29,7 @@ const handleLogout = () => {
     message: '此操作将退出当前代理账号，是否继续？',
     confirmButtonText: '确定',
     cancelButtonText: '取消',
+    className: 'confirm-dialog',
   }).then(async () => {
     await userStore.logout()
     router.replace({ name: 'login' })
@@ -220,7 +221,7 @@ onMounted(async () => {
           </van-skeleton>
         </template>
       </van-cell>
-      <van-cell v-if="isShowPhoneBind" title="手机号" :class="personalCenterInfo?.Phone ? 'success' : 'danger'">
+      <van-cell v-if="isShowPhoneBind" title="手机号" :class="{ 'danger': !personalCenterInfo?.Phone }">
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
             {{ personalCenterInfo?.Phone || '尚未设置' }}
@@ -230,7 +231,7 @@ onMounted(async () => {
           <van-button v-if="!personalCenterInfo?.Phone" round size="small" type="primary" class="px-11" @click="router.push({ name: 'minePhone' })">设置</van-button>
         </template>
       </van-cell>
-      <van-cell v-if="isShowEmailBind" title="邮箱地址" :class="personalCenterInfo?.Email ? 'success' : 'danger'">
+      <van-cell v-if="isShowEmailBind" title="邮箱地址" :class="{ 'danger': !personalCenterInfo?.Email }">
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
             {{ personalCenterInfo?.Email || '尚未设置' }}
