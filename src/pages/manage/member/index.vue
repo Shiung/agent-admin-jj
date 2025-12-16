@@ -158,8 +158,8 @@ const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['
       type: 'radio',
       list: [
         { label: '全部', value: '' },
-        { label: '已绑定', value: 1 },
-        { label: '未绑定', value: 2 }
+        { label: '是', value: 1 },
+        { label: '否', value: 2 }
       ],
     },
     {
@@ -168,8 +168,8 @@ const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['
       type: 'radio',
       list: [
         { label: '全部', value: '' },
-        { label: '已绑定', value: 1 },
-        { label: '未绑定', value: 2 }
+        { label: '是', value: 1 },
+        { label: '否', value: 2 }
       ],
     },
     {
