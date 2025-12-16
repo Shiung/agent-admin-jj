@@ -34,7 +34,7 @@ defineExpose<{
     return checkedResult.value
   },
   reset: () => {
-    checkedResult.value = []
+    checkedResult.value = defaultVal
   }
 })
 

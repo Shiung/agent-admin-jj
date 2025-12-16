@@ -27,6 +27,7 @@ const userStore = useUserStore()
 const router = useRouter()
 const infinityRef = ref<InfinityExposeType>()
 
+const defaultVipSelector = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 // const itemLs = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Items']>([])
 const totalInfo = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Total'] | null>(null)
 const pageInfo = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Pagination'] | null>(null)
@@ -38,7 +39,7 @@ const activeMemberType = ref<0 | 1 | 2 | null>(null)
 const bindCard = ref<0 | 1 | 2 | null>(null)
 const bindPhone = ref<0 | 1 | 2 | null>(null)
 const packageId = ref<number | null>(null)
-const vipLevels = ref<Array<number>>([])
+const vipLevels = ref<Array<number>>(defaultVipSelector)
 
 const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
   startTime: dayjs().startOf('month').unix(),
@@ -187,7 +188,8 @@ const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['
         { label: 'VIP8', value: 8 },
         { label: 'VIP9', value: 9 },
         { label: 'VIP10', value: 10 },
-      ]
+      ],
+      defaultSelected: defaultVipSelector
     },
   ].filter((l) => {
     if (l.key === advanceKeyMap.bindPhone && !phone) return false
