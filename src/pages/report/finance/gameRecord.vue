@@ -210,7 +210,7 @@ const handleBack = () => {
 const showInfoPopover = ref(false)
 
 // 点击游戏卡片
-const handleGameClick = (gameData: Any) => {
+const handleGameClick = (gameData: any) => {
   // 跳转到游戏注单详情页，传递当前选中的时间范围
   const tab = route.query.tab || '1'
   router.push({
