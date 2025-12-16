@@ -24,6 +24,7 @@ const { title = '标题', sheetTitle = '进阶筛选' } = defineProps<{
      * isShow all
      **/
     timeDisableAll?: boolean
+    timeDisableTimeRange?: boolean
   }>
 }>()
 
@@ -101,6 +102,7 @@ watch(show, (s) => {
           :ref="el => setUnitFieldDom(el, l.key)"
           v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}"
           :time-disable-all="!!l.timeDisableAll"
+          :time-diasble-range-limit="!!l.timeDisableTimeRange"
         />
         <CheckBox v-else-if="l.type === 'checkbox'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" />
         <Radio v-else-if="l.type === 'radio'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" />

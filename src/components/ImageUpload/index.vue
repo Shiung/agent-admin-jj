@@ -99,7 +99,6 @@ const removeFile = (file: UploaderFileListItem) => {
 
 /** 刪除前判斷 */
 const beforeDelete = (file: UploaderFileListItem, detail: { index: number }) => {
-  // model.value.splice(detail.index, 1)
   urls.value.splice(detail.index, 1)
   return true
 }

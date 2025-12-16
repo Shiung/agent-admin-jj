@@ -39,7 +39,8 @@ const cancelOrder = async () => {
       OrderId: props.thirdRechargeData.orderId
     }
     const res = await API.finance.rechargeMoneyCancel(params)
-    if (res.data.Code !== 200) return
+    // 先註解, 沒訂單狀態時Code好像不一定是200
+    // if (res.data.Code !== 200) return
     emit('checkOrder')
   } finally {
     loading.value = false
@@ -193,7 +194,7 @@ onUnmounted(() => {
                 </span>
                 <span v-else-if="item.key !== 'QRcode'">{{ item.value }}</span>
                 <van-image v-else-if="item.key === 'QRcode'" :src="QRcode" class="size-20" fit="contain" />
-                <van-image v-if="item.copy" src="./static/images/promote/copy_lite.png" class="ml-1 w-3 h-3" fit="contain" @click="handleCopy(item.value)" />
+                <van-image v-if="item.copy" src="./static/images/promote/copy_lite.png" class="ml-1 w-3 flex-shrink-0" fit="contain" @click="handleCopy(item.value)" />
               </div>
               <div v-if="item.key === 'Amount' && process === 2" class="mt-1 font-normal text-primary-normal">
                 转账金额务必与订单金额一致

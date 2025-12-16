@@ -2,17 +2,18 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { showToast, showFailToast } from 'vant'
+import { rulesVerifyCode, rulesTelephone } from '@/utils/formRules'
+import type { FormInstance } from 'vant'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
-import Dropdown from '@/components/Dropdown/index.vue'
-import API from '@/apis'
+import DropdownFilled from '@/components/Dropdown/Filled.vue'
 import getDeviceId from '@/utils/getDeviceId'
-import { rulesRequired } from '@/utils/formRules'
+import API from '@/apis'
 
 const router = useRouter()
 const userStore = useUserStore()
 const accountInfo = computed(() => userStore.accountInfo)
+const formRef = ref<FormInstance>()
 
 const countryCodeOptions = [
   { label: '+86', value: '+86' },
@@ -30,28 +31,13 @@ const countryCodeOptions = [
   { label: '+886', value: '+886' },
 ]
 
-// 需要再編輯的話需 parse (api: 86_xxxx)
-// const parsePhone = (phone?: string): { countryCode: string; mobile: string } => {
-//   if (!phone) return { countryCode: '+86', mobile: '' }
-//   const parts = phone.split('_')
-//   if (parts.length === 2 && parts[0] && parts[1]) {
-//     return {
-//       countryCode: `+${parts[0]}`,
-//       mobile: parts[1]
-//     }
-//   }
-//   return { countryCode: '+86', mobile: phone }
-// }
-
-// const parsedPhone = computed(() => parsePhone(accountInfo.value?.Phone))
-// const countryCode = ref<string>(parsedPhone.value.countryCode)
-// const mobile = ref<string>(parsedPhone.value.mobile)
 const countryCode = ref('+86')
 const mobile = ref(accountInfo.value?.Phone || '')
 const verificationCode = ref('')
 const loading = ref(false)
 const codeLoading = ref(false)
 const countdown = ref(0)
+const hasRequestedCode = ref(false) // 已經按過一次驗證碼
 
 const canSubmit = computed(() => {
   return mobile.value.trim() && verificationCode.value.trim()
@@ -62,6 +48,14 @@ const getVerificationCode = async () => {
   if (!mobile.value.trim()) {
     return
   }
+
+  // 先檢查手機號長度要大於5位
+  if (mobile.value.trim().length < 5) {
+    showFailToast('请输入5位以上手机号!')
+    return
+  }
+
+  // TODO: 之後優化需加上手机号字数 ≥ 5，跳图形验证彈窗
 
   if (countdown.value > 0) {
     return
@@ -82,6 +76,7 @@ const getVerificationCode = async () => {
       return
     }
 
+    hasRequestedCode.value = true
     // 开始倒计时
     countdown.value = 60
     const timer = setInterval(() => {
@@ -99,27 +94,25 @@ const getVerificationCode = async () => {
 }
 
 const submit = async () => {
-  if (!canSubmit.value) {
-    return
-  }
-
   loading.value = true
-  try {
-    const phoneNumber = `${countryCode.value.replace('+', '')}_${mobile.value.trim()}`
-    const res = await API.admin.updatePhone({
-      Phone: phoneNumber,
-      VerifyCode: verificationCode.value.trim(),
-      AreaCode: countryCode.value.replace('+', '')
-    })
-    if (res.data.Code !== 200) return
-    showToast('编辑成功')
-    router.replace({ name: 'mineProfile' })
-  } catch (error: any) {
-    console.error('更新失败：', error)
-    showFailToast(error?.response?.data?.Msg)
-  } finally {
-    loading.value = false
-  }
+  formRef.value?.validate().then(async () => {
+    try {
+      const phoneNumber = `${countryCode.value.replace('+', '')}_${mobile.value.trim()}`
+      const res = await API.admin.updatePhone({
+        Phone: phoneNumber,
+        VerifyCode: verificationCode.value.trim(),
+        AreaCode: countryCode.value.replace('+', '')
+      })
+      if (res.data.Code !== 200) return
+      showToast('编辑成功')
+      router.replace({ name: 'mineProfile' })
+    } catch (error: any) {
+      console.error('更新失败：', error)
+      showFailToast(error?.response?.data?.Msg)
+    } finally {
+      loading.value = false
+    }
+  })
 }
 </script>
 
@@ -136,20 +129,14 @@ const submit = async () => {
         label="手机号"
         placeholder="请输入"
         required
-        :rules="[rulesRequired()]"
+        :rules="[rulesTelephone()]"
       >
         <template #input>
-          <div class="flex items-center w-full gap-2">
-            <div class="flex items-center">
-              <Dropdown
-                v-model="countryCode"
-                :options="countryCodeOptions"
-                class="mobile-country-code"
-              />
-            </div>
+          <div class="flex items-center w-full">
+            <DropdownFilled v-model="countryCode" :options="countryCodeOptions" height="2rem" />
             <input
               :value="mobile"
-              type="tel"
+              type="number"
               class="flex-1 outline-none pl-2.5"
               placeholder="请输入"
               @input="(e: Event) => { mobile = (e.target as HTMLInputElement).value }"
@@ -167,6 +154,9 @@ const submit = async () => {
         placeholder="请输入"
         required
         autocomplete="off"
+        :rules="[rulesVerifyCode()]"
+        :maxlength="6"
+        type="number"
       >
         <template #input>
           <div class="flex items-center w-full gap-2">
@@ -186,7 +176,7 @@ const submit = async () => {
               class="verificationBtn"
               @click.stop="getVerificationCode"
             >
-              {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
+              {{ countdown > 0 ? `${countdown}秒` : (hasRequestedCode ? '重新获取' : '获取验证码') }}
             </van-button>
           </div>
         </template>
@@ -198,7 +188,7 @@ const submit = async () => {
           type="primary"
           :loading="loading"
           :disabled="!canSubmit"
-          @click="submit"
+          native-type="submit"
         >
           提交
         </van-button>
@@ -213,22 +203,6 @@ const submit = async () => {
 }
 :deep(.app-field .van-field__body) {
   padding: 8px !important;
-}
-
-/* 国家代码选择器样式 */
-.mobile-country-code :deep(.dropdown-button) {
-  height: auto !important;
-  padding: 8px !important;
-  border: none !important;
-  background: #f8fafd !important;
-  min-width: 3.5rem;
-}
-
-.mobile-country-code :deep(.dropdown-button:hover),
-.mobile-country-code :deep(.dropdown-button[data-state="open"]) {
-  border: none !important;
-  background: transparent !important;
-  box-shadow: none !important;
 }
 
 .verificationBtn {

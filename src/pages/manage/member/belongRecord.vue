@@ -112,6 +112,7 @@ const fetchData = async (page: number = 0) => {
       ...(searchSelected.value && { PlayerId: Number(searchSelected.value.id) }),
       Status: selectStatus.value,
       Page: page,
+      PageSize: 20,
     })
     totalApproved.value = res.data.Data?.Total?.TotalApproved ?? 0
     return {

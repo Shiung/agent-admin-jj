@@ -80,6 +80,7 @@ const handleDeleteAccount = async (item: AccountListItem) => {
   showConfirmDialog({
     title: '提示',
     message: '确认删除该条记录？',
+    className: 'confirm-dialog'
   }).then(async () => {
     if (!selectPayTypeItem.value) return
     const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })

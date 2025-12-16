@@ -3,7 +3,7 @@ import { ref, watch, computed } from 'vue'
 import dayjs from 'dayjs'
 import Big from 'big.js'
 
-const { typeList, title } = defineProps({
+const { typeList, title, showAll } = defineProps({
   typeList: {
     type: Array<{ label: string; value: number }>,
   },
@@ -11,6 +11,10 @@ const { typeList, title } = defineProps({
     type: String,
     default: '',
   },
+  showAll: {
+    type: Boolean,
+    default: false,
+  }
 })
 
 const show = defineModel<boolean>('show', { required: true })
@@ -18,14 +22,14 @@ const show = defineModel<boolean>('show', { required: true })
 const type = defineModel<number>('type')
 const timeRange = defineModel<{ startTime: number; endTime: number }>('timeRange', { required: true })
 
-// 日期區間180天
-const minDate = ref(dayjs().subtract(180, 'day').toDate())
+// 日期區間180天, showAll 會解除180天限制
+const minDate = ref(showAll ? dayjs('2000-01-01').toDate() : dayjs().subtract(180, 'day').toDate())
 const maxDate = ref(dayjs().toDate())
 
 const showDatePicker = ref(false)
 const selectedType = ref<number>(type?.value || 0)
 const selectedTimeRange = ref<{ startTime: number; endTime: number }>({ ...timeRange.value })
-const customTimeRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 0 })
+const customTimeRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 1 })
 
 watch(type, () => {
   selectedType.value = type?.value || 0
@@ -39,6 +43,7 @@ watch(timeRange, () => {
 const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
 
 const timeRangeList = ref([
+  ...(showAll ? [{ label: '全部', startTime: 0, endTime: 0 }] : []),
   { label: '今日', startTime: timestampToSecond(dayjs().startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
   { label: '昨日', startTime: timestampToSecond(dayjs().subtract(1, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().subtract(1, 'day').endOf('day').valueOf()) },
   { label: '近7日', startTime: timestampToSecond(dayjs().subtract(7, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
@@ -134,7 +139,7 @@ const handleDatePickerConfirm = (value: [number, number]) => {
       </div>
     </div>
   </van-action-sheet>
-  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" type="range" teleport="body" @confirm="handleDatePickerConfirm" />
+  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" type="range" teleport="body" allow-same-day @confirm="handleDatePickerConfirm" />
 </template>
 
 <style scoped>

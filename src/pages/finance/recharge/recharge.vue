@@ -103,13 +103,12 @@ const process = ref<number | null>(null)
 watch(
   () => process.value, 
   (newValue, oldValue) => {
-    if (newValue !== oldValue && oldValue === 0) {
+    checkOrderInterval.value && clearInterval(checkOrderInterval.value)
+    if (newValue !== oldValue && newValue !== 0) {
       /** 每15秒檢查一次訂單狀態 */
       checkOrderInterval.value = setInterval(() => {
         fetchRechargeOrder(true)
       }, 15000)
-    } else if (newValue === 0) {
-      checkOrderInterval.value && clearInterval(checkOrderInterval.value)
     }
   }
 )

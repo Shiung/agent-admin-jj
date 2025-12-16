@@ -11,8 +11,24 @@ import type {
   SendPhoneVerifyCodeQuery,
   SendPhoneVerifyCodeResponse,
   SendEmailVerifyCodeQuery,
+  UploadImageMd5Response,
   SendEmailVerifyCodeResponse,
-  UploadImageMd5Response
+  Registerv2FormData,
+  Registerv2Response,
+  PhoneRegisterv2FormData,
+  EmailRegisterv2FormData,
+  PhoneSendCodeQuery,
+  EmailSendCodeQuery,
+  GoogleLoginAuthFormData,
+  GoogleLoginAuthResponse,
+  GoogleLoginAuthBindFormData,
+  GoogleLoginAuthBindResponse,
+  ValidUserV2FormData,
+  ValidUserV2Response,
+  ValideCodeV2FormData,
+  ValideCodeV2Response,
+  RetrievePasswordV2FormData,
+  RetrievePasswordV2Response,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -145,6 +161,27 @@ export class System<SecurityDataType = unknown> {
       ...params,
     });
 
+  /**
+   * 手機驗證碼(需要驗證彈窗)
+   *
+   * @tags System
+   * @name PhoneSendCode
+   * @request POST:/api/phonesendcode/
+   * @secure
+   */
+  phoneSendCode = (
+    query: PhoneSendCodeQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<IsLoginResponse, any>({
+      path: '/api/phonesendcode/',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+
   /** 郵件獲取驗證碼 */
   emailVerify = (
     query: {
@@ -200,6 +237,93 @@ export class System<SecurityDataType = unknown> {
       ...params,
     });
 
+  /**
+   * email驗證碼(需要驗證彈窗)
+   *
+   * @tags System
+   * @name EmailSendCode
+   * @request POST:/api/emailsendcode/
+   * @secure
+   */
+  emailSendCode = (
+    query: EmailSendCodeQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<IsLoginResponse, any>({
+      path: '/api/emailsendcode/',
+      method: "GET",
+      secure: true,
+      format: "json",
+      query,
+      ...params,
+    });
+
+  /**
+   * 一般註冊
+   *
+   * @tags System
+   * @name Registerv2
+   * @request POST:/api/netcashregister/registerv2
+   * @secure
+   */
+  registerv2 = (
+    data: Registerv2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<Registerv2Response, any>({
+      path: '/api/netcashregister/registerv2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 手機驗證註冊
+   *
+   * @tags System
+   * @name PhoneRegisterv2
+   * @request POST:/api/netcashregister/phoneregisterv2
+   * @secure
+   */
+  phoneRegisterv2 = (
+    data: PhoneRegisterv2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<Registerv2Response, any>({
+      path: '/api/netcashregister/phoneregisterv2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * email驗證註冊
+   *
+   * @tags System
+   * @name EmailRegisterv2
+   * @request POST:/api/netcashregister/emailregisterv2
+   * @secure
+   */
+  emailRegisterv2 = (
+    data: EmailRegisterv2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<Registerv2Response, any>({
+      path: '/api/netcashregister/emailregisterv2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
   /** 圖片上傳 */
   uploadImageMd5 = (
     data: {
@@ -210,6 +334,81 @@ export class System<SecurityDataType = unknown> {
     this.http.request<UploadImageMd5Response, any>({
       path: '/api/resource/uploadimagemd5',
       method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** google驗證登入綁定資訊 */
+  googleLoginAuth = (
+    data: GoogleLoginAuthFormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<GoogleLoginAuthResponse, any>({
+      path: '/system/user/googleloginauth',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** google驗證綁定 */
+  googleLoginAuthBind = (
+    data: GoogleLoginAuthBindFormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<GoogleLoginAuthBindResponse, any>({
+      path: '/system/user/googleloginauthbind',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** 重置密碼拿手機/email驗證碼 */
+  validUserV2 = (
+    data: ValidUserV2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<ValidUserV2Response, any>({
+      path: '/api/netcashregister/validuserv2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** 重置密碼確認驗證碼是否正確 */
+  valideCodeV2 = (
+    data: ValideCodeV2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<ValideCodeV2Response, any>({
+      path: '/api/netcashregister/validecodev2',
+      method: "POST",
+      body: data,
+      secure: true,
+      type: ContentType.FormData,
+      format: "json",
+      ...params,
+    });
+
+  /** 重置密碼 */
+  retrievePasswordV2 = (
+    data: RetrievePasswordV2FormData,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<RetrievePasswordV2Response, any>({
+      path: '/api/netcashregister/retrievepasswordv2',
+      method: "PUT",
       body: data,
       secure: true,
       type: ContentType.FormData,

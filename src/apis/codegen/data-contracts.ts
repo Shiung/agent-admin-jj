@@ -66,6 +66,16 @@ export interface IsLoginResponse {
   Id: string
 }
 
+export interface PhoneSendCodeQuery {
+  DeviceId: string
+  OpType: number
+  Number: string
+  KeyCode: string // imagevalidcode回的KeyCode
+  ValidCode: string // imagevalidcode的驗證碼
+  AgentId: number
+  Username: string
+}
+
 export interface SendPhoneVerifyCodeQuery {
   DeviceId: string
   OpType: number
@@ -90,6 +100,16 @@ export interface SendEmailVerifyCodeResponse {
   Data: string
   Msg: string
   Id: string
+}
+
+export interface EmailSendCodeQuery {
+  DeviceId: string
+  OpType: number
+  Email: string
+  KeyCode: string // imagevalidcode回的KeyCode
+  ValidCode: string // imagevalidcode的驗證碼
+  AgentId: number
+  Username: string
 }
 
 export interface MineResponse {
@@ -120,6 +140,115 @@ export interface GoogleValidResponseData {
 export interface GoogleCodeResponse {
   Code: number
   Data: GoogleValidResponseData | null
+  Msg: string
+}
+
+export interface GoogleLoginAuthFormData {
+  Username: string // 代理帳號
+  GoogleLoginAuthToken: string // 請求綁定 google 驗證碼 token (來自 /system/user/login 回傳的 GoogleLoginAuthToken)
+}
+
+export interface GoogleLoginAuthResponse {
+  Code: number
+  Data: string
+  Msg: string
+}
+
+export interface GoogleLoginAuthData {
+  QrCode: string
+  Secret: string
+}
+
+export interface GoogleLoginAuthBindFormData {
+  Username: string // 代理帳號
+  GoogleLoginAuthToken: string // 請求綁定 google 驗證碼 token (來自 /system/user/login 回傳的 GoogleLoginAuthToken)
+  ValidCode: string // google驗證碼
+}
+
+export interface GoogleLoginAuthBindResponse {
+  Code: number
+  Data: any
+  Msg: string
+}
+
+export interface ValidUserV2FormData {
+  Username: string // 代理帳號
+  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
+  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
+  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
+  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  AgentId: number // 代理ID
+  Code?: string // 驗證碼 (當 ValidType = 2 時需帶入)
+  Domain?: string // 域名 (目前沒有使用這個欄位)
+}
+
+export interface ValidUserV2Response {
+  Code: number
+  Data: string
+  Msg: string
+}
+
+export interface ValideCodeV2FormData {
+  Username: string // 代理帳號
+  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
+  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
+  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
+  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  AgentId: number // 代理ID
+  Code: string // 驗證碼
+  Domain?: string // 域名 (目前沒有使用這個欄位)
+}
+
+export interface ValideCodeV2Data {
+  Token: string
+}
+
+export interface ValideCodeV2Response {
+  Code: number
+  Data: ValideCodeV2Data
+  Msg: string
+}
+
+export interface RetrievePasswordV2FormData {
+  Username: string // 代理帳號
+  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
+  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
+  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
+  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  Code: string // validecodev2拿到的Token
+  Password: string // 密碼
+  ConfirmPassword: string // 確認密碼
+}
+
+export interface RetrievePasswordV2Response {
+  Code: number
+  Data: any
+  Msg: string
+}
+
+export interface Registerv2FormData {
+  Username: string // 代理帳號
+  Password: string // 密碼
+  Invt: string // 邀請碼
+  DevicePlatform: string // 設備類型 Example : H5
+  AgentId: number // 代理ID
+  DeviceId: string // 設備ID Example : 51t1h23q-w841--57mt--n541-1l986yh8kmpf
+}
+
+export interface PhoneRegisterv2FormData extends Registerv2FormData {
+  IAC: string // 國際區號
+  Number: string // 手機號
+  Code: string // 手機驗證碼
+}
+
+export interface EmailRegisterv2FormData extends Registerv2FormData {
+  Email: string // 郵件
+  Code: string // 郵件驗證碼
+}
+
+export interface Registerv2Response {
+  Code: number
+  Data: any
   Msg: string
 }
 
@@ -2051,3 +2180,4 @@ export interface CommissionToQuotaTotalResponse {
 export type * from './Playermanage/types'
 export type * from './NetCashPlayerGame/types'
 export type * from './ApiConfig/types'
+export type * from './Financecenter/types.d.ts'
