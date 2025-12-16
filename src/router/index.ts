@@ -264,6 +264,16 @@ const routes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/mine/betRecord',
+    name: 'betRecord',
+    component: () => import('@/pages/mine/betRecord.vue')
+  },
+  {
+    path: '/mine/fundDetail',
+    name: 'fundDetail',
+    component: () => import('@/pages/mine/fundDetail.vue')
+  },
+  {
     path: '/commission-detail',
     name: 'commissionDetail',
     component: () => import('@/pages/commission-detail/index.vue'),
