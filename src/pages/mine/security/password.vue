@@ -41,8 +41,9 @@ const submit = async () => {
       showToast('修改成功，请重新登录')
       userStore.logout()
       router.replace({ name: 'login' })
-    } catch (error) {
+    } catch (error: any) {
       console.error('更新失败：', error)
+      showFailToast(error?.response?.data?.Msg)
     } finally {
       loading.value = false
     }
@@ -53,90 +54,88 @@ const submit = async () => {
 <template>
   <div class="flex flex-col pb-6">
     <NavBar title="登录密码" />
-    <div class="py-3">
-      <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
-        <AppField
-          v-model="oldPassword"
-          name="oldPassword"
-          label-align="top"
-          label="原密码"
-          placeholder="请输入"
-          required
-          :rules="[rulesRequired()]"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :type="showPassword.old.value ? 'text' : 'password'"
-                :value="oldPassword"
-                class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                placeholder="请输入"
-                @input="(e: Event) => { oldPassword = (e.target as HTMLInputElement).value }"
-              />
-              <van-icon
-                :name="showPassword.old.value ? 'eye-o' : 'closed-eye'"
-                class="cursor-pointer"
-                @click.stop="togglePassword('old')"
-              />
-            </div>
-          </template>
-        </AppField>
-        <AppField
-          v-model="newPassword"
-          name="newPassword"
-          label-align="top"
-          label="新密码"
-          placeholder="请输入"
-          required
-          :rules="[rulesRequired()]"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :type="showPassword.new.value ? 'text' : 'password'"
-                :value="newPassword"
-                class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                placeholder="请输入"
-                @input="(e: Event) => { newPassword = (e.target as HTMLInputElement).value }"
-              />
-              <van-icon
-                :name="showPassword.new.value ? 'eye-o' : 'closed-eye'"
-                class="cursor-pointer"
-                @click.stop="togglePassword('new')"
-              />
-            </div>
-          </template>
-        </AppField>
-        <AppField
-          v-model="confirmPassword"
-          name="confirmPassword"
-          label-align="top"
-          label="确认密码"
-          placeholder="请输入"
-          required
-          :rules="[rulesRequired()]"
-        >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :type="showPassword.confirm.value ? 'text' : 'password'"
-                :value="confirmPassword"
-                class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                placeholder="请输入"
-                @input="(e: Event) => { confirmPassword = (e.target as HTMLInputElement).value }"
-              />
-              <van-icon
-                :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
-                class="cursor-pointer"
-                @click.stop="togglePassword('confirm')"
-              />
-            </div>
-          </template>
-        </AppField>
-        <div class="px-4 my-4">
-          <van-button block round type="primary" :loading="loading" :disabled="!oldPassword || !newPassword || !confirmPassword" native-type="submit">提交</van-button>
-        </div>
-      </van-form>
-    </div>
+    <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
+      <AppField
+        v-model="oldPassword"
+        name="oldPassword"
+        label-align="top"
+        label="原密码"
+        placeholder="请输入"
+        required
+        :rules="[rulesRequired()]"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :type="showPassword.old.value ? 'text' : 'password'"
+              :value="oldPassword"
+              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              placeholder="请输入"
+              @input="(e: Event) => { oldPassword = (e.target as HTMLInputElement).value }"
+            />
+            <van-icon
+              :name="showPassword.old.value ? 'eye-o' : 'closed-eye'"
+              class="cursor-pointer"
+              @click.stop="togglePassword('old')"
+            />
+          </div>
+        </template>
+      </AppField>
+      <AppField
+        v-model="newPassword"
+        name="newPassword"
+        label-align="top"
+        label="新密码"
+        placeholder="请输入"
+        required
+        :rules="[rulesRequired()]"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :type="showPassword.new.value ? 'text' : 'password'"
+              :value="newPassword"
+              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              placeholder="请输入"
+              @input="(e: Event) => { newPassword = (e.target as HTMLInputElement).value }"
+            />
+            <van-icon
+              :name="showPassword.new.value ? 'eye-o' : 'closed-eye'"
+              class="cursor-pointer"
+              @click.stop="togglePassword('new')"
+            />
+          </div>
+        </template>
+      </AppField>
+      <AppField
+        v-model="confirmPassword"
+        name="confirmPassword"
+        label-align="top"
+        label="确认密码"
+        placeholder="请输入"
+        required
+        :rules="[rulesRequired()]"
+      >
+        <template #input>
+          <div class="flex items-center w-full gap-2">
+            <input
+              :type="showPassword.confirm.value ? 'text' : 'password'"
+              :value="confirmPassword"
+              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              placeholder="请输入"
+              @input="(e: Event) => { confirmPassword = (e.target as HTMLInputElement).value }"
+            />
+            <van-icon
+              :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
+              class="cursor-pointer"
+              @click.stop="togglePassword('confirm')"
+            />
+          </div>
+        </template>
+      </AppField>
+      <div class="px-4 my-4">
+        <van-button block round type="primary" :loading="loading" :disabled="!oldPassword || !newPassword || !confirmPassword" native-type="submit">提交</van-button>
+      </div>
+    </van-form>
   </div>
 </template>

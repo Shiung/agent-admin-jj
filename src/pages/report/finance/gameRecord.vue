@@ -9,6 +9,9 @@ import dayjs from 'dayjs'
 import apis from '@/apis'
 import type { ReportCenterFinanceDetailData } from '@/apis/codegen/data-contracts'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
+import { useGameStore } from '@/stores/game'
+
+const gameStore = useGameStore()
 
 const router = useRouter()
 const route = useRoute()
@@ -128,7 +131,7 @@ const gameList = computed(() => {
   // 后端已经处理排序，直接使用返回的数据
   return financeDetailData.value.Items.map(item => ({
     id: item.GameType,
-    name: item.GameType,
+    name: gameStore.allGameTypeMapping[item.GameType] ?? item.GameType,
     data: [
       [
         {
@@ -207,15 +210,14 @@ const handleBack = () => {
 const showInfoPopover = ref(false)
 
 // 点击游戏卡片
-const handleGameClick = (gameName: string) => {
-  console.log('点击游戏:', gameName)
-
+const handleGameClick = (gameData: any) => {
   // 跳转到游戏注单详情页，传递当前选中的时间范围
   const tab = route.query.tab || '1'
   router.push({
     name: 'financeGameOrderDetail',
     query: {
-      game: gameName,
+      gameName: gameData.name,
+      gameType: gameData.id,
       tab,
       startTime: selectTimeRange.value.startTime.toString(),
       endTime: selectTimeRange.value.endTime.toString()
@@ -320,7 +322,7 @@ const handleGameClick = (gameName: string) => {
           :key="game.id"
           :title="game.name"
           :data="game.data"
-          @click="handleGameClick(game.name)"
+          @click="handleGameClick(game)"
         />
       </div>
     </van-pull-refresh>

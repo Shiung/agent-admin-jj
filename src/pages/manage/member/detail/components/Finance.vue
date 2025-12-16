@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, inject, defineComponent, h, computed, watchEffect } from 'vue'
+import { ref, inject, defineComponent, h, computed } from 'vue'
 import { cn } from '@/utils/className'
 import dayjs from 'dayjs'
+import Big from 'big.js'
 import { formatSignedMoney, formatMoney } from '@/utils/formatNumber'
 import { ProviderActionSymbol, ProviderStateSymbol } from '../composables/useProvider'
 import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
@@ -18,7 +19,11 @@ const state = inject(ProviderStateSymbol)!
 const { fetchPlayerDetail } = inject(ProviderActionSymbol)!
 
 const ls = computed(() => ([
-  { id: 'TotalWinLose',title: '总盈利', value: state.playerInfo?.Total.TotalWinGold ?? 0 },
+  {
+    id: 'TotalWinLose',
+    title: '总盈利',
+    value: new Big(state.playerInfo?.Total.TotalBetGold ?? 0).minus(new Big(state.playerInfo?.Total.TotalWinGold ?? 0)).toNumber()
+  },
   { id: 'TotalBetGold', title: '投注金额', value: state.playerInfo?.Total.TotalBetGold ?? 0 },
   { id: 'TotalValidBet', title: '有效投注', value: state.playerInfo?.Total.TotalValidBet ?? 0 },
   { id: 'AgentApplyGold', title: '代存金额', value: state.playerInfo?.Total.TotalAgentApplyGold ?? 0 },
@@ -44,11 +49,11 @@ const UnitBlock = defineComponent(
       if (props.type === 'FirstPayTime') {
         returnText = showDate(props.val)
       } else if (props.type === 'TotalWinLose'){
-        const { text, color } = formatSignedMoney(props.val ?? 0, 0, false)
+        const { text, color } = formatSignedMoney(props.val ?? 0, 2, false)
         returnText = text
         returnColor = color
       } else {
-        returnText = formatMoney(props.val ?? 0, 0, true)
+        returnText = formatMoney(props.val ?? 0, 2, true)
       }
       return {
         text: returnText,
@@ -68,10 +73,6 @@ const onRefresh = async () => {
   await fetchPlayerDetail(selectTime.value.startTime, selectTime.value.endTime)
   refreshing.value = false
 }
-
-watchEffect(() => {
-  onRefresh()
-})
 
 </script>
 

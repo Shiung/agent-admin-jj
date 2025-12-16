@@ -12,15 +12,16 @@ const defaultOption: { [key in string]: { label: string; startTime: number; endT
   lastMonth: { label: '上月', startTime: dayjs().subtract(1, 'month').startOf('month').unix(), endTime: dayjs().subtract(1, 'month').endOf('month').unix() },
 }
 
-// 日期區間180天
-const minDate = ref(dayjs().subtract(180, 'day').toDate())
-const maxDate = ref(dayjs().toDate())
-
-const { timeTitle = '时间区间', timeDisableAll = false, defaultVal = '' } = defineProps<{
+const { timeTitle = '时间区间', timeDisableAll = false, defaultVal = '', timeDiasbleRangeLimit = false } = defineProps<{
   timeTitle: string,
   defaultVal?: any,
   timeDisableAll?: boolean
+  timeDiasbleRangeLimit?: boolean
 }>()
+
+// 日期區間180天
+const minDate = ref(timeDiasbleRangeLimit ? dayjs('2000-01-01').toDate() : dayjs().subtract(180, 'day').toDate())
+const maxDate = ref(dayjs().toDate())
 
 const showDatePicker = ref<boolean>(false)
 const selectedTime = ref<string>(defaultVal)
@@ -42,7 +43,7 @@ const timeRangeList = computed<Array<{ key: string; label: string }>>(() => {
 })
 
 const handleDatePickerConfirm = (value: [number, number]) => {
-  const data = { startTime: dayjs(value[0] || 0).unix(), endTime: dayjs(value[1] || 0).unix() }
+  const data = { startTime: dayjs(value[0] || 0).startOf('day').unix(), endTime: dayjs(value[1] || 0).endOf('day').unix() }
   customTimeRange.value = data
   showDatePicker.value = false
 }
@@ -98,5 +99,5 @@ defineExpose<{
       {{ formatTime(customTimeRange.startTime) }} 至 {{ formatTime(customTimeRange.endTime) }}
     </div>
   </div>
-  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" type="range" teleport="body" @confirm="handleDatePickerConfirm" />
+  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" type="range" teleport="body" @confirm="handleDatePickerConfirm" allow-same-day />
 </template>

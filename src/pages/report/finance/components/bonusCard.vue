@@ -58,7 +58,7 @@ const copyOrderNo = (orderNo: string) => {
             <van-image
               width="12"
               height="12"
-              src="/static/images/common/copy.png"
+              src="./static/images/common/copy.png"
               @click.stop="copyOrderNo(record.orderNo)"
               style="cursor: pointer;"
             />

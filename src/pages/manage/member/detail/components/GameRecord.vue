@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, defineComponent, h, watch, useAttrs, onMounted } from 'vue'
+import { ref, computed, defineComponent, h, watch, useAttrs, onMounted, watchEffect } from 'vue'
 import UnitCard from '../../../components/UnitCard.vue'
 import API from '@/apis/index'
 import type { GamedetailRequest } from '@/apis/codegen/NetCashPlayerGame/types'
@@ -12,6 +12,11 @@ import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 import { useGameStore } from '@/stores/game'
 import { useClipboard } from '@vueuse/core'
 import FilterBox from '../../components/FilterBox.vue'
+
+defineProps<{
+  /** 注单记录 page: /mine/betRecord */
+  betRecordMode?: boolean
+}>()
 
 const advanceKeyMap = {
   timeRange: 'TimeRange',
@@ -106,7 +111,7 @@ const selectedSort = ref(sortOptions.value[0]?.value ?? '-SettlementTime')
 const sum = computed(() => ([
   { id: 'sumBet', title: '投注金额', amount: moreItems.value?.SumBetGold ?? 0 },
   { id: 'sumValid', title: '有效投注', amount: moreItems.value?.SumValidWater ?? 0 },
-  { id: 'winLose', title: '总盈利', amount: moreItems.value?.SumPlayerWinLose ?? 0 },
+  { id: 'winLose', title: '总盈利', amount: moreItems.value?.SumProfitGold ?? 0 },
 ]))
 
 const SumAmount = defineComponent(
@@ -138,7 +143,7 @@ const SumAmount = defineComponent(
 const SumBlock = defineComponent(
   (props: { item: Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['Items'][number] }, { attrs }) => {
     const ls = computed(() => {
-      const { Status, BetGold, TotalBetGold, ValidWater, PlayerWinLose } = props.item
+      const { Status, BetGold, TotalBetGold, ValidWater, CompanyWinLose } = props.item
       let showBet: number
       switch (Status) {
         case -1:
@@ -154,13 +159,13 @@ const SumBlock = defineComponent(
       const showValue = (type: string) => {
         if (type === 'sumBet') return showBet
         if (type === 'sumValid') return ValidWater
-        if (type === 'winLose') return PlayerWinLose
+        if (type === 'winLose') return CompanyWinLose
         return 0
       }
 
       return ['sumBet', 'sumValid', 'winLose'].map((t) => ({
         id: t,
-        title: sum.value.find(s => s.id === t)?.title,
+        title: t === 'winLose' ? '盈利' : sum.value.find(s => s.id === t)?.title,
         value: showValue(t)
       }))
     })
@@ -318,7 +323,15 @@ const copyHadandler = (c: string) => {
   showToast({ message: '复制成功' })
 }
 
-watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus], () => {
+const emit = defineEmits<{
+  (e: 'sumInfo', value: Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['MoreItems'] | null): void 
+}>()
+
+watchEffect(() => {
+  emit('sumInfo', moreItems.value)
+})
+
+watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus, playerId, selectedSort], () => {
   infinityRef.value?.fetchData()
 })
 
@@ -344,7 +357,7 @@ onMounted(() => {
     >
       <template v-slot="{ ls }">
         <div class="space-y-2 px-3">
-          <UnitCard class=" border border-primary-50 shadow-none">
+          <UnitCard v-if="!betRecordMode" class=" border border-primary-50 shadow-none">
             <template #header>
               <div class="flex items-center space-x-1">
                 <span class="text-sm font-semibold text-neutral2-basic">场馆总计</span>
@@ -366,7 +379,8 @@ onMounted(() => {
           <UnitCard v-for="l in ls" :key="l.Id" class="relative" @click="showDetailHandler(l)">
             <template #header>
               <div class="flex justify-between items-center">
-                <div class="text-xs text-neutral2-secondary space-x-1">
+                <div class="text-xs text-neutral2-secondary space-x-1 flex items-center">
+                  <div v-if="betRecordMode" class="text-sm font-semibold text-neutral2-basic">{{ gameStore.allGameTypeMapping[l.GameType] ?? '' }}</div>
                   <span>订单号</span>
                   <span>{{ l.TransactionId }}</span>
                   <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" @click.stop="copyHadandler(l.TransactionId)"/>
@@ -383,7 +397,11 @@ onMounted(() => {
 
             <template #footer>
               <div class="flex justify-between items-center">
-                <div class="text-xs text-neutral2-basic">{{ gameStore.allGameTypeMapping[l.GameType] ?? '' }}</div>
+                <div v-if="betRecordMode" class="space-x-1 flex items-center">
+                  <span class="text-sm font-semibold text-neutral2-basic">{{ l.LoginAccount }}</span>
+                  <span class="text-xs font-normal text-neutral2-secondary">VIP{{ l.VipLevel ?? 0}}</span>
+                </div>
+                <div v-else class="text-xs text-neutral2-basic">{{ gameStore.allGameTypeMapping[l.GameType] ?? '' }}</div>
                 <ShowTime class="text-xs text-neutral2-basic" :item="l" />
               </div>
             </template>

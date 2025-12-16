@@ -2180,3 +2180,4 @@ export interface CommissionToQuotaTotalResponse {
 export type * from './Playermanage/types'
 export type * from './NetCashPlayerGame/types'
 export type * from './ApiConfig/types'
+export type * from './Financecenter/types.d.ts'

@@ -117,7 +117,8 @@ const fetchData = async (page: number = 0) => {
       EndTime: selectTime.value.endTime,
       PlayerId: playerId.value,
       Status: selectStatus.value,
-      Page: page
+      Page: page,
+      PageSize: 20
     })
 
     return {

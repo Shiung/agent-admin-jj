@@ -193,10 +193,11 @@ const fetchBonusList = async () => {
       const pagination = response.data?.Data?.Pagination
       totalCount.value = pagination?.MaxCount ?? 0
 
-      if (bonusRecords.value.length >= totalCount.value) {
+      currentPage.value++
+
+      // 检查是否已加载全部数据
+      if (newRecords.length < pageSize || (totalCount.value > 0 && bonusRecords.value.length >= totalCount.value)) {
         finished.value = true
-      } else {
-        currentPage.value++
       }
     } else {
       error.value = true

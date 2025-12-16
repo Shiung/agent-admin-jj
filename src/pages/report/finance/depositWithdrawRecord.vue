@@ -476,7 +476,7 @@ const handleDepositWithdrawClick = (record: any) => {
          <!-- 提示信息 -->
       <div class="px-3">
         <div class="info-tip">
-          <img src="/static/images/common/lightBulb.png" alt="提示" class="tip-icon" />
+          <van-image src="./static/images/common/lightBulb.png" alt="提示" class="tip-icon" fit="contain" />
           <span class="tip-text">{{ tipText }}</span>
         </div>
       </div>

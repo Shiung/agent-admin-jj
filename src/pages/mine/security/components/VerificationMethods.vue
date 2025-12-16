@@ -92,8 +92,9 @@ const getVerificationCode = async () => {
         clearInterval(timer)
       }
     }, 1000)
-  } catch (error) {
+  } catch (error: any) {
     console.error('獲取驗證碼失敗：', error)
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     codeLoading.value = false
   }
