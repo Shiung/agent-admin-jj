@@ -99,7 +99,7 @@ const fetchData = async (page: number = 0) => {
     const res = await API.playerManage.getPlayerListv2({
       ReportTimeBegin: selectTime.value.startTime,
       ReportTimeEnd: selectTime.value.endTime,
-      PageSize: pageInfo.value?.PageSize ?? 10,
+      PageSize: 20,
       Sort: selectedSort.value,
       Page: page,
       ...(searchSelected.value && { PlayerId: Number(searchSelected.value.id) }),
