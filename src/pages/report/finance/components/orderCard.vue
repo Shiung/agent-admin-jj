@@ -53,7 +53,7 @@ const getStatusConfig = (status: string) => {
       <div class="order-no-wrapper">
         <span class="order-label">订单号</span>
         <span class="order-no">{{ order.orderNo }}</span>
-        <van-image width="12" height="12" src="/static/images/common/copy.png" @click.stop="copyOrderNo(order.orderNo)" />
+        <van-image width="12" height="12" src="./static/images/common/copy.png" @click.stop="copyOrderNo(order.orderNo)" />
       </div>
       <div class="status-tag" :class="getStatusConfig(order.status).class">
         {{ getStatusConfig(order.status).text }}
