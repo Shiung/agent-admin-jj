@@ -89,7 +89,7 @@ const copyText = (text: string) => {
               v-if="detail.showCopy"
               width="12"
               height="12"
-              src="/static/images/common/copy.png"
+              src="./static/images/common/copy.png"
               @click.stop="copyText(String(detail.value))"
               style="cursor: pointer;"
             />

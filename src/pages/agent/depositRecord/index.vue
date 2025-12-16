@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
@@ -141,7 +141,9 @@ const getSortParam = (sortType: string): string => {
 
 // 加载更多
 const loadMore = async () => {
-  if (loading.value || finished.value) return
+  // 只检查 finished 状态，不检查 loading
+  // 因为 van-list 会在调用 @load 之前自动设置 loading=true
+  if (finished.value) return
 
   try {
     loading.value = true
@@ -198,7 +200,8 @@ const loadMore = async () => {
       totalCount.value = responseData.Pagination?.MaxCount || 0
 
       // 判断是否已加载完所有数据
-      if (items.length === 0 || depositRecords.value.length >= totalCount.value) {
+      // 如果返回的数据少于 pageSize，或已加载数量达到总数，说明没有更多数据了
+      if (items.length < pageSize || depositRecords.value.length >= totalCount.value) {
         finished.value = true
       } else {
         currentPage.value++
@@ -214,6 +217,7 @@ const loadMore = async () => {
   } catch (err) {
     console.error('加载代存记录失败:', err)
     error.value = true
+    finished.value = true // 出错时也设置 finished，避免无限重试
     showToast({
       message: '加载失败，请稍后重试',
       position: 'bottom'
@@ -254,7 +258,7 @@ const getCardDetails = (record: AgentCreditLimitTransactionItem) => {
   return [
     { label: '订单号', value: record.OrderId, showCopy: true },
     { label: '代存类型', value: formatDepositType(record.WalletType) },
-    { label: '代存金额', value: formatAmountWithSign(record.ApplyAmount), highlight: true },
+    { label: '代存金额', value: formatAmountWithSign(record.ApplyAmount), highlight: false },
     { label: '流水倍数', value: record.WithdrawWaterMultiply || 0 },
     { label: '代存回馈', value: formatMoneyWithCommas(record.DepositRebate || 0, 2, true) },
     { label: '充值类型', value: formatTransferType(record.TransferType) },
@@ -267,10 +271,6 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
     { label: '账变时间', value: formatTime(record.CreateTime) }
   ]
 }
-
-onMounted(() => {
-  loadMore()
-})
 </script>
 
 <template>
@@ -358,10 +358,12 @@ onMounted(() => {
         v-model:loading="loading"
         v-model:error="error"
         :finished="finished"
+        finished-text="没有更多了"
         error-text="请求失败"
+        :immediate-check="true"
+        :offset="10"
         @load="loadMore"
         :class="{ 'hide-list-loading': refreshing }"
-        :style="depositRecords.length === 0 ? { height: 'calc(100vh - 340px)', display: 'flex'} : {}"
       >
         <div v-if="depositRecords.length > 0" class="record-list-container">
           <RecordCard
@@ -373,12 +375,11 @@ onMounted(() => {
             :times="getCardTimes(record)"
           />
         </div>
-        <div
-          v-else-if="finished || refreshing"
-          class="flex flex-1 w-full items-center justify-center"
-        >
-          <empty description="暂无记录" />
-        </div>
+        <template #finished>
+          <div v-if="depositRecords.length === 0" class="flex items-center justify-center" style="min-height: 300px;">
+            <empty description="暂无记录" />
+          </div>
+        </template>
       </van-list>
     </van-pull-refresh>
   </div>

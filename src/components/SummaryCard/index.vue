@@ -73,7 +73,8 @@ const displayColor = computed(() => formattedData.value.color)
 
 .summary-label {
   font-size: 14px;
-  color: var(--color-neutral2-secondary);
+  font-weight: 600;
+  color: var(--color-neutral2-basic);
 }
 
 .summary-value {

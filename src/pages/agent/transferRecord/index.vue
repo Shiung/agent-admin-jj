@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
@@ -140,7 +140,9 @@ const getSortParam = (sortType: string): string => {
 
 // 加载更多
 const loadMore = async () => {
-  if (loading.value || finished.value) return
+  // 只检查 finished 状态，不检查 loading
+  // 因为 van-list 会在调用 @load 之前自动设置 loading=true
+  if (finished.value) return
 
   try {
     loading.value = true
@@ -170,7 +172,9 @@ const loadMore = async () => {
     const response = await API.admin.getAgentCreditLimitTransactionList(query)
 
     if (response.data.Code === 200) {
-      let items = response.data.Data.Items || []
+      // 安全处理 Data 和 Items 可能为 null 的情况
+      const responseData = response.data.Data || {}
+      let items = responseData.Items || []
 
       // 添加序号
       items = items.map((item, index) => ({
@@ -185,18 +189,21 @@ const loadMore = async () => {
       }
 
       // 更新总计
-      totalTransferAmount.value = response.data.Data.Total?.TotalAmount || 0
+      totalTransferAmount.value = responseData.Total?.TotalAmount || 0
 
       // 更新分页状态
-      totalCount.value = response.data.Data.Pagination?.MaxCount || 0
+      totalCount.value = responseData.Pagination?.MaxCount || 0
 
-      if (transferRecords.value.length >= totalCount.value) {
+      // 判断是否已加载完所有数据
+      // 如果返回的数据少于 pageSize，或已加载数量达到总数，说明没有更多数据了
+      if (items.length < pageSize || transferRecords.value.length >= totalCount.value) {
         finished.value = true
       } else {
         currentPage.value++
       }
     } else {
       error.value = true
+      finished.value = true // 出错时也设置 finished，避免卡在加载状态
       showToast({
         message: response.data.Msg || '加载失败',
         position: 'bottom'
@@ -205,6 +212,7 @@ const loadMore = async () => {
   } catch (err) {
     console.error('加载转账记录失败:', err)
     error.value = true
+    finished.value = true // 出错时也设置 finished，避免无限重试
     showToast({
       message: '加载失败，请稍后重试',
       position: 'bottom'
@@ -230,7 +238,7 @@ const getCardDetails = (record: any) => {
   return [
     { label: '订单号', value: record.OrderId, showCopy: true },
     { label: '转账类型', value: formatTransferType(record.WalletType) },
-    { label: '转账金额', value: formatMoneyWithCommas(record.ApplyAmount, 2, true), highlight: true },
+    { label: '转账金额', value: formatMoneyWithCommas(record.ApplyAmount, 2, true), highlight: false },
     { label: '备注', value: record.Remarks || '-', multiline: true }
   ]
 }
@@ -240,10 +248,6 @@ const getCardTimes = (record: any) => {
     { label: '账变时间', value: formatTime(record.CreateTime) }
   ]
 }
-
-onMounted(() => {
-  loadMore()
-})
 </script>
 
 <template>
@@ -269,6 +273,8 @@ onMounted(() => {
         <SummaryCard
           label="转账金额总计"
           :value="totalTransferAmount"
+          icon="/static/images/common/transferRecordIcon.png"
+          colorType="signed"
         />
       </div>
 
@@ -331,9 +337,10 @@ onMounted(() => {
         :finished="finished"
         finished-text="没有更多了"
         error-text="请求失败"
+        :immediate-check="true"
+        :offset="10"
         @load="loadMore"
         :class="{ 'hide-list-loading': refreshing }"
-        :style="transferRecords.length === 0 ? { height: 'calc(100vh - 340px)', display: 'flex'} : {}"
       >
         <div v-if="transferRecords.length > 0" class="record-list-container">
           <RecordCard
@@ -344,12 +351,11 @@ onMounted(() => {
             :times="getCardTimes(record)"
           />
         </div>
-        <div
-          v-else-if="finished || refreshing"
-          class="flex flex-1 w-full items-center justify-center"
-        >
-          <van-empty description="暂无记录" />
-        </div>
+        <template #finished>
+          <div v-if="transferRecords.length === 0" class="flex items-center justify-center" style="min-height: 300px;">
+            <empty description="暂无记录" />
+          </div>
+        </template>
       </van-list>
     </van-pull-refresh>
   </div>
