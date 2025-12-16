@@ -278,6 +278,8 @@ export interface AgentCreditLimitTransactionListQuery {
   Status?: string | number // 状态：''=全部, 2=已到账
   AccountName?: string // 下级账号搜索
   PackageId?: string | number // 产品包ID
+  WalletType?: number // 钱包类型：1=佣金钱包, 2=额度钱包
+  Sort?: string // 排序栏位：update_time=账变时间, amount=代存金额（-前缀表示降序）
 }
 
 // 代存记录列表项

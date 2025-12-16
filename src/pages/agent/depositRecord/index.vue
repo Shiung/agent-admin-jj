@@ -5,6 +5,8 @@ import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import RecordCard from '@/components/RecordCard/index.vue'
+import SummaryCard from '@/components/SummaryCard/index.vue'
 import dayjs from 'dayjs'
 import Big from 'big.js'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
@@ -108,19 +110,33 @@ watch([depositTypeFilter, sortType], () => {
 })
 
 // 重置列表
-const resetList = () => {
+const resetList = (keepData = false) => {
   currentPage.value = 1
-  depositRecords.value = []
-  totalDepositAmount.value = 0
+  if (!keepData) {
+    depositRecords.value = []
+    totalDepositAmount.value = 0
+  }
   finished.value = false
   error.value = false
+  loading.value = false // 重置加载状态，确保可以发起新请求
   loadMore()
 }
 
 // 下拉刷新
 const onRefresh = () => {
   refreshing.value = true
-  resetList()
+  resetList(true) // 下拉刷新时保持原有数据，避免空状态闪现
+}
+
+// 排序类型映射到API参数
+const getSortParam = (sortType: string): string => {
+  const sortMap: Record<string, string> = {
+    '账变时间降序': '-CreateTime',
+    '账变时间升序': 'CreateTime',
+    '代存金额降序': '-ApplyAmount',
+    '代存金额升序': 'ApplyAmount'
+  }
+  return sortMap[sortType] || '-CreateTime'
 }
 
 // 加载更多
@@ -132,20 +148,32 @@ const loadMore = async () => {
     error.value = false
 
     // 构建查询参数
-    const query = {
+    const query: any = {
       Page: currentPage.value,
       PageSize: pageSize,
       BeginTime: selectTimeRange.value.startTime,
       EndTime: selectTimeRange.value.endTime,
       TransferType: 2, // 固定为2（代存），1=转账
       IsAgentDeposit: true, // 代理代存标识
-      AccountName: searchKeyword.value
+      Sort: getSortParam(sortType.value) // 排序参数
+    }
+
+    // 会员账号搜索
+    if (searchKeyword.value) {
+      query.AccountName = searchKeyword.value
+    }
+
+    // 代存类型筛选（WalletType: 1=佣金钱包, 2=额度钱包）
+    if (depositTypeFilter.value !== 'all') {
+      query.WalletType = depositTypeFilter.value
     }
 
     const response = await API.admin.getAgentCreditLimitTransactionList(query)
 
     if (response.data.Code === 200) {
-      let items = response.data.Data.Items || []
+      // 安全处理 Data 和 Items 可能为 null 的情况
+      const responseData = response.data.Data || {}
+      let items = responseData.Items || []
 
       // 填充产品名称
       items = items.map((item, index) => {
@@ -157,22 +185,6 @@ const loadMore = async () => {
         }
       })
 
-      // 根据代存类型过滤
-      if (depositTypeFilter.value !== 'all') {
-        items = items.filter(item => item.WalletType === depositTypeFilter.value)
-      }
-
-      // 根据排序类型排序
-      if (sortType.value === '账变时间升序') {
-        items.sort((a, b) => a.CreateTime - b.CreateTime)
-      } else if (sortType.value === '账变时间降序') {
-        items.sort((a, b) => b.CreateTime - a.CreateTime)
-      } else if (sortType.value === '代存金额升序') {
-        items.sort((a, b) => a.ApplyAmount - b.ApplyAmount)
-      } else if (sortType.value === '代存金额降序') {
-        items.sort((a, b) => b.ApplyAmount - a.ApplyAmount)
-      }
-
       if (currentPage.value === 1) {
         depositRecords.value = items
       } else {
@@ -180,18 +192,20 @@ const loadMore = async () => {
       }
 
       // 更新总计
-      totalDepositAmount.value = response.data.Data.Total?.TotalAmount || 0
+      totalDepositAmount.value = responseData.Total?.TotalAmount || 0
 
       // 更新分页状态
-      totalCount.value = response.data.Data.Pagination?.MaxCount || 0
+      totalCount.value = responseData.Pagination?.MaxCount || 0
 
-      if (depositRecords.value.length >= totalCount.value) {
+      // 判断是否已加载完所有数据
+      if (items.length === 0 || depositRecords.value.length >= totalCount.value) {
         finished.value = true
       } else {
         currentPage.value++
       }
     } else {
       error.value = true
+      finished.value = true // 出错时也设置 finished，避免卡在加载状态
       showToast({
         message: response.data.Msg || '加载失败',
         position: 'bottom'
@@ -229,21 +243,29 @@ const formatDepositType = (walletType: number) => {
   return walletType === 1 ? '佣金代存' : '额度代存'
 }
 
-// 复制订单号
-const copyOrderId = async (orderId: string) => {
-  try {
-    await navigator.clipboard.writeText(orderId)
-    showToast({
-      message: '复制成功',
-      position: 'bottom'
-    })
-  } catch (err) {
-    console.error('复制失败:', err)
-    showToast({
-      message: '复制失败',
-      position: 'bottom'
-    })
-  }
+// 格式化金额（带符号）
+const formatAmountWithSign = (amount: number) => {
+  const formatted = formatMoneyWithCommas(amount, 2, true)
+  return amount > 0 ? `+${formatted}` : formatted
+}
+
+// 转换记录为卡片数据
+const getCardDetails = (record: AgentCreditLimitTransactionItem) => {
+  return [
+    { label: '订单号', value: record.OrderId, showCopy: true },
+    { label: '代存类型', value: formatDepositType(record.WalletType) },
+    { label: '代存金额', value: formatAmountWithSign(record.ApplyAmount), highlight: true },
+    { label: '流水倍数', value: record.WithdrawWaterMultiply || 0 },
+    { label: '代存回馈', value: formatMoneyWithCommas(record.DepositRebate || 0, 2, true) },
+    { label: '充值类型', value: formatTransferType(record.TransferType) },
+    { label: '备注', value: record.Remarks || '-', multiline: true }
+  ]
+}
+
+const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
+  return [
+    { label: '账变时间', value: formatTime(record.CreateTime) }
+  ]
 }
 
 onMounted(() => {
@@ -252,63 +274,83 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="deposit-record-page">
-    <!-- 导航栏 -->
-    <van-nav-bar
-      title="代存记录"
-      left-arrow
-      @click-left="handleBack"
-      fixed
-      placeholder
-    />
+  <div ref="containerRef" class="deposit-record-container">
+    <!-- 头部导航 -->
+    <div class="fixed-header">
+      <div class="flex items-center justify-between h-11 px-3 bg-white">
+        <van-icon name="arrow-left" size="24" @click="handleBack" />
+        <span class="text-base font-semibold text-neutral-basic">代存记录</span>
+        <div style="width: 24px;"></div>
+      </div>
+    </div>
 
-    <!-- 下拉刷新 -->
+    <!-- 下拉刷新容器 -->
     <van-pull-refresh
       v-model="refreshing"
       @refresh="onRefresh"
       :disabled="disablePullRefresh"
+      class="deposit-record-pull-refresh"
     >
-      <!-- 筛选栏 -->
-      <div v-if="isFilterBarFixed" :style="{ height: filterBarHeight + 'px' }" />
-      <div
-        class="filter-bar"
-        :class="{ 'is-fixed': isFilterBarFixed }"
-      >
-        <!-- 搜索框 -->
-        <van-search
-          v-model="searchKeyword"
-          placeholder="会员账号"
-          @search="handleSearch"
+      <!-- 代存金额总计卡片 -->
+      <div class="px-3 pb-2 pt-[54px]">
+        <SummaryCard
+          label="代存金额总计"
+          :value="totalDepositAmount"
+          icon="/static/images/common/depositRecordIcon.png"
+          colorType="signed"
         />
-
-        <!-- 筛选条件滚动容器 -->
-        <div class="filter-scroll">
-          <!-- 时间筛选 -->
-          <TimeFilterDropdown
-            v-model="selectTimeRange"
-            v-model:show-calendar="showCalendar"
-          />
-
-          <!-- 代存类型 -->
-          <Dropdown
-            v-model="depositTypeFilter"
-            :options="depositTypeOptions"
-            placeholder="代存类型"
-          />
-
-          <!-- 排序 -->
-          <Dropdown
-            v-model="sortType"
-            :options="sortOptions"
-            placeholder="排序"
-          />
-        </div>
       </div>
 
-      <!-- 总计卡片 -->
-      <div class="summary-card">
-        <div class="summary-label">代存金额总计</div>
-        <div class="summary-value">{{ formatMoneyWithCommas(totalDepositAmount, 2, true) }}</div>
+      <!-- 搜索和筛选器（sticky 固定） -->
+      <div>
+        <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
+        <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
+          <!-- 会员账号搜索框 -->
+          <van-search
+            v-model="searchKeyword"
+            placeholder="会员账号"
+            shape="round"
+            background="transparent"
+            clearable
+            left-icon=""
+            @search="handleSearch"
+            @clear="handleSearch"
+            @keyup.enter="handleSearch"
+          >
+            <template #right-icon>
+              <van-icon name="search" size="18" @click="handleSearch" />
+            </template>
+          </van-search>
+
+          <!-- 筛选条件行 -->
+          <div class="filter-scroll-container">
+            <!-- 时间筛选 -->
+            <TimeFilterDropdown
+              v-model="selectTimeRange"
+              v-model:show-calendar="showCalendar"
+              title="账变时间"
+              height="1.5rem"
+            />
+
+            <!-- 代存类型 -->
+            <div class="filter-dropdown">
+              <Dropdown
+                v-model="depositTypeFilter"
+                :options="depositTypeOptions"
+                height="1.5rem"
+              />
+            </div>
+
+            <!-- 排序 -->
+            <div class="filter-dropdown">
+              <Dropdown
+                v-model="sortType"
+                :options="sortOptions"
+                height="1.5rem"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 记录列表 -->
@@ -316,252 +358,188 @@ onMounted(() => {
         v-model:loading="loading"
         v-model:error="error"
         :finished="finished"
-        finished-text="没有更多了"
-        error-text="加载失败，点击重试"
+        error-text="请求失败"
         @load="loadMore"
+        :class="{ 'hide-list-loading': refreshing }"
+        :style="depositRecords.length === 0 ? { height: 'calc(100vh - 340px)', display: 'flex'} : {}"
       >
+        <div v-if="depositRecords.length > 0" class="record-list-container">
+          <RecordCard
+            v-for="record in depositRecords"
+            :key="record.OrderId"
+            :headerTitle="record.ReferenceAccount"
+            :headerSubtitle="`VIP${record.VipLevel || 0}`"
+            :details="getCardDetails(record)"
+            :times="getCardTimes(record)"
+          />
+        </div>
         <div
-          v-for="record in depositRecords"
-          :key="record.OrderId"
-          class="record-item"
+          v-else-if="finished || refreshing"
+          class="flex flex-1 w-full items-center justify-center"
         >
-          <!-- 头部：会员账号 + VIP等级 -->
-          <div class="record-header">
-            <div class="member-info">
-              <span class="member-account">{{ record.ReferenceAccount }}</span>
-              <span class="vip-level">VIP{{ record.VipLevel || 0 }}</span>
-            </div>
-          </div>
-
-          <!-- 详情列表 -->
-          <div class="record-details">
-            <!-- 订单号（带复制） -->
-            <div class="detail-row">
-              <span class="detail-label">订单号</span>
-              <div class="detail-value order-id-value" @click="copyOrderId(record.OrderId)">
-                <span>{{ record.OrderId }}</span>
-                <van-icon name="records" size="16" color="var(--color-neutral2-secondary)" />
-              </div>
-            </div>
-
-            <!-- 代存类型 -->
-            <div class="detail-row">
-              <span class="detail-label">代存类型</span>
-              <span class="detail-value">{{ formatDepositType(record.WalletType) }}</span>
-            </div>
-
-            <!-- 代存金额 -->
-            <div class="detail-row">
-              <span class="detail-label">代存金额</span>
-              <span
-                class="detail-value amount"
-                :class="{
-                  'amount-positive': record.ApplyAmount > 0,
-                  'amount-negative': record.ApplyAmount < 0
-                }"
-              >
-                {{ record.ApplyAmount > 0 ? '+' : '' }}{{ formatMoneyWithCommas(record.ApplyAmount, 2, true) }}
-              </span>
-            </div>
-
-            <!-- 流水倍数 -->
-            <div class="detail-row">
-              <span class="detail-label">流水倍数</span>
-              <span class="detail-value">{{ record.WithdrawWaterMultiply || 0 }}</span>
-            </div>
-
-            <!-- 代存回馈 -->
-            <div class="detail-row">
-              <span class="detail-label">代存回馈</span>
-              <span class="detail-value">{{ formatMoneyWithCommas(record.DepositRebate || 0, 2, true) }}</span>
-            </div>
-
-            <!-- 充值类型 -->
-            <div class="detail-row">
-              <span class="detail-label">充值类型</span>
-              <span class="detail-value">{{ formatTransferType(record.TransferType) }}</span>
-            </div>
-
-            <!-- 备注（完整显示） -->
-            <div class="detail-row">
-              <span class="detail-label">备注</span>
-              <span class="detail-value remark-text">{{ record.Remarks || '-' }}</span>
-            </div>
-
-            <!-- 账变时间 -->
-            <div class="detail-row">
-              <span class="detail-label">账变时间</span>
-              <span class="detail-value">{{ formatTime(record.CreateTime) }}</span>
-            </div>
-          </div>
+          <empty description="暂无记录" />
         </div>
       </van-list>
-
-      <!-- 空状态 -->
-      <van-empty
-        v-if="!loading && !refreshing && depositRecords.length === 0"
-        description="暂无记录"
-      />
     </van-pull-refresh>
   </div>
 </template>
 
-<style scoped>
-.deposit-record-page {
-  min-height: 100vh;
-  background-color: var(--color-bg-floor-1-2);
-  padding-bottom: 20px;
+<style lang="scss" scoped>
+.deposit-record-container {
+  background-color: white;
+  padding-bottom: 2rem;
 }
 
-/* 筛选栏 */
-.filter-bar {
-  background: white;
-  padding: 0 16px 12px;
-  transition: all 0.3s ease;
-}
-
-.filter-bar.is-fixed {
+/* Header 固定在顶部 */
+.fixed-header {
   position: fixed;
-  top: 44px;
+  top: 0;
   left: 0;
-  right: 0;
-  z-index: 99;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  z-index: 30;
+  background-color: white;
 }
 
-/* 搜索框 */
-:deep(.van-search) {
-  padding: 8px 0;
+.deposit-record-pull-refresh {
+  :deep(.van-pull-refresh__track) {
+    overflow: visible !important;
+  }
+  :deep(.van-pull-refresh__head) {
+    top: 44px;
+  }
 }
 
-:deep(.van-search__content) {
-  background-color: var(--color-bg-floor-1-2);
-  border-radius: 20px;
+/* 筛选栏固定 */
+.sticky-filter-bar {
+  position: relative;
+  z-index: 10;
+  background-color: white;
+  transition: all 0.3s;
+
+  &.is-fixed {
+    position: fixed;
+    top: 44px; /* Header 高度 h-11 = 44px */
+    left: 0;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
 }
 
-/* 筛选滚动 */
-.filter-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+/* 用於吸頂定位的佔位元素 */
+.filter-bar-placeholder {
+  /* 高度由JS動態設定 */
 }
 
-.filter-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-/* 总计卡片 */
-.summary-card {
-  margin: 12px 16px;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.summary-label {
-  font-size: 14px;
-  color: var(--color-neutral2-secondary);
-  margin-bottom: 8px;
-}
-
-.summary-value {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-primary-normal);
-}
-
-/* 记录项 */
-.record-item {
-  margin: 0 16px 12px;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.record-header {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--color-neutral2-seventh);
-}
-
-.member-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.member-account {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-neutral-basic);
-}
-
-.vip-level {
-  font-size: 12px;
-  color: var(--color-neutral2-secondary);
-  padding: 2px 8px;
-  background: var(--color-bg-floor-1-2);
-  border-radius: 4px;
-}
-
-/* 详情列表 */
-.record-details {
+.record-list-container {
+  flex: 1;
+  margin-top: 8px;
+  padding: 0 0.75rem;
+  padding-bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 2rem);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.detail-row {
+/* van-list loading 居中 */
+:deep(.van-list__loading) {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  font-size: 14px;
+  flex: 1;
+  width: 100%;
 }
-
-.detail-label {
-  color: var(--color-neutral2-secondary);
-}
-
-.detail-value {
-  color: var(--color-neutral-basic);
-  text-align: right;
-  max-width: 60%;
-  word-break: break-all;
-}
-
-/* 订单号可点击 */
-.order-id-value {
+/* van-list error-text 居中 */
+:deep(.van-list__error-text) {
   display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  cursor: pointer;
+  flex: 1;
+  width: 100%;
 }
 
-.order-id-value:active {
-  opacity: 0.6;
+/* 下拉刷新时隐藏 van-list loading */
+.hide-list-loading :deep(.van-list__loading) {
+  display: none !important;
 }
 
-.detail-value.amount {
-  font-weight: 600;
-  font-size: 16px;
+/* 自定义 van-search 样式 */
+:deep(.van-search) {
+  padding: 0;
+
+  .van-search__content {
+    background-color: white;
+    border: 1px solid var(--color-neutral2-seventh);
+    border-radius: 20px;
+    height: 40px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .van-field__control {
+    font-size: 14px;
+    color: var(--color-neutral-basic);
+  }
+
+  .van-field__control::placeholder {
+    color: var(--color-neutral-secondary);
+  }
+
+  .van-field__right-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-neutral-secondary);
+  }
+
+  .van-field__clear {
+    color: var(--color-neutral-secondary);
+  }
+
+  .van-field__right-icon .van-icon {
+    cursor: pointer;
+  }
 }
 
-.amount-positive {
-  color: var(--color-error-normal);
+/* 筛选器横向滚动容器 */
+.filter-scroll-container {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
-.amount-negative {
-  color: var(--color-success-normal);
-}
+/* 筛选器 Dropdown 样式 */
+.filter-dropdown {
+  flex: none;
+  scroll-snap-align: start;
 
-/* 备注完整显示 */
-.remark-text {
-  white-space: pre-wrap;
-  word-break: break-word;
+  :deep(.dropdown-button) {
+    border: none;
+    border-radius: 12px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    height: 1.5rem;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    white-space: nowrap;
+    background: var(--color-bg-floor-1-2);
+  }
+
+  :deep(.dropdown-button [data-placeholder]) {
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
+  :deep(.dropdown-button svg) {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-left: 0;
+  }
 }
 </style>

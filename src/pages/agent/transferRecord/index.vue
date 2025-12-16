@@ -5,6 +5,8 @@ import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import RecordCard from '@/components/RecordCard/index.vue'
+import SummaryCard from '@/components/SummaryCard/index.vue'
 import dayjs from 'dayjs'
 import Big from 'big.js'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
@@ -107,19 +109,33 @@ watch([transferTypeFilter, sortType], () => {
 })
 
 // 重置列表
-const resetList = () => {
+const resetList = (keepData = false) => {
   currentPage.value = 1
-  transferRecords.value = []
-  totalTransferAmount.value = 0
+  if (!keepData) {
+    transferRecords.value = []
+    totalTransferAmount.value = 0
+  }
   finished.value = false
   error.value = false
+  loading.value = false // 重置加载状态，确保可以发起新请求
   loadMore()
 }
 
 // 下拉刷新
 const onRefresh = () => {
   refreshing.value = true
-  resetList()
+  resetList(true) // 下拉刷新时保持原有数据，避免空状态闪现
+}
+
+// 排序类型映射到API参数
+const getSortParam = (sortType: string): string => {
+  const sortMap: Record<string, string> = {
+    '账变时间降序': '-update_time',
+    '账变时间升序': 'update_time',
+    '转账金额降序': '-amount',
+    '转账金额升序': 'amount'
+  }
+  return sortMap[sortType] || '-update_time'
 }
 
 // 加载更多
@@ -131,13 +147,24 @@ const loadMore = async () => {
     error.value = false
 
     // 构建查询参数
-    const query = {
+    const query: any = {
       Page: currentPage.value,
       PageSize: pageSize,
       BeginTime: selectTimeRange.value.startTime,
       EndTime: selectTimeRange.value.endTime,
       TransferType: 1, // 固定为1（转账），2=代存
-      AccountName: searchKeyword.value
+      Sort: getSortParam(sortType.value) // 排序参数
+    }
+
+    // 代理账号搜索
+    if (searchKeyword.value) {
+      query.AccountName = searchKeyword.value
+    }
+
+    // 转账类型筛选（WalletType: 1=佣金钱包, 2=额度钱包）
+    if (transferTypeFilter.value !== 'all') {
+      // 0=额度转账->WalletType=2, 1=佣金转账->WalletType=1
+      query.WalletType = transferTypeFilter.value === 0 ? 2 : 1
     }
 
     const response = await API.admin.getAgentCreditLimitTransactionList(query)
@@ -150,23 +177,6 @@ const loadMore = async () => {
         ...item,
         index: (currentPage.value - 1) * pageSize + index + 1
       }))
-
-      // 根据转账类型过滤
-      if (transferTypeFilter.value !== 'all') {
-        const walletType = transferTypeFilter.value === 0 ? 2 : 1 // 0=额度转账->WalletType=2, 1=佣金转账->WalletType=1
-        items = items.filter(item => item.WalletType === walletType)
-      }
-
-      // 根据排序类型排序
-      if (sortType.value === '账变时间升序') {
-        items.sort((a, b) => a.CreateTime - b.CreateTime)
-      } else if (sortType.value === '账变时间降序') {
-        items.sort((a, b) => b.CreateTime - a.CreateTime)
-      } else if (sortType.value === '转账金额升序') {
-        items.sort((a, b) => a.ApplyAmount - b.ApplyAmount)
-      } else if (sortType.value === '转账金额降序') {
-        items.sort((a, b) => b.ApplyAmount - a.ApplyAmount)
-      }
 
       if (currentPage.value === 1) {
         transferRecords.value = items
@@ -215,21 +225,20 @@ const formatTransferType = (walletType: number) => {
   return walletType === 1 ? '佣金转账' : '额度转账'
 }
 
-// 复制订单号
-const copyOrderId = async (orderId: string) => {
-  try {
-    await navigator.clipboard.writeText(orderId)
-    showToast({
-      message: '复制成功',
-      position: 'bottom'
-    })
-  } catch (err) {
-    console.error('复制失败:', err)
-    showToast({
-      message: '复制失败',
-      position: 'bottom'
-    })
-  }
+// 转换记录为卡片数据
+const getCardDetails = (record: any) => {
+  return [
+    { label: '订单号', value: record.OrderId, showCopy: true },
+    { label: '转账类型', value: formatTransferType(record.WalletType) },
+    { label: '转账金额', value: formatMoneyWithCommas(record.ApplyAmount, 2, true), highlight: true },
+    { label: '备注', value: record.Remarks || '-', multiline: true }
+  ]
+}
+
+const getCardTimes = (record: any) => {
+  return [
+    { label: '账变时间', value: formatTime(record.CreateTime) }
+  ]
 }
 
 onMounted(() => {
@@ -238,63 +247,81 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="transfer-record-page">
-    <!-- 导航栏 -->
-    <van-nav-bar
-      title="转账记录"
-      left-arrow
-      @click-left="handleBack"
-      fixed
-      placeholder
-    />
+  <div ref="containerRef" class="transfer-record-container">
+    <!-- 头部导航 -->
+    <div class="fixed-header">
+      <div class="flex items-center justify-between h-11 px-3 bg-white">
+        <van-icon name="arrow-left" size="24" @click="handleBack" />
+        <span class="text-base font-semibold text-neutral-basic">转账记录</span>
+        <div style="width: 24px;"></div>
+      </div>
+    </div>
 
-    <!-- 下拉刷新 -->
+    <!-- 下拉刷新容器 -->
     <van-pull-refresh
       v-model="refreshing"
       @refresh="onRefresh"
       :disabled="disablePullRefresh"
+      class="transfer-record-pull-refresh"
     >
-      <!-- 筛选栏 -->
-      <div v-if="isFilterBarFixed" :style="{ height: filterBarHeight + 'px' }" />
-      <div
-        class="filter-bar"
-        :class="{ 'is-fixed': isFilterBarFixed }"
-      >
-        <!-- 搜索框 -->
-        <van-search
-          v-model="searchKeyword"
-          placeholder="会员账号"
-          @search="handleSearch"
+      <!-- 转账金额总计卡片 -->
+      <div class="px-3 pb-2 pt-[54px]">
+        <SummaryCard
+          label="转账金额总计"
+          :value="totalTransferAmount"
         />
-
-        <!-- 筛选条件滚动容器 -->
-        <div class="filter-scroll">
-          <!-- 时间筛选 -->
-          <TimeFilterDropdown
-            v-model="selectTimeRange"
-            v-model:show-calendar="showCalendar"
-          />
-
-          <!-- 转账类型 -->
-          <Dropdown
-            v-model="transferTypeFilter"
-            :options="transferTypeOptions"
-            placeholder="转账类型"
-          />
-
-          <!-- 排序 -->
-          <Dropdown
-            v-model="sortType"
-            :options="sortOptions"
-            placeholder="排序"
-          />
-        </div>
       </div>
 
-      <!-- 总计卡片 -->
-      <div class="summary-card">
-        <div class="summary-label">转账金额总计</div>
-        <div class="summary-value">{{ formatMoneyWithCommas(totalTransferAmount, 2, true) }}</div>
+      <!-- 搜索和筛选器（sticky 固定） -->
+      <div>
+        <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
+        <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
+          <!-- 代理账号搜索框 -->
+          <van-search
+            v-model="searchKeyword"
+            placeholder="代理账号"
+            shape="round"
+            background="transparent"
+            clearable
+            left-icon=""
+            @search="handleSearch"
+            @clear="handleSearch"
+            @keyup.enter="handleSearch"
+          >
+            <template #right-icon>
+              <van-icon name="search" size="18" @click="handleSearch" />
+            </template>
+          </van-search>
+
+          <!-- 筛选条件行 -->
+          <div class="filter-scroll-container">
+            <!-- 时间筛选 -->
+            <TimeFilterDropdown
+              v-model="selectTimeRange"
+              v-model:show-calendar="showCalendar"
+              title="账变时间"
+              height="1.5rem"
+            />
+
+            <!-- 转账类型 -->
+            <div class="filter-dropdown">
+              <Dropdown
+                v-model="transferTypeFilter"
+                :options="transferTypeOptions"
+                height="1.5rem"
+              />
+            </div>
+
+            <!-- 排序 -->
+            <div class="filter-dropdown">
+              <Dropdown
+                v-model="sortType"
+                :options="sortOptions"
+                height="1.5rem"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 记录列表 -->
@@ -303,203 +330,187 @@ onMounted(() => {
         v-model:error="error"
         :finished="finished"
         finished-text="没有更多了"
-        error-text="加载失败，点击重试"
+        error-text="请求失败"
         @load="loadMore"
+        :class="{ 'hide-list-loading': refreshing }"
+        :style="transferRecords.length === 0 ? { height: 'calc(100vh - 340px)', display: 'flex'} : {}"
       >
+        <div v-if="transferRecords.length > 0" class="record-list-container">
+          <RecordCard
+            v-for="record in transferRecords"
+            :key="record.OrderId"
+            :headerTitle="record.ReferenceAccount"
+            :details="getCardDetails(record)"
+            :times="getCardTimes(record)"
+          />
+        </div>
         <div
-          v-for="record in transferRecords"
-          :key="record.OrderId"
-          class="record-item"
+          v-else-if="finished || refreshing"
+          class="flex flex-1 w-full items-center justify-center"
         >
-          <!-- 头部：代理账号 -->
-          <div class="record-header">
-            <div class="member-account">{{ record.ReferenceAccount }}</div>
-          </div>
-
-          <!-- 详情列表 -->
-          <div class="record-details">
-            <!-- 订单号（带复制） -->
-            <div class="detail-row">
-              <span class="detail-label">订单号</span>
-              <div class="detail-value order-id-value" @click="copyOrderId(record.OrderId)">
-                <span>{{ record.OrderId }}</span>
-                <van-icon name="records" size="16" color="var(--color-neutral2-secondary)" />
-              </div>
-            </div>
-
-            <!-- 转账类型 -->
-            <div class="detail-row">
-              <span class="detail-label">转账类型</span>
-              <span class="detail-value">{{ formatTransferType(record.WalletType) }}</span>
-            </div>
-
-            <!-- 转账金额 -->
-            <div class="detail-row">
-              <span class="detail-label">转账金额</span>
-              <span class="detail-value amount">
-                {{ formatMoneyWithCommas(record.ApplyAmount, 2, true) }}
-              </span>
-            </div>
-
-            <!-- 备注（完整显示） -->
-            <div class="detail-row">
-              <span class="detail-label">备注</span>
-              <span class="detail-value remark-text">{{ record.Remarks || '-' }}</span>
-            </div>
-
-            <!-- 账变时间 -->
-            <div class="detail-row">
-              <span class="detail-label">账变时间</span>
-              <span class="detail-value">{{ formatTime(record.CreateTime) }}</span>
-            </div>
-          </div>
+          <van-empty description="暂无记录" />
         </div>
       </van-list>
-
-      <!-- 空状态 -->
-      <van-empty
-        v-if="!loading && !refreshing && transferRecords.length === 0"
-        description="暂无记录"
-      />
     </van-pull-refresh>
   </div>
 </template>
 
-<style scoped>
-.transfer-record-page {
-  min-height: 100vh;
-  background-color: var(--color-bg-floor-1-2);
-  padding-bottom: 20px;
+<style lang="scss" scoped>
+.transfer-record-container {
+  background-color: white;
+  padding-bottom: 2rem;
 }
 
-/* 筛选栏 */
-.filter-bar {
-  background: white;
-  padding: 0 16px 12px;
-  transition: all 0.3s ease;
-}
-
-.filter-bar.is-fixed {
+/* Header 固定在顶部 */
+.fixed-header {
   position: fixed;
-  top: 44px;
+  top: 0;
   left: 0;
-  right: 0;
-  z-index: 99;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  width: 100%;
+  z-index: 30;
+  background-color: white;
 }
 
-/* 搜索框 */
-:deep(.van-search) {
-  padding: 8px 0;
+.transfer-record-pull-refresh {
+  :deep(.van-pull-refresh__track) {
+    overflow: visible !important;
+  }
+  :deep(.van-pull-refresh__head) {
+    top: 44px;
+  }
 }
 
-:deep(.van-search__content) {
-  background-color: var(--color-bg-floor-1-2);
-  border-radius: 20px;
+/* 筛选栏固定 */
+.sticky-filter-bar {
+  position: relative;
+  z-index: 10;
+  background-color: white;
+  transition: all 0.3s;
+
+  &.is-fixed {
+    position: fixed;
+    top: 44px;
+    left: 0;
+    width: 100%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
 }
 
-/* 筛选滚动 */
-.filter-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+/* 用於吸頂定位的佔位元素 */
+.filter-bar-placeholder {
+  /* 高度由JS動態設定 */
 }
 
-.filter-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-/* 总计卡片 */
-.summary-card {
-  margin: 12px 16px;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.summary-label {
-  font-size: 14px;
-  color: var(--color-neutral2-secondary);
-  margin-bottom: 8px;
-}
-
-.summary-value {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--color-primary-normal);
-}
-
-/* 记录项 */
-.record-item {
-  margin: 0 16px 12px;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-
-.record-header {
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid var(--color-neutral2-seventh);
-}
-
-.member-account {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-neutral-basic);
-}
-
-/* 详情列表 */
-.record-details {
+.record-list-container {
+  flex: 1;
+  margin-top: 8px;
+  padding: 0 0.75rem;
+  padding-bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 2rem);
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.detail-row {
+/* van-list loading 居中 */
+:deep(.van-list__loading) {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
-  font-size: 14px;
+  flex: 1;
+  width: 100%;
 }
-
-.detail-label {
-  color: var(--color-neutral2-secondary);
-}
-
-.detail-value {
-  color: var(--color-neutral-basic);
-  text-align: right;
-  max-width: 60%;
-  word-break: break-all;
-}
-
-/* 订单号可点击 */
-.order-id-value {
+/* van-list error-text 居中 */
+:deep(.van-list__error-text) {
   display: flex;
+  justify-content: center;
   align-items: center;
-  justify-content: flex-end;
-  gap: 4px;
-  cursor: pointer;
+  flex: 1;
+  width: 100%;
 }
 
-.order-id-value:active {
-  opacity: 0.6;
+/* 下拉刷新时隐藏 van-list loading */
+.hide-list-loading :deep(.van-list__loading) {
+  display: none !important;
 }
 
-.detail-value.amount {
-  font-weight: 600;
-  font-size: 16px;
-  color: var(--color-neutral-basic);
+/* 自定义 van-search 样式 */
+:deep(.van-search) {
+  padding: 0;
+
+  .van-search__content {
+    background-color: white;
+    border: 1px solid var(--color-neutral2-seventh);
+    border-radius: 20px;
+    height: 40px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .van-field__control {
+    font-size: 14px;
+    color: var(--color-neutral-basic);
+  }
+
+  .van-field__control::placeholder {
+    color: var(--color-neutral-secondary);
+  }
+
+  .van-field__right-icon {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-neutral-secondary);
+  }
+
+  .van-field__clear {
+    color: var(--color-neutral-secondary);
+  }
+
+  .van-field__right-icon .van-icon {
+    cursor: pointer;
+  }
 }
 
-/* 备注完整显示 */
-.remark-text {
-  white-space: pre-wrap;
-  word-break: break-word;
+/* 筛选器横向滚动容器 */
+.filter-scroll-container {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* 筛选器 Dropdown 样式 */
+.filter-dropdown {
+  flex: none;
+  scroll-snap-align: start;
+
+  :deep(.dropdown-button) {
+    border: none;
+    border-radius: 12px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    height: 1.5rem;
+    justify-content: flex-start;
+    gap: 0.25rem;
+    white-space: nowrap;
+    background: var(--color-bg-floor-1-2);
+  }
+
+  :deep(.dropdown-button [data-placeholder]) {
+    font-size: 0.75rem;
+    font-weight: 400;
+  }
+
+  :deep(.dropdown-button svg) {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-left: 0;
+  }
 }
 </style>
