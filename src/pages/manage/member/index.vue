@@ -27,6 +27,7 @@ const userStore = useUserStore()
 const router = useRouter()
 const infinityRef = ref<InfinityExposeType>()
 
+const defaultVipSelector = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 // const itemLs = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Items']>([])
 const totalInfo = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Total'] | null>(null)
 const pageInfo = ref<Awaited<ReturnType<typeof API.playerManage.getPlayerListv2>>['data']['Data']['Pagination'] | null>(null)
@@ -38,7 +39,7 @@ const activeMemberType = ref<0 | 1 | 2 | null>(null)
 const bindCard = ref<0 | 1 | 2 | null>(null)
 const bindPhone = ref<0 | 1 | 2 | null>(null)
 const packageId = ref<number | null>(null)
-const vipLevels = ref<Array<number>>([])
+const vipLevels = ref<Array<number>>(defaultVipSelector)
 
 const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
   startTime: dayjs().startOf('month').unix(),
@@ -58,8 +59,8 @@ const selectedSort = ref(sortOptions.value[0]?.value ?? '-CreateTime')
 
 const info = computed(() => ([
   { title: '总会员数', amount: formatNumber(pageInfo.value?.MaxCount ?? 0) },
-  { title: '总充值', amount: formatMoney(totalInfo.value?.TotalRecharged ?? 0, 0, true) },
-  { title: '总代存', amount: formatMoney(totalInfo.value?.TotalAgentApplyGold ?? 0, 0, true) },
+  { title: '总充值', amount: formatMoney(totalInfo.value?.TotalRecharged ?? 0, 2, true) },
+  { title: '总代存', amount: formatMoney(totalInfo.value?.TotalAgentApplyGold ?? 0, 2, true) },
 ]))
 
 const searchLsLoading = ref<boolean>(false)
@@ -128,7 +129,7 @@ const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['
   const productLs = userStore.productPackages
   const { phone, card } = userStore.playerInfoPermission
   return [
-    { key: advanceKeyMap.RegTime, title: '注册时间', type: 'time' },
+    { key: advanceKeyMap.RegTime, title: '注册时间', type: 'time', timeDisableTimeRange: true },
     {
       key: advanceKeyMap.packageId,
       title: '产品包',
@@ -157,8 +158,8 @@ const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['
       type: 'radio',
       list: [
         { label: '全部', value: '' },
-        { label: '已绑定', value: 1 },
-        { label: '未绑定', value: 2 }
+        { label: '是', value: 1 },
+        { label: '否', value: 2 }
       ],
     },
     {
@@ -167,8 +168,8 @@ const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['
       type: 'radio',
       list: [
         { label: '全部', value: '' },
-        { label: '已绑定', value: 1 },
-        { label: '未绑定', value: 2 }
+        { label: '是', value: 1 },
+        { label: '否', value: 2 }
       ],
     },
     {
@@ -187,7 +188,8 @@ const advancedLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['
         { label: 'VIP8', value: 8 },
         { label: 'VIP9', value: 9 },
         { label: 'VIP10', value: 10 },
-      ]
+      ],
+      defaultSelected: defaultVipSelector
     },
   ].filter((l) => {
     if (l.key === advanceKeyMap.bindPhone && !phone) return false
@@ -333,11 +335,11 @@ onMounted(() => {
               </div>
               <div class="flex-1 flex flex-col items-center justify-center">
                 <div class="text-xs text-neutral2-secondary">充值</div>
-                <ShowNumber class="text-sm font-semibold text-neutral2-basic" :format-num="formatSignedMoney(i.Recharged ?? 0, 0, false)" />
+                <ShowNumber class="text-sm font-semibold text-neutral2-basic" :format-num="{ text: formatMoney(i.Recharged ?? 0, 2, true).toString(), color: '' }" />
               </div>
               <div class="flex-1 flex flex-col items-center justify-center">
                 <div class="text-xs text-neutral2-secondary">代存</div>
-                <ShowNumber class="text-sm font-semibold text-neutral2-basic" :format-num="formatSignedMoney(i.AgentApplyGold ?? 0, 0, false)" />
+                <ShowNumber class="text-sm font-semibold text-neutral2-basic" :format-num="{ text: formatMoney(i.AgentApplyGold ?? 0, 2, true).toString(), color: '' }" />
               </div>
             </div>
 

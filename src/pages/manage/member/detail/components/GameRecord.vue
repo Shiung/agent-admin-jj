@@ -106,7 +106,7 @@ const selectedSort = ref(sortOptions.value[0]?.value ?? '-SettlementTime')
 const sum = computed(() => ([
   { id: 'sumBet', title: '投注金额', amount: moreItems.value?.SumBetGold ?? 0 },
   { id: 'sumValid', title: '有效投注', amount: moreItems.value?.SumValidWater ?? 0 },
-  { id: 'winLose', title: '总盈利', amount: moreItems.value?.SumPlayerWinLose ?? 0 },
+  { id: 'winLose', title: '总盈利', amount: moreItems.value?.SumProfitGold ?? 0 },
 ]))
 
 const SumAmount = defineComponent(
@@ -138,7 +138,7 @@ const SumAmount = defineComponent(
 const SumBlock = defineComponent(
   (props: { item: Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['Items'][number] }, { attrs }) => {
     const ls = computed(() => {
-      const { Status, BetGold, TotalBetGold, ValidWater, PlayerWinLose } = props.item
+      const { Status, BetGold, TotalBetGold, ValidWater, CompanyWinLose } = props.item
       let showBet: number
       switch (Status) {
         case -1:
@@ -154,13 +154,13 @@ const SumBlock = defineComponent(
       const showValue = (type: string) => {
         if (type === 'sumBet') return showBet
         if (type === 'sumValid') return ValidWater
-        if (type === 'winLose') return PlayerWinLose
+        if (type === 'winLose') return CompanyWinLose
         return 0
       }
 
       return ['sumBet', 'sumValid', 'winLose'].map((t) => ({
         id: t,
-        title: sum.value.find(s => s.id === t)?.title,
+        title: t === 'winLose' ? '盈利' : sum.value.find(s => s.id === t)?.title,
         value: showValue(t)
       }))
     })
