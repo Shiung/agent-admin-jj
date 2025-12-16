@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, inject, defineComponent, h, computed, watchEffect } from 'vue'
+import { ref, inject, defineComponent, h, computed } from 'vue'
 import { cn } from '@/utils/className'
 import dayjs from 'dayjs'
+import Big from 'big.js'
 import { formatSignedMoney, formatMoney } from '@/utils/formatNumber'
 import { ProviderActionSymbol, ProviderStateSymbol } from '../composables/useProvider'
 import type TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
@@ -21,7 +22,7 @@ const ls = computed(() => ([
   {
     id: 'TotalWinLose',
     title: '总盈利',
-    value: (state.playerInfo?.Total.TotalBetGold ?? 0) - (state.playerInfo?.Total.TotalWinGold ?? 0)
+    value: new Big(state.playerInfo?.Total.TotalBetGold ?? 0).minus(new Big(state.playerInfo?.Total.TotalWinGold ?? 0)).toNumber()
   },
   { id: 'TotalBetGold', title: '投注金额', value: state.playerInfo?.Total.TotalBetGold ?? 0 },
   { id: 'TotalValidBet', title: '有效投注', value: state.playerInfo?.Total.TotalValidBet ?? 0 },
