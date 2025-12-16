@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast, showFailToast } from 'vant'
 import { useUserStore } from '@/stores/user'
 import { rulesRequired } from '@/utils/formRules'
 import type { FormInstance } from 'vant'

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast, showFailToast } from 'vant'
 import GestureLock from './components/GestureLock.vue'
 import GestureConfirm from './components/GestureConfirm.vue'
 

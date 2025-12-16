@@ -2,7 +2,6 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { showToast, showFailToast } from 'vant'
 import { rulesVerifyCode, rulesTelephone } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 import NavBar from '@/components/NavBar/index.vue'

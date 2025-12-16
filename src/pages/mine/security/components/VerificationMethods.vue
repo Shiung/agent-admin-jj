@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
-import { showToast, showFailToast } from 'vant'
 import AppField from '@/components/AppField/index.vue'
 import API from '@/apis'
 import getDeviceId from '@/utils/getDeviceId'

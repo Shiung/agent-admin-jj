@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { showToast, showFailToast } from 'vant'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
 import API from '@/apis'
