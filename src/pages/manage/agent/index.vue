@@ -62,9 +62,7 @@ const agentInfo = ref<GetNetcashmultiInfoV2Data>({
   Username: ''
 })
 
-const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).toFixed(0)
-
-const selectTimeRange = ref({ startTime: timestampToSecond(dayjs().startOf('month').valueOf()), endTime: timestampToSecond(dayjs().endOf('month').valueOf()) })
+const selectTimeRange = ref({ startTime: 0, endTime: 0 })
 
 // 代理層級
 const agentLevel = computed(() => levelMap[agentInfo.value.AccountLevel] || '')
@@ -231,7 +229,7 @@ onMounted(() => {
     </div>
 
     <div class="mb-3 flex items-center space-x-2">
-      <TimeFilterDropdown v-model="selectTimeRange" title="新增时间" />
+      <TimeFilterDropdown v-model="selectTimeRange" title="新增时间" showAll />
       <DropdownFilled v-model="selectedLevel" placeholder="代理层级" class="flex-1" :options="levelOptions" />
       <DropdownFilled v-model="selectedSort" placeholder="排序" class="flex-1" :options="sortOptions" />
     </div>

@@ -1,6 +1,7 @@
 import { fileURLToPath, URL } from 'node:url'
 import fs from 'fs'
 import path from 'path'
+import pkg from './package.json'
 
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -38,6 +39,9 @@ export default defineConfig(({ mode, command }) => {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
+    },
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
     },
     server: {
       host: '0.0.0.0', // 允許外部設備訪問

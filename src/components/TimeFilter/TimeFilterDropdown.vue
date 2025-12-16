@@ -27,6 +27,7 @@ interface Props {
   title?: string
   options?: TimeRangeOption[] // 可選的自定義選項
   maxDate?: Date // 可選的最大日期（默認為今天）
+  showAll?: boolean // 是否顯示全部選項，並解除180天限制
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -34,6 +35,7 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   height: '1.5rem',
   title: '',
+  showAll: false
 })
 
 // 有些地方不會有type
@@ -42,11 +44,11 @@ const model = defineModel<{ startTime: number; endTime: number }>('modelValue', 
 // 暴露 calendar 的打开状态，让父组件可以在 calendar 打开时禁用下拉刷新
 const showDatePicker = defineModel<boolean>('showCalendar', { default: false })
 
-// 日期區間180天
-const minDate = ref(dayjs().subtract(180, 'day').toDate())
+// 日期區間180天, showAll 會解除180天限制
+const minDate = ref(props.showAll ? dayjs('2000-01-01').toDate() : dayjs().subtract(180, 'day').toDate())
 const maxDate = computed(() => props.maxDate || dayjs().toDate())
 
-const customTimeRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 0 })
+const customTimeRange = ref<{ startTime: number; endTime: number }>({ startTime: 0, endTime: 1 })
 const selectedOption = ref<any>(null)
 
 // 時間區間
@@ -54,6 +56,7 @@ const timestampToSecond = (timestamp: number) => +new Big(timestamp).div(1000).t
 
 // 默認選項（包含今天）
 const defaultTimeRangeOptions = [
+  ...(props.showAll ? [{ label: '全部', startTime: 0, endTime: 0 }] : []),
   { label: '今日', startTime: timestampToSecond(dayjs().startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
   { label: '昨日', startTime: timestampToSecond(dayjs().subtract(1, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().subtract(1, 'day').endOf('day').valueOf()) },
   { label: '近7日', startTime: timestampToSecond(dayjs().subtract(7, 'day').startOf('day').valueOf()), endTime: timestampToSecond(dayjs().endOf('day').valueOf()) },
@@ -181,7 +184,7 @@ watch(() => model.value, (newValue) => {
     </SelectContent>
   </Select>
 
-  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" teleport="body" type="range" @confirm="handleDatePickerConfirm" />
+  <van-calendar v-model:show="showDatePicker" :min-date="minDate" :max-date="maxDate" teleport="body" type="range" allow-same-day @confirm="handleDatePickerConfirm" />
 </template>
 
 <style lang="scss" scoped>
