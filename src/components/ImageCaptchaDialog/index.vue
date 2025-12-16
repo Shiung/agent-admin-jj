@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { showToast } from 'vant'
 import API from '@/apis'
 import { useGlobalStore } from '@/stores/global'
 import getDeviceId from '@/utils/getDeviceId'

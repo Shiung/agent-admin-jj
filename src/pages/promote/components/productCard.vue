@@ -3,7 +3,6 @@ import { watchEffect, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { PromotionlinkListV2ResponseData } from '@/apis/codegen/data-contracts'
 import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
-import { showToast, showFailToast } from 'vant'
 import { useClipboard, useDateFormat } from '@vueuse/core'
 import { useQRCode } from '@vueuse/integrations/useQRCode'
 
@@ -133,17 +132,20 @@ const clickCopy = async () => {
             </div>
           </div>
           <div class="flex justify-center items-center gap-2">
-            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
+            <div
+              class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="copy(h5.Domain)">复制链接</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
+            <div
+              class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/qrcode_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="clickQrcodeDialog(h5.Domain)">二维码</div>
             </div>
-            <div class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
+            <div
+              class="flex-1 p-1.5 rounded-[100px] border border-neutral-basic flex justify-center items-center space-x-1">
               <van-image src="./static/images/promote/share_lite.png" fit="contain" class="w-3" />
               <div class="text-center justify-start text-neutral-basic text-[10px] font-semibold"
                 @click="clickHandler(product.PackageId, product.ChannelId, h5.Domain)">素材设置</div>

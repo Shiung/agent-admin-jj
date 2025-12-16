@@ -9,10 +9,7 @@ import getRemoteSourcePath from '@/utils/getRemoteSourcePath'
 import { useClipboard } from '@vueuse/core'
 
 import photo from './components/photo.vue'
-
 import useImage from './composables/useImage'
-
-import { showFailToast, showSuccessToast } from 'vant'
 
 const { downLoadImage, shareBase64Image } = useImage()
 const { copy } = useClipboard()
@@ -267,13 +264,13 @@ watchOnce(deviceOptions, (v) => {
       <Dropdown v-model="selectSize" :options="sizeOptions" class="dropDownCus" placeholder="全部尺寸" />
     </div>
 
-    <div v-if="renderData.length === 0"  class="flex-1 flex items-center">
+    <div v-if="renderData.length === 0" class="flex-1 flex items-center">
       <empty />
     </div>
 
     <template v-else>
       <div class="flex-1"></div>
-  
+
       <div class="mb-4">
         <Carousel @init-api="(val: CarouselApi) => (emblaMainApi = val)">
           <CarouselContent class="ml-0 px-2 space-x-1">
@@ -290,7 +287,7 @@ watchOnce(deviceOptions, (v) => {
           </CarouselContent>
         </Carousel>
       </div>
-  
+
       <div ref="tabsEl" class="relative">
         <div data-use="shadow"
           class="absolute top-0 left-0 w-4 h-full z-1 backdrop-blur-xs rounded-tr-xl rounded-br-xl" />
@@ -316,7 +313,7 @@ watchOnce(deviceOptions, (v) => {
           </CarouselContent>
         </Carousel>
       </div>
-  
+
       <div class="flex-1"></div>
     </template>
 

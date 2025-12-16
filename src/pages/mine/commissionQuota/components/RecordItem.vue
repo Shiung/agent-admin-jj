@@ -4,7 +4,6 @@ import dayjs from 'dayjs'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import type { CommissionToQuotaTotalItem } from '@/apis/codegen/data-contracts'
 import { useClipboard } from '@vueuse/core'
-import { showToast } from 'vant'
 import { transferType } from '@/utils/mappingTransferType'
 
 interface Props {

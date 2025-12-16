@@ -1,4 +1,3 @@
-import { showFailToast } from 'vant'
 import { ref } from 'vue'
 
 const _isBase64Image = (s: string) => {
@@ -11,7 +10,7 @@ const _isBase64Image = (s: string) => {
  * @param base64 - Base64 Data URL，例如 "data:image/png;base64,iVBORw0K..."
  * @returns Blob 物件，若格式錯誤則回傳 null
  */
-const _base64ToBlob = (base64: string): Blob | null  => {
+const _base64ToBlob = (base64: string): Blob | null => {
   if (typeof base64 !== 'string') return null
   const parts = base64.split(',')
   if (parts.length !== 2) return null
@@ -60,11 +59,11 @@ export default function useImage() {
   }
 
 
-  /** 
-   * 複製圖片到剪貼簿 
+  /**
+   * 複製圖片到剪貼簿
    * @param s 圖片路徑(base64)
    * @returns boolean , `true` 成功複製 `false` 複製失敗
-   **/ 
+   **/
   const copyImageToClipboard = async(s: string): Promise<boolean> => {
     try {
       const blob = _base64ToBlob(s)
