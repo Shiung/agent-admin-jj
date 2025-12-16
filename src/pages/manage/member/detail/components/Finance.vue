@@ -48,11 +48,11 @@ const UnitBlock = defineComponent(
       if (props.type === 'FirstPayTime') {
         returnText = showDate(props.val)
       } else if (props.type === 'TotalWinLose'){
-        const { text, color } = formatSignedMoney(props.val ?? 0, 0, false)
+        const { text, color } = formatSignedMoney(props.val ?? 0, 2, false)
         returnText = text
         returnColor = color
       } else {
-        returnText = formatMoney(props.val ?? 0, 0, true)
+        returnText = formatMoney(props.val ?? 0, 2, true)
       }
       return {
         text: returnText,
