@@ -101,9 +101,9 @@ const BetStatus = [
 
 const sortOptions = ref([
   { value: '-SettlementTime', label: '结算时间降序' },
-  { value: '+SettlementTime', label: '结算时间升序' },
+  { value: 'SettlementTime', label: '结算时间升序' },
   { value: '-CompanyWinLose', label: '盈利降序' },
-  { value: '+CompanyWinLose', label: '盈利升序' },
+  { value: 'CompanyWinLose', label: '盈利升序' },
 ])
 
 const selectedSort = ref(sortOptions.value[0]?.value ?? '-SettlementTime')
@@ -240,7 +240,7 @@ const ShowTime = defineComponent(
           break
         /** 3:开赛时间 (依照体育、直播、真人取不同的资料) */
         case 3:
-          // @ts-expect-error: GameLiveDetails[] LiveDetails[] spec 沒有定義 GameStartTime 
+          // @ts-expect-error: GameLiveDetails[] LiveDetails[] spec 沒有定義 GameStartTime
           selectTime = SportDetails?.[0]?.GameStartTime || GameLiveDetails?.[0]?.GameStartTime || LiveDetails?.[0]?.GameStartTime
           break
         default: {}
@@ -324,7 +324,7 @@ const copyHadandler = (c: string) => {
 }
 
 const emit = defineEmits<{
-  (e: 'sumInfo', value: Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['MoreItems'] | null): void 
+  (e: 'sumInfo', value: Awaited<ReturnType<typeof API.netCashPlayerGame.getGameDetail>>['data']['Data']['MoreItems'] | null): void
 }>()
 
 watchEffect(() => {

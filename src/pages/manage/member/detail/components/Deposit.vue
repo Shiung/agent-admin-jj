@@ -32,9 +32,9 @@ const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
 
 const sortOptions = [
   { value: '-update_time', label: '账变时间降序' },
-  { value: '+update_time', label: '账变时间升序' },
+  { value: 'update_time', label: '账变时间升序' },
   { value: '-amount', label: '代存金额降序' },
-  { value: '+amount', label: '代存金额升序' },
+  { value: 'amount', label: '代存金额升序' },
 ]
 
 const selectedSort = ref(sortOptions[0]?.value ?? '-update_time')
@@ -70,7 +70,7 @@ const transferType = (type: number) => {
   if (type === 2) return '代存'
   if (type === 10) return '紅利'
   return type
-} 
+}
 
 const copyHadandler = (c: string) => {
   useClipboard().copy(c)

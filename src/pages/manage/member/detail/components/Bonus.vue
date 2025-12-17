@@ -34,9 +34,9 @@ const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
 
 const sortOptions = [
   { value: '-send_time', label: '领奖时间降序' },
-  { value: '+send_time', label: '领奖时间升序' },
+  { value: 'send_time', label: '领奖时间升序' },
   { value: '-bonus', label: '红利金额降序' },
-  { value: '+bonus', label: '红利金额升序' },
+  { value: 'bonus', label: '红利金额升序' },
 ]
 
 const selectedSort = ref(sortOptions[0]?.value ?? '-send_time')
@@ -57,7 +57,6 @@ const fetchData = async (page: number = 0) => {
       data: res.data.Data.Items,
       paging: res.data.Data.Pagination
     }
-  
   } catch (e) {
     console.warn('fetchData outside', e)
     return { data: [], paging: null }

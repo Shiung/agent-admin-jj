@@ -42,10 +42,10 @@ const statusLs = [
 const selectStatus = ref<number>(statusLs[1]?.value ?? 2)
 
 const sortOptions = [
-  { value: '-finish_time', label: '账变时间降序' },
-  { value: '+finish_time', label: '账变时间升序' },
+  { value: '-finishTime', label: '账变时间降序' },
+  { value: 'finishTime', label: '账变时间升序' },
   { value: '-amount', label: '充值金额降序' },
-  { value: '+amount', label: '充值金额升序' },
+  { value: 'amount', label: '充值金额升序' },
 ]
 
 const selectedSort = ref(sortOptions[0]?.value ?? '-finish_time')
@@ -96,7 +96,7 @@ const StatusComp = defineComponent(
           color = 'text-neutral2-secondary border-neutral2-secondary/50 bg-neutral2-secondary/10'
           break
         }
-        default: {}
+        default: { }
       }
       return { text, color }
     })
@@ -157,11 +157,7 @@ watch([selectTime, selectStatus, selectedSort], () => {
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
     </FilterBox>
 
-    <InfinityScroll
-      ref="infinityRef"
-      :fetchAction="fetchData"
-      class="flex-1 flex flex-col"
-    >
+    <InfinityScroll ref="infinityRef" :fetchAction="fetchData" class="flex-1 flex flex-col">
       <template v-slot="{ ls }">
         <div class="space-y-2 px-3">
           <UnitCard v-for="l in ls" :key="l.OrderId">
@@ -170,7 +166,8 @@ watch([selectTime, selectStatus, selectedSort], () => {
                 <div class="text-xs text-neutral2-secondary space-x-1">
                   <span>订单号</span>
                   <span>{{ l.OrderId }}</span>
-                  <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3" @click="copyHadandler(l.OrderId)" />
+                  <van-image src="./static/images/promote/copy_lite.png" fit="contain" class="w-3"
+                    @click="copyHadandler(l.OrderId)" />
                 </div>
 
                 <StatusComp class="text-xs px-2 border rounded-xl leading-5" :status="l.Status" :process="l.Process" />

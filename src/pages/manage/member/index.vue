@@ -48,11 +48,11 @@ const selectTime = ref<InstanceType<typeof TimeFilterDropdown>['modelValue']>({
 
 const sortOptions = ref([
   { value: '-CreateTime', label: '注册时间降序' },
-  { value: '+CreateTime', label: '注册时间升序' },
+  { value: 'CreateTime', label: '注册时间升序' },
   { value: '-LastTime', label: '最后登录时间降序' },
-  { value: '+LastTime', label: '最后登录时间升序' },
+  { value: 'LastTime', label: '最后登录时间升序' },
   { value: '-WinLose', label: '盈利降序' },
-  { value: '+WinLose', label: '盈利升序' },
+  { value: 'WinLose', label: '盈利升序' },
 ])
 
 const selectedSort = ref(sortOptions.value[0]?.value ?? '-CreateTime')
@@ -110,7 +110,7 @@ const fetchData = async (page: number = 0) => {
       ...(packageId.value && { PackageId: packageId.value }),
       ...(vipLevels.value.length > 0 && { VipLevels: vipLevels.value.join() })
     })
-    
+
     // itemLs.value = res.data.Data.Items
     totalInfo.value = res.data.Data.Total
     pageInfo.value = res.data.Data.Pagination
@@ -265,7 +265,7 @@ onMounted(() => {
           </div>
         </div>
       </UnitCard>
-  
+
       <div class="py-2 flex items-center justify-between space-x-2">
         <AdvancedBottomSheet v-model:show="showAdvanced" :ls="advancedLs" @change="advancedHandler" >
           <template #title>
@@ -276,10 +276,10 @@ onMounted(() => {
         </AdvancedBottomSheet>
         <SearchBar placeholder="会员账号" class="flex-1" v-model:selected="searchSelected" :search-ls="searchLs" />
       </div>
-  
+
       <div class="flex items-center space-x-1 overflow-x-auto">
         <TimeFilterDropdown v-model:model-value="selectTime" title="统计时间"></TimeFilterDropdown>
-        <Filled v-model:model-value="selectedSort" :options="sortOptions" />        
+        <Filled v-model:model-value="selectedSort" :options="sortOptions" />
       </div>
     </div>
 
@@ -310,9 +310,9 @@ onMounted(() => {
                         <div>注册时间</div>
                         <div>{{ showDate(i.CreateTime) }}</div>
                       </div>
-                      
+
                       <div class="w-[1px] h-3 bg-neutral2-seventh" />
-                      
+
                       <div >
                         <div>最后登录时间</div>
                         <div>{{ showDate(i.LastTime) }}</div>
