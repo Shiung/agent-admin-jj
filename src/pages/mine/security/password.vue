@@ -69,7 +69,7 @@ const submit = async () => {
             <input
               :type="showPassword.old.value ? 'text' : 'password'"
               :value="oldPassword"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
               placeholder="请输入"
               @input="(e: Event) => { oldPassword = (e.target as HTMLInputElement).value }"
             />
@@ -95,7 +95,7 @@ const submit = async () => {
             <input
               :type="showPassword.new.value ? 'text' : 'password'"
               :value="newPassword"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
               placeholder="请输入"
               @input="(e: Event) => { newPassword = (e.target as HTMLInputElement).value }"
             />
@@ -121,7 +121,7 @@ const submit = async () => {
             <input
               :type="showPassword.confirm.value ? 'text' : 'password'"
               :value="confirmPassword"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
               placeholder="请输入"
               @input="(e: Event) => { confirmPassword = (e.target as HTMLInputElement).value }"
             />
@@ -134,7 +134,17 @@ const submit = async () => {
         </template>
       </AppField>
       <div class="px-4 my-4">
-        <van-button block round type="primary" :loading="loading" :disabled="!oldPassword || !newPassword || !confirmPassword" native-type="submit">提交</van-button>
+        <van-button
+          block
+          round
+          type="primary"
+          class="gray-disabled"
+          :loading="loading"
+          :disabled="!oldPassword || !newPassword || !confirmPassword"
+          native-type="submit"
+        >
+          提交
+        </van-button>
       </div>
     </van-form>
   </div>

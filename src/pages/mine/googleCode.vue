@@ -73,6 +73,12 @@ onBeforeUnmount(() => {
   sessionStorage.removeItem(storageKey)
 })
 
+onBeforeUnmount(() => {
+  // 離開頁面清除暫存
+  const storageKey = getStorageKey()
+  sessionStorage.removeItem(storageKey)
+})
+
 const submit = async () => {
   formRef.value?.validate().then(async () => {
     isLoading.value = true
@@ -110,7 +116,7 @@ const submit = async () => {
         <AppField v-model="googleCode" name="googleCode" label-align="top" label="谷歌验证器密钥">
           <template #input>
             <div class="flex items-center w-full gap-2">
-              <input readonly :value="googleCode" type="text" class="flex-1 min-w-0 outline-none pl-2.5 truncate" />
+              <input readonly :value="googleCode" type="text" class="flex-1 min-w-0 outline-none truncate" />
             </div>
           </template>
           <template #right-icon>
@@ -130,9 +136,16 @@ const submit = async () => {
           </template>
         </AppField>
         <div class="px-4 my-4">
-          <van-button block round type="primary"
+          <van-button
+            block
+            round
+            type="primary"
+            class="gray-disabled"
+            native-type="submit"
             :disabled="!verificationCode.trim() || verificationCode.trim().length !== 6" :loading="isLoading"
-            native-type="submit">提交</van-button>
+          >
+            提交
+          </van-button>
           <span class="block text-xs font-normal my-4" style="color: #6b7190;">
             打开谷歌身份验证器，点选右下角的"+"，选择手动输入密钥，填入任意账户和上述密钥绑定
           </span>

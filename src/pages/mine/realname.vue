@@ -47,7 +47,17 @@ const submit = async () => {
         :rules="[rulesRequired()]"
       />
       <div class="px-4 my-4">
-        <van-button block round type="primary" :loading="loading" :disabled="!realName" @click="submit">提交</van-button>
+        <van-button
+          block
+          round
+          type="primary"
+          class="gray-disabled"
+          :loading="loading"
+          :disabled="!realName"
+          native-type="submit"
+        >
+          提交
+        </van-button>
       </div>
     </van-form>
   </div>

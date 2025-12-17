@@ -31,14 +31,23 @@ const formRef = ref<FormInstance | null>(null)
 
 const validateAmount = (value: string) => {
   if (!value) return true
+  if (!/^(?:\d{1,9})(?:\.\d{0,2})?$/.test(value)) {
+    return '请输入正确的金额'
+  }
   const numValue = Number(value)
+  if (numValue <= 0) {
+    return '请输入大于0的正数'
+  }
   if (accountBalance.value?.Money !== undefined && numValue > accountBalance.value.Money) {
-    return '余额不足'
-  } else if (numValue === 0 || numValue < 1) {
-    return '请输入大于0的正整数'
+    return '钱包余额不足'
   }
 
   return true
+}
+
+const resetFormFields = () => {
+  amount.value = ''
+  privatePassword.value = ''
 }
 
 const submit = async () => {
@@ -49,8 +58,8 @@ const submit = async () => {
         showFailToast(res.data.Msg)
         return
       }
-      showToast('转账成功')
-      router.replace({ name: 'mine' })
+      showToast('操作成功')
+      resetFormFields()
     } catch (error:any) {
       console.error('转账失败：', error)
       showFailToast(error?.response?.data?.Msg)
@@ -103,10 +112,11 @@ const navBarShowDetail = computed(() => router.currentRoute.value.name === 'comm
           v-model="amount"
           name="amount"
           label-align="top"
-          label="转账金额"
+          label="转换金额"
           placeholder="请输入"
           required
           :rules="[rulesRequired(), { validator: validateAmount }]"
+          maxlength="12"
         >
           <template #input>
             <input
@@ -115,11 +125,11 @@ const navBarShowDetail = computed(() => router.currentRoute.value.name === 'comm
               inputmode="numeric"
               class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
               placeholder="请输入"
+              maxlength="12"
               @input="(e: Event) => {
-                const value = (e.target as HTMLInputElement).value
-                const numericValue = value.replace(/[^\d]/g, '')
-                amount = numericValue
-              }"
+                amount = (e.target as HTMLInputElement).value
+                amount = /^(?:\d{1,9})(?:\.\d{0,2})?$/.test(amount) ? amount : amount.slice(0, -1)
+               }"
             />
           </template>
         </AppField>
@@ -131,13 +141,14 @@ const navBarShowDetail = computed(() => router.currentRoute.value.name === 'comm
           placeholder="请输入"
           required
           :rules="[rulesRequired()]"
+          maxlength="20"
         >
           <template #input>
             <div class="flex items-center w-full gap-2">
               <input
                 :type="showPassword ? 'text' : 'password'"
                 :value="privatePassword"
-                class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+                class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
                 placeholder="请输入"
                 @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
               />
@@ -150,7 +161,7 @@ const navBarShowDetail = computed(() => router.currentRoute.value.name === 'comm
           </template>
         </AppField>
         <div class="px-4 my-4">
-          <van-button block round type="primary" :loading="loading" :disabled="!amount || !privatePassword" native-type="submit">提交</van-button>
+          <van-button block round type="primary" :loading="loading" :disabled="!amount || !privatePassword" native-type="submit" class="gray-disabled">提交</van-button>
         </div>
       </van-form>
     </div>
