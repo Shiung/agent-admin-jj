@@ -8,11 +8,7 @@ import type {
   PhoneVerifyResponse,
   EmailVerifyResponse,
   GoogleCodeResponse,
-  SendPhoneVerifyCodeQuery,
-  SendPhoneVerifyCodeResponse,
-  SendEmailVerifyCodeQuery,
   UploadImageMd5Response,
-  SendEmailVerifyCodeResponse,
   Registerv2FormData,
   Registerv2Response,
   PhoneRegisterv2FormData,
@@ -147,20 +143,6 @@ export class System<SecurityDataType = unknown> {
       ...params,
     });
 
-  /** 發送手機驗證碼 */
-  sendPhoneVerifyCode = (
-    query: SendPhoneVerifyCodeQuery,
-    params: RequestParams = {},
-  ) =>
-    this.http.request<SendPhoneVerifyCodeResponse, any>({
-      path: '/api/phonevalidcode',
-      method: "GET",
-      secure: true,
-      format: "json",
-      query,
-      ...params,
-    });
-
   /**
    * 手機驗證碼(需要驗證彈窗)
    *
@@ -219,20 +201,6 @@ export class System<SecurityDataType = unknown> {
       method: 'POST',
       secure: true,
       format: 'json',
-      query,
-      ...params,
-    });
-
-  /** 發送郵件驗證碼 */
-  sendEmailVerifyCode = (
-    query: SendEmailVerifyCodeQuery,
-    params: RequestParams = {},
-  ) =>
-    this.http.request<SendEmailVerifyCodeResponse, any>({
-      path: '/api/emailvalidcode',
-      method: "GET",
-      secure: true,
-      format: "json",
       query,
       ...params,
     });
