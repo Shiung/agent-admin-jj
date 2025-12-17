@@ -260,7 +260,7 @@ onUnmounted(() => {
           clearable 
           required 
           :disabled="selectRechargeChannelItem?.AllowInput === 2"
-          :rules="[rulesRequired(), rulesPositiveIntegerNumber()]" 
+          :rules="[rulesRequired(), rulesPositiveIntegerNumber({ message: '请输入正确的金额' })]" 
         />
         <div class="flex items-center px-4 gap-2 overflow-auto">
           <van-button 
