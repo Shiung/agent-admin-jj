@@ -191,8 +191,8 @@ const handleSendVerifyCode = async () => {
   }
   
   const fetchValidCode = {
-    0: () => API.system.sendPhoneVerifyCode({ ...baseParams, Number: adminInfo.value.Mobile }),
-    1: () => API.system.sendEmailVerifyCode({ ...baseParams, Email: adminInfo.value.Email }),
+    0: () => API.system.phoneVerify({ ...baseParams, Number: adminInfo.value.Mobile }),
+    1: () => API.system.emailVerify({ ...baseParams, Email: adminInfo.value.Email }),
   }[formData.value.ValidType]
   if (!fetchValidCode) return
 

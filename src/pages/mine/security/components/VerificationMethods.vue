@@ -58,13 +58,13 @@ const getVerificationCode = async () => {
     api: () => Promise<any>
   }> = {
     0: {
-      api: () => API.system.sendPhoneVerifyCode({
+      api: () => API.system.phoneVerify({
         Number: adminInfo.value.Mobile || '',
         ...baseParams
       })
     },
     1: {
-      api: () => API.system.sendEmailVerifyCode({
+      api: () => API.system.emailVerify({
         Email: adminInfo.value.Email || '',
         ...baseParams
       })

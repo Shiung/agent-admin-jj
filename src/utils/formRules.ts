@@ -57,7 +57,7 @@ export const rulesTelephone = (params: any = {}) => {
 /** 郵箱 */
 export const rulesMail = (params: any = {}) => {
   return {
-    pattern: /^\w+([.-]\w+)*@\w+([.-]\w+)*\.\w{2,3}$/,
+    pattern: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
     message: '请输入正确的邮箱',
     ...(params)
   }
@@ -65,7 +65,7 @@ export const rulesMail = (params: any = {}) => {
 /** 手機或郵箱 */
 export const rulesTelephoneOrMail = (params: any = {}) => {
   return {
-    pattern: /^1[3-9]\d{9}$|^\w+([.-]\w+)*@\w+([.-]\w+)*\.\w{2,3}$/,
+    pattern: /^1[3-9]\d{9}$|^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
     message: '不是一个有效的手机号或邮箱',
     ...(params)
   }
