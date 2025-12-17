@@ -42,7 +42,7 @@ const submit = async () => {
               <input
                 :value="loginPassword"
                 :type="showPassword ? 'text' : 'password'"
-                class="flex-1 min-w-0 outline-none pl-2.5 truncate"
+                class="flex-1 min-w-0 outline-none truncate"
                 placeholder="请输入"
                 @input="(e: Event) => { loginPassword = (e.target as HTMLInputElement).value }"
               />
@@ -55,7 +55,7 @@ const submit = async () => {
           </template>
         </AppField>
         <div class="px-4 my-4">
-          <van-button block round type="primary" :disabled="!loginPassword" native-type="submit">提交</van-button>
+          <van-button block round type="primary" :disabled="!loginPassword" class="gray-disabled" native-type="submit">提交</van-button>
         </div>
       </van-form>
     </div>

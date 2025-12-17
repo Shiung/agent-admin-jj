@@ -132,7 +132,7 @@ const getVerificationCode = async () => {
         <div class="flex items-center w-full gap-2">
           <input
             :value="verificationCode"
-            class="flex-1 outline-none bg-transparent pl-2.5 text-base text-neutral-basic placeholder:text-neutral2-fourth"
+            class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
             placeholder="请输入"
             maxlength="6"
             @input="(e: Event) => {

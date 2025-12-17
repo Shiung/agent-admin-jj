@@ -73,7 +73,7 @@ const submit = async () => {
             <input
               :type="showPassword.current.value ? 'text' : 'password'"
               :value="privatePassword"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
               placeholder="请输入"
               @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
             />
@@ -99,7 +99,7 @@ const submit = async () => {
             <input
               :type="showPassword.confirm.value ? 'text' : 'password'"
               :value="confirmPrivatePassword"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
               placeholder="请输入"
               @input="(e: Event) => { confirmPrivatePassword = (e.target as HTMLInputElement).value }"
             />
@@ -119,7 +119,17 @@ const submit = async () => {
         @update:VerifyCode="verificationCode = $event"
       />
       <div class="px-4 my-4">
-        <van-button block round type="primary" :disabled="!privatePassword || !confirmPrivatePassword" :loading="loading" native-type="submit">提交</van-button>
+        <van-button
+          block
+          round
+          class="gray-disabled"
+          type="primary"
+          :disabled="!privatePassword || !confirmPrivatePassword"
+          :loading="loading"
+          native-type="submit"
+        >
+          提交
+        </van-button>
       </div>
     </van-form>
   </div>

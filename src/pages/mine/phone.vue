@@ -137,7 +137,7 @@ const submit = async () => {
             <input
               :value="mobile"
               type="number"
-              class="flex-1 outline-none pl-2.5"
+              class="flex-1 outline-none"
               placeholder="请输入"
               @input="(e: Event) => { mobile = (e.target as HTMLInputElement).value }"
             />
@@ -188,6 +188,7 @@ const submit = async () => {
           type="primary"
           :loading="loading"
           :disabled="!canSubmit"
+          class="gray-disabled"
           native-type="submit"
         >
           提交

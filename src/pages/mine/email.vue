@@ -92,7 +92,7 @@ const submit = async () => {
             <input
               :value="email"
               type="email"
-              class="flex-1 outline-none pl-2.5"
+              class="flex-1 outline-none"
               placeholder="请输入"
               @input="(e: Event) => { email = (e.target as HTMLInputElement).value }"
             />
@@ -115,7 +115,7 @@ const submit = async () => {
             <input
               :value="verificationCode"
               type="text"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
               placeholder="请输入"
               @input="(e: Event) => { verificationCode = (e.target as HTMLInputElement).value }"
             />
@@ -138,6 +138,7 @@ const submit = async () => {
           block
           round
           type="primary"
+          class="gray-disabled"
           :loading="loading"
           :disabled="!email.trim() || !verificationCode.trim()"
           native-type="submit"

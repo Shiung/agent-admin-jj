@@ -61,7 +61,15 @@ const submit = async () => {
         type="number"
       />
       <div class="px-4 my-4">
-        <van-button block round type="primary" :loading="loading" :disabled="!qq" native-type="submit">提交</van-button>
+        <van-button
+          block round type="primary"
+          class="gray-disabled"
+          :loading="loading"
+          :disabled="!qq"
+          native-type="submit"
+        >
+          提交
+        </van-button>
       </div>
     </van-form>
   </div>

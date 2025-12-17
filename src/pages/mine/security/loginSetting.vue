@@ -86,7 +86,7 @@ const submit = async () => {
             <input
               :type="showPassword ? 'text' : 'password'"
               :value="privatePassword"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth disabled:opacity-50 disabled:cursor-not-allowed"
               placeholder="请输入"
               @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
             />
@@ -104,8 +104,9 @@ const submit = async () => {
           round
           type="primary"
           :loading="loading"
-          native-type="submit"
           :disabled="!privatePassword"
+          class="gray-disabled"
+          native-type="submit"
         >
           提交
         </van-button>
