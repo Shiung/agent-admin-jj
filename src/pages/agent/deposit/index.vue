@@ -369,6 +369,10 @@ const passwordRules = [
   }
 ]
 
+const memberAccountRules = [
+  { validator: validateMemberAccount }
+]
+
 // 提交表单
 const handleSubmit = async () => {
   // 如果按钮被禁用，不执行提交
@@ -603,6 +607,8 @@ const handleSubmit = async () => {
           <AppField
             v-model="memberAccount"
             placeholder="请输入"
+            :rules="memberAccountRules"
+            :maxlength="20"
           />
         </div>
 
@@ -641,7 +647,7 @@ const handleSubmit = async () => {
         <!-- 代存金额 -->
         <div class="form-field">
           <div class="field-label">
-            代存金额<span class="text-error-normal">*</span>
+            转账金额<span class="text-error-normal">*</span>
           </div>
           <AppField
             v-model="depositAmount"
