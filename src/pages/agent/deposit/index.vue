@@ -102,6 +102,24 @@ const remarkTags = ['代存', '福利', '首存福利', '其他']
 // Form ref
 const formRef = ref<FormInstance>()
 
+onMounted(() => {
+  if (route.query.memberAccount) {
+    memberAccount.value = route.query.memberAccount as string
+  }
+})
+
+watch(productPackages, (packages) => {
+  if (!packages || packages.length === 0) return
+
+  const packageNameFromQuery = route.query.packageName as string
+  if (packageNameFromQuery) {
+    const foundPackage = packages.find(p => p.PackageName === packageNameFromQuery)
+    if (foundPackage) {
+      selectedProduct.value = foundPackage.PackageId
+    }
+  }
+}, { immediate: true })
+
 // 返回上一页
 const handleBack = () => {
   router.back()

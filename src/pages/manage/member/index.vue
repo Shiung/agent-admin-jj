@@ -7,6 +7,7 @@ import type SearchBar from '@/components/SearchBar/index.vue'
 
 import { useClipboard } from '@vueuse/core'
 import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'
 import type { InfinityExposeType } from '@/components/InfinityScroll/index.vue'
 import { cn } from '@/utils/className'
 import API from '@/apis'
@@ -24,6 +25,7 @@ const advanceKeyMap = {
 }
 
 const userStore = useUserStore()
+const { commissionWalletBalance, creditWalletBalance, depositLimitInfo } = storeToRefs(userStore)
 const router = useRouter()
 const infinityRef = ref<InfinityExposeType>()
 
@@ -235,6 +237,31 @@ const copyHadandler = (c: string) => {
   showToast({ message: '复制成功' })
 }
 
+
+const handleGoToDeposit = (member: any) => {
+  // 从 store 获取数据
+  const query: Record<string, any> = {
+    commission: String(commissionWalletBalance.value),
+    credit: String(creditWalletBalance.value),
+    memberAccount: member.LoginAccount,
+    packageName: member.PackageName
+  }
+
+  if (depositLimitInfo.value) {
+    query.minAmount = String(depositLimitInfo.value.minAmount)
+    query.maxAmount = String(depositLimitInfo.value.maxAmount)
+    query.dailyAmount = String(depositLimitInfo.value.dailyAmount)
+    query.maxWithdrawMultiple = String(depositLimitInfo.value.maxWithdrawMultiple)
+    query.isActive = String(depositLimitInfo.value.isActive)
+    query.isShowMultiple = String(depositLimitInfo.value.isShowMultiple)
+  }
+
+  router.push({
+    name: 'agentDeposit',
+    query,
+  })
+}
+
 watch([searchSelected, selectTime, selectedSort, regTime, activeMemberType, bindCard, bindPhone, packageId, vipLevels], () => {
   infinityRef.value?.fetchData()
 })
@@ -320,7 +347,7 @@ onMounted(() => {
                     </div>
                   </div>
                 </div>
-                <van-button round plain type="primary" size="small" class="absolute! top-0 right-0">
+                <van-button round plain type="primary" size="small" class="absolute! top-0 right-0" @click.stop="handleGoToDeposit(i)">
                   <div class="space-x-1">
                     <van-icon name="add" size="14" /><span>代存</span>
                   </div>

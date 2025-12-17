@@ -7,6 +7,7 @@
 export {}
 declare global {
   const allowMultipleToast: typeof import('vant/es').allowMultipleToast
+  const closeToast: typeof import('vant/es').closeToast
   const showConfirmDialog: typeof import('vant/es').showConfirmDialog
   const showFailToast: typeof import('vant/es').showFailToast
   const showLoadingToast: typeof import('vant/es').showLoadingToast

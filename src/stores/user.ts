@@ -14,6 +14,22 @@ export const useUserStore = defineStore('user', () => {
   const userInfo = ref<Record<string, any> | null>(null)
   const accountInfo = ref<AccountInfoData | null>(null)
   const agentCreditLimitPermission = ref<AgentCreditLimitPermissionData | null>(null)
+  const commissionWalletBalance = ref(0)
+  const creditWalletBalance = ref(0)
+  const depositLimitInfo = ref<{
+    minAmount: number
+    maxAmount: number
+    dailyAmount: number
+    maxWithdrawMultiple: number
+    isActive: number
+    isShowMultiple: number
+  } | null>(null)
+  const transferLimitInfo = ref<{
+    minAmount: number
+    maxAmount: number
+    dailyAmount: number
+    isActive: number
+  } | null>(null)
 
   /** 是否為單層代理（AccountType: 1=单层代理,2=多层代理-单费率,3=多层代理-多费率(目前無3)） */
   const isSingleAgent = computed(() => userInfo.value?.NetCashAccount.AccountType === 1)
@@ -96,6 +112,45 @@ export const useUserStore = defineStore('user', () => {
     agentCreditLimitPermission.value = null
   }
 
+  const fetchUserBalancesAndLimits = async () => {
+    try {
+      const [overviewRes, balanceRes] = await Promise.all([
+        API.finance.getCommissionOverview(),
+        API.finance.getAccountBalance()
+      ]);
+
+      if (overviewRes.data.Code === 200) {
+        commissionWalletBalance.value = overviewRes.data.Data.Available || 0;
+      }
+
+      if (balanceRes.data.Code === 200) {
+        creditWalletBalance.value = balanceRes.data.Data.Items.Credit || 0;
+
+        if (balanceRes.data.Data.Items3) {
+          depositLimitInfo.value = {
+            minAmount: (balanceRes.data.Data.Items3.MinDepositAmount || 0) / 100,
+            maxAmount: (balanceRes.data.Data.Items3.MaxDepositAmount || 0) / 100,
+            dailyAmount: (balanceRes.data.Data.Items3.DailyDepositAmount || 0) / 100,
+            maxWithdrawMultiple: balanceRes.data.Data.Items3.WithdrawWaterMultiply || 1,
+            isActive: balanceRes.data.Data.IsActiveLimit3 || 0,
+            isShowMultiple: balanceRes.data.Data.IsShowMultiple || 0,
+          };
+        }
+
+        if (balanceRes.data.Data.Items2) {
+          transferLimitInfo.value = {
+            minAmount: (balanceRes.data.Data.Items2.MinTransferAmount || 0) / 100,
+            maxAmount: (balanceRes.data.Data.Items2.MaxTransferAmount || 0) / 100,
+            dailyAmount: (balanceRes.data.Data.Items2.DailyTransferAmount || 0) / 100,
+            isActive: balanceRes.data.Data.IsActiveTransfer || 0,
+          };
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch user balances and limits:", error);
+    }
+  };
+
   const fetchIsLogin = async () => {
     const res = await API.system.isLogin()
     if (res.data.Code !== 200) {
@@ -105,6 +160,7 @@ export const useUserStore = defineStore('user', () => {
 
     // 同时获取代存权限
     fetchAgentCreditLimitPermission()
+    fetchUserBalancesAndLimits()
 
     return res.data.Data
   }
@@ -170,6 +226,10 @@ export const useUserStore = defineStore('user', () => {
     userInfo,
     accountInfo,
     agentCreditLimitPermission,
+    commissionWalletBalance,
+    creditWalletBalance,
+    depositLimitInfo,
+    transferLimitInfo,
     isSingleAgent,
     hasTeam,
     isMainLine,
@@ -187,5 +247,6 @@ export const useUserStore = defineStore('user', () => {
     fetchAccountInfo,
     fetchSubAgentList,
     fetchAgentCreditLimitPermission,
+    fetchUserBalancesAndLimits,
   }
 })

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import API from '@/apis'
@@ -60,11 +61,16 @@ const MENUS = [
 const router = useRouter()
 const userStore = useUserStore()
 
-const agentAccount = computed(() => {
-  return userStore.userInfo?.Admin?.Username || ''
-})
+const {
+  userInfo,
+  accountInfo,
+  commissionWalletBalance,
+  creditWalletBalance,
+  depositLimitInfo,
+  transferLimitInfo,
+} = storeToRefs(userStore)
 
-const accountInfo = computed(() => userStore.accountInfo)
+const agentAccount = computed(() => userInfo.value?.Admin?.Username || '')
 
 const goProfile = () => {
   router.push({ name: 'mineProfile' })
@@ -76,59 +82,6 @@ const goWithdraw = () => {
 
 const goRecharge = () => {
   router.push({ name: 'rechargePage' })
-}
-
-const commissionWalletBalance = ref<number>(0)
-const fetchOverview = async () => {
-  const res = await API.finance.getCommissionOverview()
-  if (res.data.Code !== 200) return
-  commissionWalletBalance.value = res.data.Data.Available
-}
-
-const creditWalletBalance = ref<number>(0)
-const depositLimitInfo = ref<{
-  minAmount: number
-  maxAmount: number
-  dailyAmount: number
-  maxWithdrawMultiple: number
-  isActive: number
-  isShowMultiple: number
-} | null>(null)
-
-const transferLimitInfo = ref<{
-  minAmount: number
-  maxAmount: number
-  dailyAmount: number
-  isActive: number
-} | null>(null)
-
-const fetchAccountBalance = async () => {
-  const res = await API.finance.getAccountBalance()
-  if (res.data.Code !== 200) return
-  creditWalletBalance.value = res.data.Data.Items.Credit
-console.log('代存限额信息Items3',res.data.Data.Items3)
-console.log('转账限额信息Items2',res.data.Data.Items2)
-  // 保存代存限额信息
-  if (res.data.Data.Items3) {
-    depositLimitInfo.value = {
-      minAmount: (res.data.Data.Items3.MinDepositAmount || 0) / 100,
-      maxAmount: (res.data.Data.Items3.MaxDepositAmount || 0) / 100,
-      dailyAmount: (res.data.Data.Items3.DailyDepositAmount || 0) / 100,
-      maxWithdrawMultiple: res.data.Data.Items3.WithdrawWaterMultiply || 1,
-      isActive: res.data.Data.IsActiveLimit3 || 0,
-      isShowMultiple: res.data.Data.IsShowMultiple || 0,
-    }
-  }
-
-  // 保存转账限额信息
-  if (res.data.Data.Items2) {
-    transferLimitInfo.value = {
-      minAmount: (res.data.Data.Items2.MinTransferAmount || 0) / 100,
-      maxAmount: (res.data.Data.Items2.MaxTransferAmount || 0) / 100,
-      dailyAmount: (res.data.Data.Items2.DailyTransferAmount || 0) / 100,
-      isActive: res.data.Data.IsActiveTransfer || 0,
-    }
-  }
 }
 
 const handleMenuClick = (key: string) => {
@@ -179,8 +132,7 @@ const handleMenuClick = (key: string) => {
 
 
 onMounted(async () => {
-  fetchOverview()
-  fetchAccountBalance()
+  userStore.fetchUserBalancesAndLimits()
   await userStore.fetchAccountInfo()
 })
 </script>
