@@ -144,7 +144,18 @@ const validateMemberAccount = (value: string) => {
     return '此项不可为空'
   }
 
-  if (depositMethod.value === 1) {
+  // 字数限制
+  if (depositMethod.value === 0) {
+    // 单一模式：最多20位
+    if (value.length > 20) {
+      return '会员账号不可超过20位'
+    }
+  } else {
+    // 批量模式：最多1600位
+    if (value.length > 1600) {
+      return '会员账号不可超过1600位'
+    }
+
     // 批量输入：检查重复
     const accountList = parseToArray(value)
     const accountSet = new Set(accountList)
@@ -161,7 +172,12 @@ const validateDepositAmount = (value: string) => {
     return '此项不可为空'
   }
 
-  // 正则：必填，大于0的正数，小数点前九后二，总字数不可超过12位
+  // 字数限制：总字数不可超过12位
+  if (value.length > 12) {
+    return '代存金额不可超过12位'
+  }
+
+  // 正则：必填，大于0的正数，小数点前九后二
   if (!/^(?:\d{1,9})(?:\.\d{0,2})?$/.test(value)) {
     return '请输入大于0的正数，小数点前最多9位，小数点后最多2位'
   }
@@ -175,9 +191,16 @@ const validateDepositAmount = (value: string) => {
 
   // 只有当 isActive === 1 时才检查金额限制
   if (depositLimitInfo.value.isActive === 1) {
-    const { maxAmount } = depositLimitInfo.value
+    const { maxAmount, dailyAmount } = depositLimitInfo.value
+
+    // 检查单次代存金额上限
     if (amount > maxAmount) {
       return `单次代存金额不可大于${maxAmount}`
+    }
+
+    // 检查当日限额（注：这里只是格式验证，实际当日已用额度需要在提交时由后端验证）
+    if (amount > dailyAmount) {
+      return `代存金额已超过当日限额`
     }
   }
 
@@ -188,14 +211,25 @@ const validateWithdrawMultiple = (value: string) => {
   if (!value || !value.trim()) {
     return '此项不可为空'
   }
+
+  // 字数限制：总字数不可超过12位
+  if (value.length > 12) {
+    return '提现流水倍数不可超过12位'
+  }
+
+  // 必须是正整数
   if (!/^\d+$/.test(value)) {
     return '仅可输入数字'
   }
+
   const num = Number(value)
   const maxMultiple = depositLimitInfo.value.maxWithdrawMultiple
+
+  // 检查范围：必须大于0且不超过最大值
   if (num < 1 || num > maxMultiple) {
-    return `提现流水倍数不能低于1或大于${maxMultiple}`
+    return `提现流水倍数不可小于1大于${maxMultiple}`
   }
+
   return true
 }
 
@@ -289,12 +323,50 @@ const amountRules = [
   { required: true, message: '此项不可为空' },
 ]
 
-const multipleRules = [
+const multipleRules = computed(() => [
   { required: true, message: '此项不可为空' },
-]
+  {
+    validator: (val: string) => {
+      // 检查是否为空
+      if (!val) return true // required 规则会处理
+
+      // 检查是否为正整数
+      const num = Number(val)
+      if (!Number.isInteger(num) || num <= 0) {
+        return false
+      }
+
+      // 检查是否超过最大值
+      if (num > depositLimitInfo.value.maxWithdrawMultiple) {
+        return false
+      }
+
+      // 检查字数不超过12位
+      if (val.length > 12) {
+        return false
+      }
+
+      return true
+    },
+    message: `提现流水倍数不可小于1大于${depositLimitInfo.value.maxWithdrawMultiple}`
+  }
+])
 
 const passwordRules = [
   { required: true, message: '此项不可为空' },
+  {
+    validator: (val: string) => {
+      if (!val) return true // required 规则会处理
+
+      // 字数限制：总字数不可超过20位
+      if (val.length > 20) {
+        return false
+      }
+
+      return true
+    },
+    message: '私人密码不可超过20位'
+  }
 ]
 
 // 提交表单
@@ -346,7 +418,7 @@ const handleSubmit = async () => {
       : availableCommission.value
 
     if (currentBalance < amount) {
-      showToast({ message: '钱包余额不足', position: 'bottom' })
+      showToast({ message: '钱包余额不足，请再次确认', position: 'bottom' })
       return
     }
 
@@ -617,25 +689,18 @@ const handleSubmit = async () => {
           </div>
           <AppField
             v-model="privatePassword"
+            :type="showPassword ? 'text' : 'password'"
             placeholder="请输入"
             :rules="passwordRules"
+            :maxlength="20"
             label-align="top"
           >
-            <template #input>
-              <div class="flex items-center w-full gap-2">
-                <input
-                  :type="showPassword ? 'text' : 'password'"
-                  :value="privatePassword"
-                  class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                  placeholder="请输入"
-                  @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
-                />
-                <van-icon
-                  :name="showPassword ? 'eye-o' : 'closed-eye'"
-                  class="cursor-pointer"
-                  @click.stop="showPassword = !showPassword"
-                />
-              </div>
+            <template #right-icon>
+              <van-icon
+                :name="showPassword ? 'eye-o' : 'closed-eye'"
+                class="cursor-pointer"
+                @click.stop="showPassword = !showPassword"
+              />
             </template>
           </AppField>
         </div>
@@ -882,7 +947,7 @@ const handleSubmit = async () => {
 .remark-tag {
   height: 40px;
   padding: 0 16px;
-  border-radius: 16px;
+  border-radius: 20px;
   font-size: 14px;
   border: 1px solid var(--color-primary-normal);
   background: white;
@@ -918,7 +983,7 @@ const handleSubmit = async () => {
   font-size: 16px;
   font-weight: 600;
   border: none;
-  background: var(--color-neutral2-sixth);
+  background: var(--color-primary-normal); /* 启用时蓝色 */
   color: white;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -930,9 +995,10 @@ const handleSubmit = async () => {
 }
 
 .submit-btn:disabled {
-  background: var(--color-neutral2-sixth);
+  background: var(--color-neutral2-fifth); /* 禁用时灰色 */
   cursor: not-allowed;
   opacity: 0.5;
+  pointer-events: none; /* 禁用时完全不可点击 */
 }
 
 .submit-btn:disabled:active {
