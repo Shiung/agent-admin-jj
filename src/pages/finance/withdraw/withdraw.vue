@@ -287,7 +287,7 @@ onMounted(() => {
           }
         ]" 
       />
-      <div v-if="selectPayTypeItem?.ServiceRate" class="pl-7 text-xs font-normal leading-5 text-primary-normal">
+      <div v-if="selectPayTypeItem?.ServiceRate" class="mb-1 pl-7 text-xs font-normal leading-5 text-primary-normal">
         {{ `手续類费为提现金额的 ${selectPayTypeItem?.ServiceRate} %` }}
       </div>
       <div class="flex items-center px-4 gap-2 overflow-auto">

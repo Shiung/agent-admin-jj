@@ -6,6 +6,7 @@ import { useUserStore } from '@/stores/user'
 import { useGlobalStore } from '@/stores/global'
 import NavBar from '@/components/NavBar/index.vue'
 import dayjs from 'dayjs'
+import API from '@/apis'
 import { formatMoney, formatNumber } from '@/utils/formatNumber'
 
 const router = useRouter()
@@ -15,6 +16,7 @@ const personalCenterInfo = computed(() => userStore.accountInfo)
 const isLoading = ref(false)
 const isReady = computed(() => isLoading.value || !personalCenterInfo.value)
 const show = ref(false)
+const commissionRate = ref(0)
 
 const formatDate = (timestamp: number | string | null | undefined, format = 'YYYY-MM-DD'): string => {
   if (!timestamp) return '-'
@@ -36,6 +38,10 @@ const handleLogout = () => {
   })
 }
 
+
+// 是否为多层代理
+const isSingleAgent = computed(() => userStore.isSingleAgent)
+const commissionRateParseFunction = computed(() => isSingleAgent.value ? formatNumber : formatMoney)
 
 // 是否顯示上級代理
 const isShowParentAgent = computed(() => {
@@ -92,6 +98,16 @@ const commissionRateList = computed(() => {
     }
   })
 })
+
+const fetchCompareCommission = async () => {
+  isLoading.value = true
+  const res = await API.admin.getCompareCommission()
+  if (res.data.Code !== 200) return
+  commissionRate.value = res.data.Data.CurrentMonth.CommissionRate
+  isLoading.value = false
+}
+
+fetchCompareCommission()
 
 onMounted(async () => {
   await userStore.fetchAccountInfo()
@@ -163,10 +179,9 @@ onMounted(async () => {
       </van-cell>
       <van-cell title="佣金比例">
         <template #label>
-          <van-skeleton v-if="personalCenterInfo?.CommissionRateStr" :loading="isReady" :row="1">
-            {{ ((Number(personalCenterInfo?.CommissionRateStr)) / 100) + '%' }}
+          <van-skeleton :loading="isLoading" :row="1">
+            {{ commissionRateParseFunction(commissionRate) }}%
           </van-skeleton>
-          <div v-else>-</div>
         </template>
         <template #right-icon>
           <van-button v-if="userStore.isSingleAgent" round size="small" type="primary" class="px-11" @click="show = true">查看</van-button>

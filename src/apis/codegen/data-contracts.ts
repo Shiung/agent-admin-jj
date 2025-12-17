@@ -76,32 +76,6 @@ export interface PhoneSendCodeQuery {
   Username: string
 }
 
-export interface SendPhoneVerifyCodeQuery {
-  DeviceId: string
-  OpType: number
-  Number: string
-}
-
-export interface SendPhoneVerifyCodeResponse {
-  Code: number
-  Data: string
-  Msg: string
-  Id: string
-}
-
-export interface SendEmailVerifyCodeQuery {
-  DeviceId: string
-  OpType: number
-  Email: string
-}
-
-export interface SendEmailVerifyCodeResponse {
-  Code: number
-  Data: string
-  Msg: string
-  Id: string
-}
-
 export interface EmailSendCodeQuery {
   DeviceId: string
   OpType: number

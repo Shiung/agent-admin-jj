@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
-import { rulesRequired } from '@/utils/formRules'
+import { rulesRequired, rulesPassword } from '@/utils/formRules'
 import API from '@/apis'
 import VerificationMethods from './components/VerificationMethods.vue'
 import type { FormInstance } from 'vant'
@@ -28,6 +28,11 @@ const canGetVerificationCode = computed(() => {
 const togglePassword = (type: 'current' | 'confirm') => {
   showPassword[type].value = !showPassword[type].value
 }
+
+const validateConfirmPassword = (val: string) => {
+  return val === privatePassword.value
+}
+
 const submit = async () => {
   loading.value = true
   formRef.value?.validate().then(async () => {
@@ -66,23 +71,21 @@ const submit = async () => {
         label="私人密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired()]"
+        :rules="[rulesRequired(), rulesPassword()]"
+        :type="showPassword.current.value ? 'text' : 'password'"
+        @input="(e: Event) => {
+          privatePassword = (e.target as HTMLInputElement).value
+          if (confirmPrivatePassword) {
+            formRef?.validate('confirmPassword')
+          }
+        }"
       >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :type="showPassword.current.value ? 'text' : 'password'"
-              :value="privatePassword"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入"
-              @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
-            />
-            <van-icon
-              :name="showPassword.current.value ? 'eye-o' : 'closed-eye'"
-              class="cursor-pointer"
-              @click.stop="togglePassword('current')"
-            />
-          </div>
+        <template #right-icon>
+          <van-icon
+            :name="showPassword.current.value ? 'eye-o' : 'closed-eye'"
+            class="cursor-pointer"
+            @click.stop="togglePassword('current')"
+          />
         </template>
       </AppField>
       <AppField
@@ -92,23 +95,21 @@ const submit = async () => {
         label="确认私人密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired()]"
+        :rules="[rulesRequired(), rulesPassword(), { validator: validateConfirmPassword, message: '密码不一致' }]"
+        :type="showPassword.confirm.value ? 'text' : 'password'"
+        @input="(e: Event) => {
+          confirmPrivatePassword = (e.target as HTMLInputElement).value
+          if (confirmPrivatePassword && privatePassword) {
+            formRef?.validate('confirmPassword')
+          }
+        }"
       >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :type="showPassword.confirm.value ? 'text' : 'password'"
-              :value="confirmPrivatePassword"
-              class="flex-1 outline-none pl-2.5 bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入"
-              @input="(e: Event) => { confirmPrivatePassword = (e.target as HTMLInputElement).value }"
-            />
-            <van-icon
-              :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
-              class="cursor-pointer"
-              @click.stop="togglePassword('confirm')"
-            />
-          </div>
+        <template #right-icon>
+          <van-icon
+            :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
+            class="cursor-pointer"
+            @click.stop="togglePassword('confirm')"
+          />
         </template>
       </AppField>
       <VerificationMethods
@@ -119,7 +120,17 @@ const submit = async () => {
         @update:VerifyCode="verificationCode = $event"
       />
       <div class="px-4 my-4">
-        <van-button block round type="primary" :disabled="!privatePassword || !confirmPrivatePassword" :loading="loading" native-type="submit">提交</van-button>
+        <van-button
+          block
+          round
+          class="gray-disabled"
+          type="primary"
+          :disabled="!privatePassword || !confirmPrivatePassword"
+          :loading="loading"
+          native-type="submit"
+        >
+          提交
+        </van-button>
       </div>
     </van-form>
   </div>

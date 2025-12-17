@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { rulesVerifyCode, rulesTelephone } from '@/utils/formRules'
+import { rulesRequired, rulesVerifyCode, rulesTelephone } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
@@ -129,7 +129,8 @@ const submit = async () => {
         label="手机号"
         placeholder="请输入"
         required
-        :rules="[rulesTelephone()]"
+        type="number"
+        :rules="[rulesRequired(), rulesTelephone()]"
       >
         <template #input>
           <div class="flex items-center w-full">
@@ -137,9 +138,10 @@ const submit = async () => {
             <input
               :value="mobile"
               type="number"
-              class="flex-1 outline-none pl-2.5"
+              class="flex-1 pl-2 outline-none"
               placeholder="请输入"
-              @input="(e: Event) => { mobile = (e.target as HTMLInputElement).value }"
+              maxlength="11"
+              @input="(e: Event) => { mobile = (e.target as HTMLInputElement).value.replace(/\D/g, '') }"
             />
           </div>
         </template>
@@ -154,22 +156,14 @@ const submit = async () => {
         placeholder="请输入"
         required
         autocomplete="off"
-        :rules="[rulesVerifyCode()]"
+        :rules="[rulesRequired(), rulesVerifyCode()]"
         :maxlength="6"
         type="number"
       >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :value="verificationCode"
-              type="text"
-              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入"
-              @input="(e: Event) => { verificationCode = (e.target as HTMLInputElement).value }"
-            />
-            <van-button
-              :loading="codeLoading"
-              :disabled="!mobile.trim() || countdown > 0"
+        <template #right-icon>
+          <van-button
+            :loading="codeLoading"
+            :disabled="!mobile.trim() || countdown > 0"
               size="small"
               type="primary"
               round
@@ -178,7 +172,6 @@ const submit = async () => {
             >
               {{ countdown > 0 ? `${countdown}秒` : (hasRequestedCode ? '重新获取' : '获取验证码') }}
             </van-button>
-          </div>
         </template>
       </AppField>
       <div class="px-4 my-4">
@@ -188,6 +181,7 @@ const submit = async () => {
           type="primary"
           :loading="loading"
           :disabled="!canSubmit"
+          class="gray-disabled"
           native-type="submit"
         >
           提交

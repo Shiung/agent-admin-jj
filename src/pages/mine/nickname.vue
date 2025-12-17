@@ -47,10 +47,19 @@ const submit = async () => {
         maxlength="20"
         required
         :rules="[rulesRequired()]"
-      >
-      </AppField>
+      />
       <div class="px-4 my-4">
-        <van-button block round type="primary" :loading="loading" :disabled="!nickname" native-type="submit">提交</van-button>
+        <van-button
+          block
+          round
+          type="primary"
+          class="gray-disabled"
+          :disabled="!nickname"
+          :loading="loading"
+          native-type="submit"
+        >
+          提交
+        </van-button>
       </div>
     </van-form>
   </div>

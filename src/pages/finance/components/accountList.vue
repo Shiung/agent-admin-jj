@@ -97,8 +97,8 @@ const showAddAccountPopup = ref(false)
         <!-- 銀行卡 -->
         <template v-if="props.selectPayTypeItem.PayType === 1001">
           <div class="flex-1 flex justify-between gap-2">
-            <div class="flex-1">银行名称: {{ getBankName(item.BankCode) }}</div>
-            <div class="flex-1">持卡人: {{ item.RealName }}</div>
+            <div class="inline-block">银行名称: {{ getBankName(item.BankCode) }}</div>
+            <div class="inline-block">持卡人: {{ item.RealName }}</div>
           </div>
           <div>银行账号: {{ item.BankCardNum }}</div>
         </template>
@@ -110,8 +110,8 @@ const showAddAccountPopup = ref(false)
         <!-- 虛擬帳號 -->
         <template v-else-if="props.selectPayTypeItem.IsCrypto">
           <div class="flex-1 flex justify-between">
-            <div class="flex-1">别名: {{ item.DigitalAlias }}</div>
-            <div class="flex-1">协议: {{ item.DigitalDesc }}</div>
+            <div class="inline-block">别名: {{ item.DigitalAlias }}</div>
+            <div class="inline-block">协议: {{ item.DigitalDesc }}</div>
           </div>
           <div>地址: {{ item.DigitalAddress }}</div>
         </template>
