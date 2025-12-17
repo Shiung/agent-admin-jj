@@ -279,7 +279,7 @@ const handleSubmit = async () => {
         <!-- 代理金额 -->
         <div class="form-field">
           <div class="field-label">
-            代理金额<span class="text-error-normal">*</span>
+            转账金额<span class="text-error-normal">*</span>
           </div>
           <AppField
             v-model="transferAmount"

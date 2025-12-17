@@ -27,7 +27,7 @@ const pageConfig = computed(() => {
       title: '代存记录',
       summaryLabel: '代存金额总计',
       summaryIcon: '/static/images/common/depositRecordIcon.png',
-      summaryColorType: 'signed' as const,
+      summaryColorType: '',
       searchPlaceholder: '会员账号',
       amountLabel: '代存金额',
       typeLabel: '代存类型',
@@ -43,10 +43,10 @@ const pageConfig = computed(() => {
         { label: '代存金额升序', value: '代存金额升序' }
       ],
       sortMap: {
-        '账变时间降序': '-CreateTime',
-        '账变时间升序': 'CreateTime',
-        '代存金额降序': '-ApplyAmount',
-        '代存金额升序': 'ApplyAmount'
+        '账变时间降序': '-UpdateTime',
+        '账变时间升序': 'UpdateTime',
+        '代存金额降序': '-AbsApplyAmount',
+        '代存金额升序': 'AbsApplyAmount'
       } as Record<string, string>,
       transferType: 2, // 代存
       isAgentDeposit: true,
@@ -59,7 +59,7 @@ const pageConfig = computed(() => {
       title: '转账记录',
       summaryLabel: '转账金额总计',
       summaryIcon: '/static/images/common/transferRecordIcon.png',
-      summaryColorType: 'signed' as const,
+      summaryColorType: '',
       searchPlaceholder: '代理账号',
       amountLabel: '转账金额',
       typeLabel: '转账类型',
@@ -74,17 +74,11 @@ const pageConfig = computed(() => {
         { label: '转账金额降序', value: '转账金额降序' },
         { label: '转账金额升序', value: '转账金额升序' }
       ],
-      // sortMap: {
-      //   '账变时间降序': '-update_time',
-      //   '账变时间升序': 'update_time',
-      //   '转账金额降序': '-amount',
-      //   '转账金额升序': 'amount'
-      // } as Record<string, string>,
       sortMap: {
-        '账变时间降序': '-CreateTime',
-        '账变时间升序': 'CreateTime',
-        '代存金额降序': '-ApplyAmount',
-        '代存金额升序': 'ApplyAmount'
+        '账变时间降序': '-UpdateTime',
+        '账变时间升序': 'UpdateTime',
+        '转账金额降序': '-AbsApplyAmount',
+        '转账金额升序': 'AbsApplyAmount'
       } as Record<string, string>,
       transferType: 1, // 转账
       isAgentDeposit: undefined,
@@ -284,7 +278,7 @@ const loadMore = async () => {
       }
 
       // 更新总计
-      totalAmount.value = responseData.Total?.TotalAmount || 0
+      totalAmount.value = responseData.Total?.TotalAbsApplyAmount || 0
 
       // 更新分页状态
       totalCount.value = responseData.Pagination?.MaxCount || 0
@@ -341,19 +335,13 @@ const formatRecordType = (walletType: number) => {
   }
 }
 
-// 格式化金额（带符号）
-const formatAmountWithSign = (amount: number) => {
-  const formatted = formatMoneyWithCommas(amount, 2, true)
-  return amount > 0 ? `+${formatted}` : formatted
-}
-
 // 转换记录为卡片数据
 const getCardDetails = (record: AgentCreditLimitTransactionItem) => {
   if (recordType.value === 'deposit') {
     return [
       { label: '订单号', value: record.OrderId, showCopy: true },
       { label: '代存类型', value: formatRecordType(record.WalletType) },
-      { label: '代存金额', value: formatAmountWithSign(record.ApplyAmount), highlight: false },
+      { label: '代存金额', value: formatMoneyWithCommas(record.AbsApplyAmount), highlight: false },
       { label: '流水倍数', value: record.WithdrawWaterMultiply || 0 },
       { label: '代存回馈', value: formatMoneyWithCommas(record.DepositRebate || 0, 2, true) },
       { label: '充值类型', value: formatTransferType(record.TransferType) },
@@ -363,7 +351,7 @@ const getCardDetails = (record: AgentCreditLimitTransactionItem) => {
     return [
       { label: '订单号', value: record.OrderId, showCopy: true },
       { label: '转账类型', value: formatRecordType(record.WalletType) },
-      { label: '转账金额', value: formatMoneyWithCommas(record.ApplyAmount, 2, true), highlight: false },
+      { label: '转账金额', value: formatMoneyWithCommas(record.AbsApplyAmount, 2, true), highlight: false },
       { label: '备注', value: record.Remarks || '-', multiline: true }
     ]
   }

@@ -647,7 +647,7 @@ const handleSubmit = async () => {
         <!-- 代存金额 -->
         <div class="form-field">
           <div class="field-label">
-            转账金额<span class="text-error-normal">*</span>
+            代存金额<span class="text-error-normal">*</span>
           </div>
           <AppField
             v-model="depositAmount"
