@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { rulesRequired } from '@/utils/formRules'
+import { rulesRequired, rulesPassword } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import API from '@/apis'
@@ -21,9 +21,14 @@ const goRecord = () => {
 }
 
 const fetchAccountBalance = async () => {
-  const res = await API.finance.getAccountBalance()
-  if (res.data.Code !== 200) return
-  accountBalance.value = res.data.Data.Items
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+  try {
+    const res = await API.finance.getAccountBalance()
+    if (res.data.Code !== 200) return
+    accountBalance.value = res.data.Data.Items
+  } finally {
+    loadingToast.close()
+  }
 }
 
 const amount = ref('')
@@ -117,22 +122,13 @@ const navBarShowDetail = computed(() => router.currentRoute.value.name === 'comm
           required
           :rules="[rulesRequired(), { validator: validateAmount }]"
           maxlength="12"
-        >
-          <template #input>
-            <input
-              :value="amount"
-              type="text"
-              inputmode="numeric"
-              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入"
-              maxlength="12"
-              @input="(e: Event) => {
-                amount = (e.target as HTMLInputElement).value
-                amount = /^(?:\d{1,9})(?:\.\d{0,2})?$/.test(amount) ? amount : amount.slice(0, -1)
-               }"
-            />
-          </template>
-        </AppField>
+          type="number"
+          @input="(e: Event) => {
+            amount = (e.target as HTMLInputElement).value
+            amount = /^(?:\d{1,9})(?:\.\d{0,2})?$/.test(amount) ? amount : amount.slice(0, -1)
+          }"
+        />
+
         <AppField
           v-model="privatePassword"
           name="privatePassword"
@@ -140,24 +136,15 @@ const navBarShowDetail = computed(() => router.currentRoute.value.name === 'comm
           label="私人密码"
           placeholder="请输入"
           required
-          :rules="[rulesRequired()]"
-          maxlength="20"
+          :rules="[rulesRequired(), rulesPassword()]"
+          :type="showPassword ? 'text' : 'password'"
         >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :type="showPassword ? 'text' : 'password'"
-                :value="privatePassword"
-                class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-                placeholder="请输入"
-                @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
-              />
-              <van-icon
-                :name="showPassword ? 'eye-o' : 'closed-eye'"
-                class="cursor-pointer"
-                @click.stop="togglePassword"
-              />
-            </div>
+          <template #right-icon>
+            <van-icon
+              :name="showPassword ? 'eye-o' : 'closed-eye'"
+              class="cursor-pointer"
+              @click.stop="togglePassword"
+            />
           </template>
         </AppField>
         <div class="px-4 my-4">

@@ -23,6 +23,8 @@ const records = ref<CommissionToQuotaTotalItem[]>([])
 
 
 const fetchCommissionToQuotaTotal = async () => {
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+  try {
   const res = await API.admin.getCommissionToQuotaTotal({
     Page: 1,
     PageSize: 10,
@@ -32,9 +34,12 @@ const fetchCommissionToQuotaTotal = async () => {
     TransferType: 14,
     Sort: selectedSort.value
   })
-  if (res.data.Code !== 200) return
-  records.value = res.data.Data.Items as CommissionToQuotaTotalItem[] ?? []
-  totalAmount.value = res.data.Data.MoreItems?.TotalChangeGold ?? 0
+    if (res.data.Code !== 200) return
+    records.value = res.data.Data.Items as CommissionToQuotaTotalItem[] ?? []
+    totalAmount.value = res.data.Data.MoreItems?.TotalChangeGold ?? 0
+  } finally {
+    loadingToast.close()
+  }
 }
 
 onMounted(() => {

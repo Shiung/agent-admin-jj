@@ -17,7 +17,6 @@ const isLoading = ref(false)
 const isReady = computed(() => isLoading.value || !personalCenterInfo.value)
 const show = ref(false)
 const commissionRate = ref(0)
-const isCommissionRateLoading = ref(false)
 
 const formatDate = (timestamp: number | string | null | undefined, format = 'YYYY-MM-DD'): string => {
   if (!timestamp) return '-'
@@ -101,11 +100,11 @@ const commissionRateList = computed(() => {
 })
 
 const fetchCompareCommission = async () => {
-  isCommissionRateLoading.value = true
+  isLoading.value = true
   const res = await API.admin.getCompareCommission()
-  isCommissionRateLoading.value = false
   if (res.data.Code !== 200) return
   commissionRate.value = res.data.Data.CurrentMonth.CommissionRate
+  isLoading.value = false
 }
 
 fetchCompareCommission()
@@ -180,7 +179,7 @@ onMounted(async () => {
       </van-cell>
       <van-cell title="佣金比例">
         <template #label>
-          <van-skeleton :loading="isCommissionRateLoading" :row="1">
+          <van-skeleton :loading="isLoading" :row="1">
             {{ commissionRateParseFunction(commissionRate) }}%
           </van-skeleton>
         </template>

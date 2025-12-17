@@ -5,7 +5,7 @@ import AppField from '@/components/AppField/index.vue'
 import API from '@/apis'
 import getDeviceId from '@/utils/getDeviceId'
 import { opTypeConf } from '@/consts/constant'
-import { rulesRequired } from '@/utils/formRules'
+import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
 
 interface Props {
   ValidType: number
@@ -125,35 +125,29 @@ const getVerificationCode = async () => {
       name="verificationCode"
       :label="`${validTypeOptions.find(option => option.value === validType)?.label}码`"
       v-model="verificationCode"
-      :rules="[rulesRequired(), { pattern: /^\d{6}$/, message: '请输入6位数验证码' }]"
+      :rules="[rulesRequired(), rulesVerifyCode()]"
+      maxlength="6"
+      type="number"
+      placeholder="请输入"
       @update:model-value="(val) => emit('update:VerifyCode', String(val ?? ''))"
+      @input="(e: Event) => {
+        verificationCode = (e.target as HTMLInputElement).value
+        emit('update:VerifyCode', verificationCode)
+      }"
     >
-      <template #input>
-        <div class="flex items-center w-full gap-2">
-          <input
-            :value="verificationCode"
-            class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-            placeholder="请输入"
-            maxlength="6"
-            @input="(e: Event) => {
-              const value = (e.target as HTMLInputElement).value
-              verificationCode = value
-              emit('update:VerifyCode', value)
-            }"
-          />
-          <van-button
-            v-if="validType !== 2"
-            :loading="codeLoading"
-            :disabled="countdown > 0 || !props.verifiable"
-            size="small"
-            type="primary"
-            round
-            class="verificationBtn"
-            @click.stop="getVerificationCode"
-          >
-            {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
-          </van-button>
-        </div>
+      <template #right-icon>
+        <van-button
+          v-if="validType !== 2"
+          :loading="codeLoading"
+          :disabled="countdown > 0 || !props.verifiable"
+          size="small"
+          type="primary"
+          round
+          class="verificationBtn"
+          @click.stop="getVerificationCode"
+        >
+          {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
+        </van-button>
       </template>
     </AppField>
   </div>

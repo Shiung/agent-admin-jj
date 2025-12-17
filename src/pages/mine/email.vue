@@ -5,7 +5,7 @@ import { useUserStore } from '@/stores/user'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
 import API from '@/apis'
-import { rulesMail, rulesVerifyCode } from '@/utils/formRules'
+import { rulesRequired, rulesMail, rulesVerifyCode } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 
 const router = useRouter()
@@ -85,20 +85,9 @@ const submit = async () => {
         label="邮箱地址"
         placeholder="请输入"
         required
-        :rules="[rulesMail()]"
-      >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :value="email"
-              type="email"
-              class="flex-1 outline-none"
-              placeholder="请输入"
-              @input="(e: Event) => { email = (e.target as HTMLInputElement).value }"
-            />
-          </div>
-        </template>
-      </AppField>
+        type="email"
+        :rules="[rulesRequired(), rulesMail()]"
+      />
 
       <AppField
         v-model="verificationCode"
@@ -108,29 +97,22 @@ const submit = async () => {
         placeholder="请输入"
         required
         autocomplete="off"
-        :rules="[rulesVerifyCode()]"
+        maxlength="6"
+        type="number"
+        :rules="[rulesRequired(), rulesVerifyCode()]"
       >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :value="verificationCode"
-              type="text"
-              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入"
-              @input="(e: Event) => { verificationCode = (e.target as HTMLInputElement).value }"
-            />
-            <van-button
-              :loading="codeLoading"
-              :disabled="!email.trim() || countdown > 0"
-              size="small"
-              type="primary"
-              round
-              class="verificationBtn"
-              @click.stop="getVerificationCode"
-            >
-              {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
-            </van-button>
-          </div>
+        <template #right-icon>
+          <van-button
+            :loading="codeLoading"
+            :disabled="!email.trim() || countdown > 0"
+            size="small"
+            type="primary"
+            round
+            class="verificationBtn"
+            @click.stop="getVerificationCode"
+          >
+            {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
+          </van-button>
         </template>
       </AppField>
       <div class="px-4 my-4">

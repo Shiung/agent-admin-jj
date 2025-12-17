@@ -78,3 +78,12 @@ export const rulesVerifyCode = (params: any = {}) => {
     ...(params)
   }
 }
+
+/** 密码/私人密碼 */
+export const rulesPassword = (params: any = {}) => {
+  return {
+    pattern: /^[A-Za-z0-9]{6,20}$/,
+    message: '请输入6-20位英文字母或数字',
+    ...(params)
+  }
+}

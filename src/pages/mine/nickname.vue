@@ -47,8 +47,7 @@ const submit = async () => {
         maxlength="20"
         required
         :rules="[rulesRequired()]"
-      >
-      </AppField>
+      />
       <div class="px-4 my-4">
         <van-button
           block

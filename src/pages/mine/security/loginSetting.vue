@@ -3,13 +3,15 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
-import { rulesRequired } from '@/utils/formRules'
+import { rulesRequired, rulesPassword } from '@/utils/formRules'
 import { useUserStore } from '@/stores/user'
+import type { FormInstance } from 'vant'
 import API from '@/apis'
 
 const router = useRouter()
 const userStore = useUserStore()
 const personalInfo = computed(() => userStore.accountInfo)
+const formRef = ref<FormInstance | null>(null)
 
 const allowOtherDeviceLoginOptions = [
   { label: '允许', value: 1 },
@@ -74,28 +76,20 @@ const submit = async () => {
       </AppField>
       <AppField
         v-model="privatePassword"
-        name="PrivatePassword"
+        name="privatePassword"
         label-align="top"
         label="私人密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired()]"
+        :rules="[rulesRequired(), rulesPassword()]"
+        :type="showPassword ? 'text' : 'password'"
       >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :type="showPassword ? 'text' : 'password'"
-              :value="privatePassword"
-              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth disabled:opacity-50 disabled:cursor-not-allowed"
-              placeholder="请输入"
-              @input="(e: Event) => { privatePassword = (e.target as HTMLInputElement).value }"
-            />
-            <van-icon
-              :name="showPassword ? 'eye-o' : 'closed-eye'"
-              class="cursor-pointer"
-              @click.stop="togglePassword"
-            />
-          </div>
+        <template #right-icon>
+          <van-icon
+            :name="showPassword ? 'eye-o' : 'closed-eye'"
+            class="cursor-pointer"
+            @click.stop="togglePassword"
+          />
         </template>
       </AppField>
       <div class="px-4 my-4">
