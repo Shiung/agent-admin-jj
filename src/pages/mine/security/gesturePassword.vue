@@ -36,22 +36,14 @@ const submit = async () => {
           placeholder="请输入"
           required
           :rules="[rulesRequired()]"
+          :type="showPassword ? 'text' : 'password'"
         >
-          <template #input>
-            <div class="flex items-center w-full gap-2">
-              <input
-                :value="loginPassword"
-                :type="showPassword ? 'text' : 'password'"
-                class="flex-1 min-w-0 outline-none truncate"
-                placeholder="请输入"
-                @input="(e: Event) => { loginPassword = (e.target as HTMLInputElement).value }"
-              />
-              <van-icon
-                :name="showPassword ? 'eye-o' : 'closed-eye'"
-                class="cursor-pointer"
-                @click.stop="togglePassword"
-              />
-            </div>
+          <template #right-icon>
+            <van-icon
+              :name="showPassword ? 'eye-o' : 'closed-eye'"
+              class="cursor-pointer"
+              @click.stop="togglePassword"
+            />
           </template>
         </AppField>
         <div class="px-4 my-4">

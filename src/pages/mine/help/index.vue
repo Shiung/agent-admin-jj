@@ -7,18 +7,20 @@ import type { HelpCenterListData } from '@/apis/codegen/data-contracts'
 
 const router = useRouter()
 const route = useRoute()
-const loading = ref(false)
 const helpCenterList = ref<HelpCenterListData[]>([])
 const selectedHelpDetail = ref<HelpCenterListData | null>(null)
 
-const fetchHelpCenterList = async () => {
-  loading.value = true
-  const res = await API.admin.getHelpList({ Page: 1, PageSize: 20 })
-  if (res.data.Code !== 200) {
-    return
+  const fetchHelpCenterList = async () => {
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+  try {
+    const res = await API.admin.getHelpList({ Page: 1, PageSize: 20 })
+    if (res.data.Code !== 200) {
+      return
+    }
+    helpCenterList.value = res.data.Data?.Items || []
+  } finally {
+    loadingToast.close()
   }
-  helpCenterList.value = res.data.Data?.Items || []
-  loading.value = false
 }
 
 const navBarTitle = computed(() => {

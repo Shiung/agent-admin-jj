@@ -5,7 +5,7 @@ import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
 import { useUserStore } from '@/stores/user'
 import API from '@/apis'
-import { rulesRequired } from '@/utils/formRules'
+import { rulesRequired, rulesPassword } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 
 const router = useRouter()
@@ -23,6 +23,11 @@ const showPassword = {
 const togglePassword = (type: 'old' | 'new' | 'confirm') => {
   showPassword[type].value = !showPassword[type].value
 }
+
+const validateConfirmPassword = (val: string) => {
+  return val === newPassword.value
+}
+
 const loading = ref(false)
 
 const submit = async () => {
@@ -62,23 +67,21 @@ const submit = async () => {
         label="原密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired()]"
+        :type="showPassword.old.value ? 'text' : 'password'"
+        :rules="[rulesRequired(), rulesPassword()]"
+        @input="(e: Event) => {
+          oldPassword = (e.target as HTMLInputElement).value
+          if (newPassword && oldPassword) {
+            formRef?.validate('oldPassword')
+          }
+        }"
       >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :type="showPassword.old.value ? 'text' : 'password'"
-              :value="oldPassword"
-              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入"
-              @input="(e: Event) => { oldPassword = (e.target as HTMLInputElement).value }"
-            />
-            <van-icon
-              :name="showPassword.old.value ? 'eye-o' : 'closed-eye'"
-              class="cursor-pointer"
-              @click.stop="togglePassword('old')"
-            />
-          </div>
+        <template #right-icon>
+          <van-icon
+            :name="showPassword.old.value ? 'eye-o' : 'closed-eye'"
+            class="cursor-pointer"
+            @click.stop="togglePassword('old')"
+          />
         </template>
       </AppField>
       <AppField
@@ -88,23 +91,21 @@ const submit = async () => {
         label="新密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired()]"
+        :rules="[rulesRequired(), rulesPassword()]"
+        :type="showPassword.new.value ? 'text' : 'password'"
+        @input="(e: Event) => {
+          newPassword = (e.target as HTMLInputElement).value
+          if (oldPassword && newPassword) {
+            formRef?.validate('newPassword')
+          }
+        }"
       >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :type="showPassword.new.value ? 'text' : 'password'"
-              :value="newPassword"
-              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入"
-              @input="(e: Event) => { newPassword = (e.target as HTMLInputElement).value }"
-            />
-            <van-icon
-              :name="showPassword.new.value ? 'eye-o' : 'closed-eye'"
-              class="cursor-pointer"
-              @click.stop="togglePassword('new')"
-            />
-          </div>
+        <template #right-icon>
+          <van-icon
+            :name="showPassword.new.value ? 'eye-o' : 'closed-eye'"
+            class="cursor-pointer"
+            @click.stop="togglePassword('new')"
+          />
         </template>
       </AppField>
       <AppField
@@ -114,23 +115,21 @@ const submit = async () => {
         label="确认密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired()]"
+        :rules="[rulesRequired(), rulesPassword(), { validator: validateConfirmPassword, message: '密码不一致' }]"
+        :type="showPassword.confirm.value ? 'text' : 'password'"
+        @input="(e: Event) => {
+          confirmPassword = (e.target as HTMLInputElement).value
+          if (newPassword && confirmPassword) {
+            formRef?.validate('confirmPassword')
+          }
+        }"
       >
-        <template #input>
-          <div class="flex items-center w-full gap-2">
-            <input
-              :type="showPassword.confirm.value ? 'text' : 'password'"
-              :value="confirmPassword"
-              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入"
-              @input="(e: Event) => { confirmPassword = (e.target as HTMLInputElement).value }"
-            />
-            <van-icon
-              :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
-              class="cursor-pointer"
-              @click.stop="togglePassword('confirm')"
-            />
-          </div>
+        <template #right-icon>
+          <van-icon
+            :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
+            class="cursor-pointer"
+            @click.stop="togglePassword('confirm')"
+          />
         </template>
       </AppField>
       <div class="px-4 my-4">

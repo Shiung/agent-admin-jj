@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, watchEffect, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, watch, watchEffect, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useClipboard } from '@vueuse/core'
@@ -7,7 +7,7 @@ import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
 import API from '@/apis'
 import type { GoogleValidResponseData } from '@/apis/codegen/data-contracts'
-import { rulesVerifyCode } from '@/utils/formRules'
+import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 
 const router = useRouter()
@@ -120,21 +120,26 @@ const submit = async () => {
             </div>
           </template>
           <template #right-icon>
-            <div class="flex items-center h-full"> <van-image src="./static/images/promote/copy_lite.png" width="15"
-                height="15" @click="copy(googleCode.trim())" /></div>
+            <div class="flex items-center h-full">
+              <van-image src="./static/images/promote/copy_lite.png" width="15" height="15" @click="copy(googleCode.trim())" />
+            </div>
           </template>
         </AppField>
-        <AppField v-model="verificationCode" name="verificationCode" label-align="top" label="谷歌验证码"
-          placeholder="请输入6位数验证码" required :rules="[rulesVerifyCode()]" :maxlength="6" type="number">
-          <template #input>
-            <input :value="verificationCode" type="text" inputmode="numeric" pattern="[0-9]*"
-              class="flex-1 outline-none bg-transparent text-base text-neutral-basic placeholder:text-neutral2-fourth"
-              placeholder="请输入6位数验证码" maxlength="6" @input="(e: Event) => {
-                const value = (e.target as HTMLInputElement).value.replace(/\D/g, '')
-                verificationCode = value.slice(0, 6)
-              }" />
-          </template>
-        </AppField>
+        <AppField
+          v-model="verificationCode"
+          name="verificationCode"
+          label-align="top"
+          label="谷歌验证码"
+          placeholder="请输入6位数验证码"
+          required
+          :rules="[rulesRequired(), rulesVerifyCode()]"
+          maxlength="6"
+          type="number"
+          @input="(e: Event) => {
+            const value = (e.target as HTMLInputElement).value.replace(/\D/g, '')
+            verificationCode = value.slice(0, 6)
+          }"
+        />
         <div class="px-4 my-4">
           <van-button
             block
