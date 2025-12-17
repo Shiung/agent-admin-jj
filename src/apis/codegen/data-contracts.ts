@@ -226,6 +226,47 @@ export interface Registerv2Response {
   Msg: string
 }
 
+export interface AgentCreditLimitPermissionData {
+  CommissionGold: number // 佣金代存权限 (0: 无权限, 1: 有权限)
+  CommissionRed: number // 佣金红利权限 (0: 无权限, 1: 有权限)
+  CreditGold: number // 额度代存权限 (0: 无权限, 1: 有权限)
+  CreditRed: number // 额度红利权限 (0: 无权限, 1: 有权限)
+}
+
+export interface AgentCreditLimitPermissionResponse {
+  Code: number
+  Data: AgentCreditLimitPermissionData
+  Msg: string
+  id?: string
+}
+
+export interface AgentCreditLimitTransactionInsertRequest {
+  TransferType: number // 充值类型：2=代存, 10=红利
+  ReferenceAccount: string // 会员账号，批量时用逗号或分号分隔
+  PackageId: number // 产品包ID
+  Amount: number // 代存金额（分）
+  DisplayAmount: number // 显示金额（元）
+  WithdrawWaterMultiply: number // 提现流水倍数
+  PayPassword: string // 私人密码
+  Remarks?: string // 备注
+  WalletType: number // 钱包类型：1=佣金，2=额度
+  IsSendNotification: number // 是否发送通知：0=否，1=是
+  IsMultiLevel: number // 账号类型：1=单层，2=多层
+  IsBatch: number // 是否批量：0=单一，1=批量
+}
+
+export interface AgentCreditLimitTransactionInsertResponseData {
+  FailAccounts?: string[] // 失败的账号列表
+  SuccessCount?: number // 成功数量
+  FailCount?: number // 失败数量
+}
+
+export interface AgentCreditLimitTransactionInsertResponse {
+  Code: number
+  Data: AgentCreditLimitTransactionInsertResponseData
+  Msg: string
+}
+
 export interface CompareCommissionResponse {
   Code: number
   Data: CompareCommissionResponseData

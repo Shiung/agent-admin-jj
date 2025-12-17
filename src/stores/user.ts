@@ -4,7 +4,7 @@ import API from '@/apis'
 import { setHeaderToken } from '@/apis/api-client'
 import { useGlobalStore } from '@/stores/global'
 import { useGameStore } from '@/stores/game'
-import { type AccountInfoData, type SubAgentItem } from '@/apis/codegen/data-contracts'
+import { type AccountInfoData, type SubAgentItem, type AgentCreditLimitPermissionData } from '@/apis/codegen/data-contracts'
 
 export const useUserStore = defineStore('user', () => {
   const globalStore = useGlobalStore()
@@ -13,6 +13,7 @@ export const useUserStore = defineStore('user', () => {
   const token = ref<string | null>(localStorage.getItem('userToken') || null)
   const userInfo = ref<Record<string, any> | null>(null)
   const accountInfo = ref<AccountInfoData | null>(null)
+  const agentCreditLimitPermission = ref<AgentCreditLimitPermissionData | null>(null)
 
   /** 是否為單層代理（AccountType: 1=单层代理,2=多层代理-单费率,3=多层代理-多费率(目前無3)） */
   const isSingleAgent = computed(() => userInfo.value?.NetCashAccount.AccountType === 1)
@@ -92,6 +93,7 @@ export const useUserStore = defineStore('user', () => {
     userInfo.value = null
     subAgentList.value = []
     subAgentListLoaded.value = false
+    agentCreditLimitPermission.value = null
   }
 
   const fetchIsLogin = async () => {
@@ -100,6 +102,10 @@ export const useUserStore = defineStore('user', () => {
       throw new Error('isLogin failed')
     }
     userInfo.value = res.data.Data
+
+    // 同时获取代存权限
+    fetchAgentCreditLimitPermission()
+
     return res.data.Data
   }
 
@@ -145,10 +151,25 @@ export const useUserStore = defineStore('user', () => {
     return []
   }
 
+  // 获取代存权限
+  const fetchAgentCreditLimitPermission = async () => {
+    try {
+      const response = await API.system.agentCreditLimitPermission()
+      if (response.data.Code === 200) {
+        agentCreditLimitPermission.value = response.data.Data
+        return response.data.Data
+      }
+    } catch (err) {
+      console.error('获取代存权限失败:', err)
+    }
+    return null
+  }
+
   return {
     token,
     userInfo,
     accountInfo,
+    agentCreditLimitPermission,
     isSingleAgent,
     hasTeam,
     isMainLine,
@@ -164,6 +185,7 @@ export const useUserStore = defineStore('user', () => {
     fetchIsLogin,
     ensureUser,
     fetchAccountInfo,
-    fetchSubAgentList
+    fetchSubAgentList,
+    fetchAgentCreditLimitPermission,
   }
 })

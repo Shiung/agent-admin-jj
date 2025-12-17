@@ -70,6 +70,16 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/manage/agent/orgChart.vue'),
       },
       {
+        path: 'agent/deposit',
+        name: 'agentDeposit',
+        component: () => import('@/pages/agent/deposit/index.vue'),
+      },
+      {
+        path: 'agent/depositRecord',
+        name: 'agentDepositRecord',
+        component: () => import('@/pages/agent/depositRecord/index.vue'),
+      },
+      {
         path: 'team',
         name: 'manageTeam',
         component: () => import('@/pages/manage/team/index.vue'),
