@@ -12,6 +12,7 @@ interface Props {
   showArrow?: boolean
   showBackgroundColor?: boolean // 是否显示背景色
   data: DataItem[][]  // 二维数组，每行一个数组
+  fontSize?: number
 }
 
 withDefaults(defineProps<Props>(), {
@@ -52,7 +53,7 @@ const handleClick = () => {
           :key="colIndex"
           class="data-item"
         >
-          <span class="data-label">{{ item.label }}</span>
+          <span class="data-label" :style="fontSize ? { fontSize: fontSize + 'px', fontWeight: '600' } : undefined">{{ item.label }}</span>
           <span v-if="item.isMoney" :class="formatSignedMoney(item.value).color">{{ formatSignedMoney(item.value).text }}</span>
           <span v-else class="data-value" :class="{ 'highlight': item.highlight }">{{ item.value }}</span>
         </div>
@@ -151,7 +152,7 @@ const handleClick = () => {
 }
 
 .data-value.highlight {
-  color: var(--color-error-normal);
+  color: var(--color-primary-normal);
   font-weight: 600;
 }
 </style>

@@ -25,6 +25,7 @@ import type {
   ValideCodeV2Response,
   RetrievePasswordV2FormData,
   RetrievePasswordV2Response,
+  AgentCreditLimitPermissionResponse
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -112,6 +113,25 @@ export class System<SecurityDataType = unknown> {
   ) =>
     this.http.request<IsLoginResponse, any>({
       path: '/system/user/islogin',
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 代存权限查询
+   *
+   * @tags System
+   * @name AgentCreditLimitPermission
+   * @request GET:/admin/agentcreditlimitpermission
+   * @secure
+   */
+  agentCreditLimitPermission = (
+    params: RequestParams = {},
+  ) =>
+    this.http.request<AgentCreditLimitPermissionResponse, any>({
+      path: '/admin/agentcreditlimitpermission',
       method: "GET",
       secure: true,
       format: "json",
@@ -298,7 +318,7 @@ export class System<SecurityDataType = unknown> {
       upfile: File
     },
     params: RequestParams = {},
-  ) => 
+  ) =>
     this.http.request<UploadImageMd5Response, any>({
       path: '/api/resource/uploadimagemd5',
       method: "POST",
