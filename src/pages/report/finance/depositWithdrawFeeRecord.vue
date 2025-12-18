@@ -127,7 +127,7 @@ const formatWithdrawRecord = (item: WithdrawRecordItem) => {
     applyAmount: item.Amount || 0,
     actualAmount: (item.Amount || 0) - (item.Fee || 0), // 实际金额 = 提现金额 - 手续费
     depositType: item.WithdrawType ? `提现类型${item.WithdrawType}` : '-',
-    depositRate: item.FeeRate ? `${(item.FeeRate / 10)}%` : '0%', // 千分比转百分比
+    depositRate: item.FeeRate ? `${(item.FeeRate / 100)}%` : '0%', // 千分比转百分比
     depositFee: item.Fee || 0,
     time: item.TransactionTime ? dayjs.unix(item.TransactionTime).format('YYYY-MM-DD HH:mm:ss') : '-',
     rawData: item
