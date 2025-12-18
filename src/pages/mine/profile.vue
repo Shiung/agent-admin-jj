@@ -147,13 +147,13 @@ onMounted(() => {
           </van-button>
         </template>
       </van-cell>
-      <van-cell title="真实姓名" :label="personalCenterInfo?.RealName" @click="router.push({ name: 'mineRealName' })">
+      <van-cell title="真实姓名" :label="personalCenterInfo?.RealName">
         <van-button v-if="!personalCenterInfo?.RealName" round size="small" type="primary" class="px-11" @click="router.push({ name: 'mineRealName' })">设置</van-button>
       </van-cell>
       <van-cell title="注册日期" :label="formatDate(personalCenterInfo?.CreateTime)" />
       <van-cell title="登录次数" :label="personalCenterInfo?.Count"/>
-      <van-cell title="最近登录" :label="personalCenterInfo?.Ip + ' / ' + personalCenterInfo?.Address" @click="show = true" />
-      <van-cell title="佣金比例" :label="commissionRateParseFunction(commissionRate) + '%'" @click="show = true">
+      <van-cell title="最近登录" :label="personalCenterInfo?.Ip + ' / ' + personalCenterInfo?.Address" />
+      <van-cell title="佣金比例" :label="commissionRateParseFunction(commissionRate) + '%'">
         <template #right-icon>
           <van-button v-if="userStore.isSingleAgent" round size="small" type="primary" class="px-11" @click="show = true">查看</van-button>
         </template>
@@ -195,15 +195,12 @@ onMounted(() => {
         5. 多层代理-非一级：显示上级代理账号
       -->
       <van-cell v-if="isShowParentAgent" title="上级代理" :label="parentAgentUsername" />
-      <van-cell v-if="isShowPhoneBind" title="手机号" :class="{ 'danger': !personalCenterInfo?.Phone }">
-        <template #label>
-          {{ personalCenterInfo?.Phone || '尚未设置' }}
-        </template>
+      <van-cell v-if="isShowPhoneBind" title="手机号" :class="{ 'danger': !personalCenterInfo?.Phone }" :label="personalCenterInfo?.Phone || '尚未设置'">
         <template #right-icon>
           <van-button v-if="!personalCenterInfo?.Phone" round size="small" type="primary" class="px-11" @click="router.push({ name: 'minePhone' })">设置</van-button>
         </template>
       </van-cell>
-      <van-cell v-if="isShowEmailBind" title="邮箱地址" :class="{ 'danger': !personalCenterInfo?.Email }" :label="personalCenterInfo?.Email || '尚未设置'" @click="router.push({ name: 'mineEmail' })">
+      <van-cell v-if="isShowEmailBind" title="邮箱地址" :class="{ 'danger': !personalCenterInfo?.Email }" :label="personalCenterInfo?.Email || '尚未设置'">
         <van-button v-if="!personalCenterInfo?.Email" round size="small" type="primary" @click="router.push({ name: 'mineEmail' })">设置</van-button>
       </van-cell>
       <van-cell
@@ -211,7 +208,6 @@ onMounted(() => {
         title="谷歌验证"
         :class="personalCenterInfo?.GoogleSecret ? 'success' : 'danger'"
         :label="personalCenterInfo?.GoogleSecret ? '已设置' : '尚未设置'"
-        @click="router.push({ name: 'mineGoogleCode' })"
       >
         <van-button v-if="!personalCenterInfo?.GoogleSecret" round size="small" type="primary" @click="router.push({ name: 'mineGoogleCode' })">设置</van-button>
       </van-cell>
