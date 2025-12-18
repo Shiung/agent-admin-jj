@@ -8,7 +8,7 @@ page/promte --> all
 ## manage/member
 
 - InfinityScroll 無限加載
-
+- AdvancedBottomSheet 進階選單
 
 
 # cashnet-admin-v2
