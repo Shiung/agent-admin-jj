@@ -222,10 +222,8 @@ const handleSubmit = async () => {
 }
 
 onMounted(() => {
-  // 只在 store 中没有限额信息时才调用 API
-  if (!transferLimitInfo_store.value) {
-    userStore.fetchUserBalancesAndLimits()
-  }
+  // 每次进入都重新获取余额信息（因为后台设定可能调整，没有 socket 通知）
+  userStore.fetchUserBalancesAndLimits()
 })
 </script>
 

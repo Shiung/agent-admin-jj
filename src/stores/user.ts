@@ -176,10 +176,6 @@ export const useUserStore = defineStore('user', () => {
     }
     userInfo.value = res.data.Data
 
-    // 同时获取代存权限
-    fetchAgentCreditLimitPermission()
-    fetchUserBalancesAndLimits()
-
     return res.data.Data
   }
 

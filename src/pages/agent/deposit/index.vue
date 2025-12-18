@@ -104,10 +104,9 @@ onMounted(() => {
   if (route.query.memberAccount) {
     memberAccount.value = route.query.memberAccount as string
   }
-  // 只在 store 中没有限额信息时才调用 API
-  if (!depositLimitInfo_store.value) {
-    userStore.fetchUserBalancesAndLimits()
-  }
+  // 每次进入都重新获取权限和余额信息（因为后台设定可能调整，没有 socket 通知）
+  userStore.fetchAgentCreditLimitPermission()
+  userStore.fetchUserBalancesAndLimits()
 })
 
 watch(productPackages, (packages) => {

@@ -86,24 +86,8 @@ const goRecharge = () => {
 const handleMenuClick = (key: string) => {
   // 跳转到代理代存页面时，传递余额数据和限额信息
   if (key === 'agentDeposit') {
-    const query: Record<string, string> = {
-      commission: String(commissionWalletBalance.value),
-      credit: String(creditWalletBalance.value),
-    }
-
-    // 传递限额信息
-    if (depositLimitInfo.value) {
-      query.minAmount = String(depositLimitInfo.value.minAmount)
-      query.maxAmount = String(depositLimitInfo.value.maxAmount)
-      query.dailyAmount = String(depositLimitInfo.value.dailyAmount)
-      query.maxWithdrawMultiple = String(depositLimitInfo.value.maxWithdrawMultiple)
-      query.isActive = String(depositLimitInfo.value.isActive)
-      query.isShowMultiple = String(depositLimitInfo.value.isShowMultiple)
-    }
-
     router.push({
       name: key,
-      query,
     })
   } else if (key === 'agentTransfer') {
     router.push({
