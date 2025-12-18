@@ -292,6 +292,7 @@ export interface AgentCreditLimitTransactionItem {
   WalletType: number // 代存类型：1=佣金代存, 2=额度代存
   TransferType: number // 充值类型：2=代存, 10=红利
   ApplyAmount: number // 转账金额（分）
+  AbsApplyAmount: number // 代存金额绝对值（分）
   WithdrawWaterMultiply: number // 流水倍数
   DepositRebate: number // 代存回馈（分）
   Status: number // 状态：2=已到账, 其他=已拒绝
@@ -309,6 +310,7 @@ export interface AgentCreditLimitTransactionListResponse {
     }
     Total: {
       TotalAmount: number // 总金额（分）
+      TotalAbsApplyAmount: number // 转帐总金额绝对值（分）
     }
   }
   Msg: string
