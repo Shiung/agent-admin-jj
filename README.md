@@ -9,6 +9,7 @@ page/promte --> all
 
 - InfinityScroll 無限加載
 - AdvancedBottomSheet 進階選單
+- searchBar hightlight 模糊收尋清單的功能
 
 
 # cashnet-admin-v2
