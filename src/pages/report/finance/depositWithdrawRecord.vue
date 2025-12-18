@@ -548,7 +548,7 @@ const handleDepositWithdrawClick = (record: any) => {
 
             <!-- 状态筛选 -->
             <div class="filter-dropdown">
-            <Dropdown
+            <Filled
               v-model="statusFilter"
               :options="statusOptions"
               height="1.5rem"
@@ -557,7 +557,7 @@ const handleDepositWithdrawClick = (record: any) => {
 
             <!-- 排序方式 -->
             <div class="filter-dropdown">
-            <Dropdown
+            <Filled
               v-model="sortType"
               :options="sortOptions"
               height="1.5rem"

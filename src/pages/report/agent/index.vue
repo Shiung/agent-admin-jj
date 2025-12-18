@@ -1036,7 +1036,7 @@ const closeDetailSheet = () => {
           <div class="filter-scroll-container">
             <!-- 实时模式：层级筛选 -->
             <div v-if="agentType === 'multi' && !isHistoryMode" class="filter-dropdown">
-              <Dropdown
+              <Filled
                 v-model="selectedLevel"
                 :options="levelFilterOptions"
                 height="1.5rem"
@@ -1044,7 +1044,7 @@ const closeDetailSheet = () => {
             </div>
             <!-- 实时模式：排序方式 -->
             <div v-if="!isHistoryMode" class="filter-dropdown">
-              <Dropdown
+              <Filled
                 v-model="sortType"
                 :options="sortOptions"
                 height="1.5rem"
@@ -1061,7 +1061,7 @@ const closeDetailSheet = () => {
             />
             <!-- 历史模式：产品包筛选 -->
             <div v-if="isHistoryMode" class="filter-dropdown">
-              <Dropdown
+              <Filled
                 v-model="selectedProduct"
                 :options="productOptions"
                 height="1.5rem"

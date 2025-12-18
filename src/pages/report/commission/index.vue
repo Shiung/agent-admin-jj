@@ -643,26 +643,26 @@ onMounted(async () => {
         <!-- 团队视图筛选条件 -->
         <div v-if="!isSubordinateView" class="filter-scroll-container">
           <!-- 日期选择 -->
-          <Dropdown v-model="selectedDate" :options="dateOptions" height="1.5rem"
+          <Filled v-model="selectedDate" :options="dateOptions" height="1.5rem"
             class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]" />
         </div>
 
         <!-- 下级视图筛选条件 -->
         <div v-else class="filter-scroll-container">
           <!-- 日期选择 -->
-          <Dropdown v-model="selectedDate" :options="dateOptions" height="1.5rem"
+          <Filled v-model="selectedDate" :options="dateOptions" height="1.5rem"
             class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]" />
 
           <!-- 层级筛选 -->
-          <Dropdown v-model="levelFilter" :options="levelOptions" height="1.5rem"
+          <Filled v-model="levelFilter" :options="levelOptions" height="1.5rem"
             class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]" />
 
           <!-- 状态筛选 -->
-          <Dropdown v-model="statusFilter" :options="statusOptions" height="1.5rem"
+          <Filled v-model="statusFilter" :options="statusOptions" height="1.5rem"
             class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]" />
 
           <!-- 佣金排序 -->
-          <Dropdown v-model="commissionSortType" :options="commissionSortOptions" height="1.5rem"
+          <Filled v-model="commissionSortType" :options="commissionSortOptions" height="1.5rem"
             class="filter-dropdown !w-auto !bg-[#F8FAFD] hover:!bg-[#F8FAFD]" />
         </div>
         </div>
