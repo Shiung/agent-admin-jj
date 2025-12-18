@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import FinanceCard from '@/pages/report/finance/components/financeCard.vue'
@@ -13,18 +13,16 @@ import API from '@/apis'
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
-const { userInfo } = storeToRefs(userStore)
+const { userInfo, commissionWalletBalance, creditWalletBalance, transferLimitInfo: transferLimitInfo_store } = storeToRefs(userStore)
 
-// 从路由参数获取余额
-const availableCommission = ref(Number(route.query.commission) || 0)
-const availableQuota = ref(Number(route.query.credit) || 0)
-
-// 从路由参数获取转账限额信息
-const transferLimitInfo = ref({
-  minAmount: Number(route.query.minAmount) || 0,
-  maxAmount: Number(route.query.maxAmount) || 0,
-  dailyAmount: Number(route.query.dailyAmount) || 0,
-  isActive: Number(route.query.isActive) || 0,
+// 从 store 获取余额和转账限额信息
+const availableCommission = computed(() => commissionWalletBalance.value)
+const availableQuota = computed(() => creditWalletBalance.value)
+const transferLimitInfo = computed(() => transferLimitInfo_store.value || {
+  minAmount: 0,
+  maxAmount: 0,
+  dailyAmount: 0,
+  isActive: 0,
 })
 
 // 转账类型：0=额度转账, 1=佣金转账
@@ -222,6 +220,13 @@ const handleSubmit = async () => {
     })
   }
 }
+
+onMounted(() => {
+  // 只在 store 中没有限额信息时才调用 API
+  if (!transferLimitInfo_store.value) {
+    userStore.fetchUserBalancesAndLimits()
+  }
+})
 </script>
 
 <template>

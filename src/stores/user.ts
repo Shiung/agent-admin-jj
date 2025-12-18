@@ -112,19 +112,25 @@ export const useUserStore = defineStore('user', () => {
     agentCreditLimitPermission.value = null
   }
 
-  const fetchUserBalancesAndLimits = async () => {
+  // 获取佣金余额
+  const fetchCommissionBalance = async () => {
     try {
-      const [overviewRes, balanceRes] = await Promise.all([
-        API.finance.getCommissionOverview(),
-        API.finance.getAccountBalance()
-      ]);
-
+      const overviewRes = await API.finance.getCommissionOverview()
       if (overviewRes.data.Code === 200) {
-        commissionWalletBalance.value = overviewRes.data.Data.Available || 0;
+        commissionWalletBalance.value = overviewRes.data.Data.Available || 0
       }
+    } catch (error) {
+      console.error("Failed to fetch commission balance:", error)
+    }
+  }
+
+  // 获取额度余额和限额信息
+  const fetchCreditBalanceAndLimits = async () => {
+    try {
+      const balanceRes = await API.finance.getAccountBalance()
 
       if (balanceRes.data.Code === 200) {
-        creditWalletBalance.value = balanceRes.data.Data.Items.Credit || 0;
+        creditWalletBalance.value = balanceRes.data.Data.Items.Credit || 0
 
         if (balanceRes.data.Data.Items3) {
           depositLimitInfo.value = {
@@ -134,7 +140,7 @@ export const useUserStore = defineStore('user', () => {
             maxWithdrawMultiple: balanceRes.data.Data.Items3.WithdrawWaterMultiply || 1,
             isActive: balanceRes.data.Data.IsActiveLimit3 || 0,
             isShowMultiple: balanceRes.data.Data.IsShowMultiple || 0,
-          };
+          }
         }
 
         if (balanceRes.data.Data.Items2) {
@@ -143,13 +149,25 @@ export const useUserStore = defineStore('user', () => {
             maxAmount: (balanceRes.data.Data.Items2.MaxTransferAmount || 0) / 100,
             dailyAmount: (balanceRes.data.Data.Items2.DailyTransferAmount || 0) / 100,
             isActive: balanceRes.data.Data.IsActiveTransfer || 0,
-          };
+          }
         }
       }
     } catch (error) {
-      console.error("Failed to fetch user balances and limits:", error);
+      console.error("Failed to fetch credit balance and limits:", error)
     }
-  };
+  }
+
+  // 同时获取佣金和额度余额及限额信息（便捷方法）
+  const fetchUserBalancesAndLimits = async () => {
+    try {
+      await Promise.all([
+        fetchCommissionBalance(),
+        fetchCreditBalanceAndLimits()
+      ])
+    } catch (error) {
+      console.error("Failed to fetch user balances and limits:", error)
+    }
+  }
 
   const fetchIsLogin = async () => {
     const res = await API.system.isLogin()
@@ -247,6 +265,8 @@ export const useUserStore = defineStore('user', () => {
     fetchAccountInfo,
     fetchSubAgentList,
     fetchAgentCreditLimitPermission,
+    fetchCommissionBalance,
+    fetchCreditBalanceAndLimits,
     fetchUserBalancesAndLimits,
   }
 })

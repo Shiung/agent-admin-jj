@@ -67,7 +67,6 @@ const {
   commissionWalletBalance,
   creditWalletBalance,
   depositLimitInfo,
-  transferLimitInfo,
 } = storeToRefs(userStore)
 
 const agentAccount = computed(() => userInfo.value?.Admin?.Username || '')
@@ -107,23 +106,8 @@ const handleMenuClick = (key: string) => {
       query,
     })
   } else if (key === 'agentTransfer') {
-    // 跳转到代理转账页面时，传递余额数据和限额信息
-    const query: Record<string, string> = {
-      commission: String(commissionWalletBalance.value),
-      credit: String(creditWalletBalance.value),
-    }
-
-    // 传递转账限额信息（Items2）
-    if (transferLimitInfo.value) {
-      query.minAmount = String(transferLimitInfo.value.minAmount)
-      query.maxAmount = String(transferLimitInfo.value.maxAmount)
-      query.dailyAmount = String(transferLimitInfo.value.dailyAmount)
-      query.isActive = String(transferLimitInfo.value.isActive)
-    }
-
     router.push({
       name: key,
-      query,
     })
   } else {
     router.push({ name: key })

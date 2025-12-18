@@ -25,10 +25,6 @@ import type {
   ValideCodeV2Response,
   RetrievePasswordV2FormData,
   RetrievePasswordV2Response,
-  SendPhoneVerifyCodeQuery,
-  SendPhoneVerifyCodeResponse,
-  SendEmailVerifyCodeQuery,
-  SendEmailVerifyCodeResponse,
   AgentCreditLimitPermissionResponse
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'

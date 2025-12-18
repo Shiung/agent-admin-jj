@@ -4,8 +4,6 @@ import UnitCard from '../../components/UnitCard.vue'
 import type SwitchTab from '@/components/SwitchTab/index.vue'
 import { useClipboard } from '@vueuse/core'
 import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user'
-import { storeToRefs } from 'pinia'
 
 import dayjs from 'dayjs'
 import { useWindowSize, useElementSize } from '@vueuse/core'
@@ -46,8 +44,6 @@ const showDate = (ts: number | string | null | undefined) => {
 const { states, playerInfoPermission } = useProvider()
 
 const router = useRouter()
-const userStore = useUserStore()
-const { commissionWalletBalance, creditWalletBalance, depositLimitInfo } = storeToRefs(userStore)
 
 const copyHadandler = (c: string) => {
   useClipboard().copy(c)
@@ -58,25 +54,12 @@ const handleGoToDeposit = () => {
   if (!states.playerInfo) return
 
   const member = states.playerInfo.PlayerInfo
-  const query: Record<string, any> = {
-    commission: String(commissionWalletBalance.value),
-    credit: String(creditWalletBalance.value),
-    memberAccount: member.LoginAccount,
-    packageName: member.PackageName
-  }
-
-  if (depositLimitInfo.value) {
-    query.minAmount = String(depositLimitInfo.value.minAmount)
-    query.maxAmount = String(depositLimitInfo.value.maxAmount)
-    query.dailyAmount = String(depositLimitInfo.value.dailyAmount)
-    query.maxWithdrawMultiple = String(depositLimitInfo.value.maxWithdrawMultiple)
-    query.isActive = String(depositLimitInfo.value.isActive)
-    query.isShowMultiple = String(depositLimitInfo.value.isShowMultiple)
-  }
-
   router.push({
     name: 'agentDeposit',
-    query
+    query: {
+      memberAccount: member.LoginAccount,
+      packageName: member.PackageName
+    }
   })
 }
 

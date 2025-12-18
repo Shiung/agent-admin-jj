@@ -16,7 +16,7 @@ const route = useRoute()
 
 // 用户权限和信息
 const userStore = useUserStore()
-const { agentCreditLimitPermission, productPackages, isSingleAgent } = storeToRefs(userStore)
+const { agentCreditLimitPermission, productPackages, isSingleAgent, commissionWalletBalance, creditWalletBalance, depositLimitInfo: depositLimitInfo_store } = storeToRefs(userStore)
 
 // Tab 类型常量
 const SUB_TAB_TYPE = {
@@ -36,18 +36,16 @@ const tabOptions = ref<Array<{ id: number; title: string }>>([])
 // Tab 切换：0-额度代存，1-佣金代存
 const activeTab = ref(0)
 
-// 可用佣金和可用额度（从路由参数获取）
-const availableCommission = ref(Number(route.query.commission) || 0)
-const availableQuota = ref(Number(route.query.credit) || 0)
-
-// 代存限额信息（从路由参数获取）
-const depositLimitInfo = ref({
-  minAmount: Number(route.query.minAmount) || 0,
-  maxAmount: Number(route.query.maxAmount) || 0,
-  dailyAmount: Number(route.query.dailyAmount) || 0,
-  maxWithdrawMultiple: Number(route.query.maxWithdrawMultiple) || 1,
-  isActive: Number(route.query.isActive) || 0,
-  isShowMultiple: Number(route.query.isShowMultiple) || 0,
+// 从 store 获取余额和代存限额信息
+const availableCommission = computed(() => commissionWalletBalance.value)
+const availableQuota = computed(() => creditWalletBalance.value)
+const depositLimitInfo = computed(() => depositLimitInfo_store.value || {
+  minAmount: 0,
+  maxAmount: 0,
+  dailyAmount: 0,
+  maxWithdrawMultiple: 1,
+  isActive: 0,
+  isShowMultiple: 0,
 })
 
 // 充值类型选项（根据当前 Tab 和权限动态生成）
@@ -105,6 +103,10 @@ const formRef = ref<FormInstance>()
 onMounted(() => {
   if (route.query.memberAccount) {
     memberAccount.value = route.query.memberAccount as string
+  }
+  // 只在 store 中没有限额信息时才调用 API
+  if (!depositLimitInfo_store.value) {
+    userStore.fetchUserBalancesAndLimits()
   }
 })
 
