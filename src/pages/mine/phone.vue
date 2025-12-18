@@ -2,18 +2,32 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { rulesRequired, rulesVerifyCode, rulesTelephone } from '@/utils/formRules'
+import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
+import { useVerificationCountdown } from './useVerificationCountdown.ts'
 import type { FormInstance } from 'vant'
+import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
 import DropdownFilled from '@/components/Dropdown/Filled.vue'
 import getDeviceId from '@/utils/getDeviceId'
-import API from '@/apis'
 
 const router = useRouter()
 const userStore = useUserStore()
-const accountInfo = computed(() => userStore.accountInfo)
-const formRef = ref<FormInstance>()
+const formRef = ref<FormInstance | null>(null)
+const countryCode = ref<string>('+86')
+const mobile = ref<string>(userStore.accountInfo?.Phone || '')
+const verificationCode = ref<string>('')
+const loading = ref<boolean>(false)
+const enableEdit = computed(() => {
+  return mobile.value.trim() && verificationCode.value.trim()
+})
+
+const {
+  countdown,
+  loading: codeLoading,
+  hasRequested: hasRequestedCode,
+  start: startCountdown
+} = useVerificationCountdown(60)
 
 const countryCodeOptions = [
   { label: '+86', value: '+86' },
@@ -31,88 +45,66 @@ const countryCodeOptions = [
   { label: '+886', value: '+886' },
 ]
 
-const countryCode = ref('+86')
-const mobile = ref(accountInfo.value?.Phone || '')
-const verificationCode = ref('')
-const loading = ref(false)
-const codeLoading = ref(false)
-const countdown = ref(0)
-const hasRequestedCode = ref(false) // 已經按過一次驗證碼
-
-const canSubmit = computed(() => {
-  return mobile.value.trim() && verificationCode.value.trim()
-})
-
 // 获取验证码
 const getVerificationCode = async () => {
-  if (!mobile.value.trim()) {
+  const mobileValue = mobile.value.trim()
+  if (!mobileValue) return
+
+  // 先檢查手機號長度要大於5位
+  if (mobileValue.length < 5) {
+    showFailToast('请输入5位以上手机号!')
     return
   }
 
-  // 先檢查手機號長度要大於5位
-  if (mobile.value.trim().length < 5) {
-    showFailToast('请输入5位以上手机号!')
+  try {
+    await formRef.value?.validate('mobile')
+  } catch {
     return
   }
 
   // TODO: 之後優化需加上手机号字数 ≥ 5，跳图形验证彈窗
 
-  if (countdown.value > 0) {
-    return
-  }
-
-  codeLoading.value = true
-  try {
-    const res = await API.system.phoneVerify(
-      {
-        Number: `${countryCode.value.replace('+', '')}_${mobile.value.trim()}`,
-        DeviceId: getDeviceId() ?? '',
-        OpType: 12
-      }
-    )
+  await startCountdown(async () => {
+    const res = await API.system.phoneVerify({
+      Number: `${countryCode.value.replace('+', '')}_${mobileValue}`,
+      DeviceId: getDeviceId() ?? '',
+      OpType: 12
+    })
     if (res.data.Code !== 200) {
-      console.error(res.data)
+      showFailToast(res.data.Msg)
+      return false
+    }
+    return true
+  })
+}
+
+const submit = async () => {
+  if (loading.value) return
+
+  try {
+    loading.value = true
+    await formRef.value?.validate()
+
+    const phoneNumber = `${countryCode.value.replace('+', '')}_${mobile.value.trim()}`
+    const res = await API.admin.updatePhone({
+      Phone: phoneNumber,
+      VerifyCode: verificationCode.value.trim(),
+      AreaCode: countryCode.value.replace('+', '')
+    })
+
+    if (res.data.Code !== 200) {
       showFailToast(res.data.Msg)
       return
     }
 
-    hasRequestedCode.value = true
-    // 开始倒计时
-    countdown.value = 60
-    const timer = setInterval(() => {
-      countdown.value--
-      if (countdown.value <= 0) {
-        clearInterval(timer)
-      }
-    }, 1000)
+    showSuccessToast('编辑成功')
+    router.replace({ name: 'mineProfile' })
   } catch (error: any) {
-    console.error('获取验证码失败：', error)
+    console.error('更新失败：', error)
     showFailToast(error?.response?.data?.Msg)
   } finally {
-    codeLoading.value = false
+    loading.value = false
   }
-}
-
-const submit = async () => {
-  loading.value = true
-  formRef.value?.validate().then(async () => {
-    try {
-      const phoneNumber = `${countryCode.value.replace('+', '')}_${mobile.value.trim()}`
-      const res = await API.admin.updatePhone({
-        Phone: phoneNumber,
-        VerifyCode: verificationCode.value.trim(),
-        AreaCode: countryCode.value.replace('+', '')
-      })
-      if (res.data.Code !== 200) return
-      showToast('编辑成功')
-      router.replace({ name: 'mineProfile' })
-    } catch (error: any) {
-      console.error('更新失败：', error)
-      showFailToast(error?.response?.data?.Msg)
-    } finally {
-      loading.value = false
-    }
-  })
 }
 </script>
 
@@ -130,7 +122,7 @@ const submit = async () => {
         placeholder="请输入"
         required
         type="number"
-        :rules="[rulesRequired(), rulesTelephone()]"
+        :rules="[rulesRequired()]"
       >
         <template #input>
           <div class="flex items-center w-full">
@@ -180,7 +172,7 @@ const submit = async () => {
           round
           type="primary"
           :loading="loading"
-          :disabled="!canSubmit"
+          :disabled="!enableEdit"
           class="gray-disabled"
           native-type="submit"
         >

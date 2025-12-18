@@ -4,11 +4,12 @@ import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import Filled from '@/components/Dropdown/Filled.vue'
 import RecordTotalBanner from './components/RecordTotalBanner.vue'
 import RecordItem from './components/RecordItem.vue'
-import type { CommissionToQuotaTotalItem } from '@/apis/codegen/data-contracts'
+import type { CommissionToQuotaTotalItem, CommissionToQuotaTotalQuery, CommissionToQuotaTotalResponse } from '@/apis/codegen/data-contracts'
 import dayjs from 'dayjs'
 import API from '@/apis'
 
-const quotaTime = ref({
+type QuotaTime = { startTime: number, endTime: number }
+const quotaTime = ref<QuotaTime>({
   startTime: dayjs().startOf('month').unix(),
   endTime: dayjs().endOf('month').unix(),
 })
@@ -17,26 +18,32 @@ const sortOptions = [
   { value: '-UpdateTime', label: '账变时间降序' },
   { value: 'UpdateTime', label: '账变时间升序' },
 ]
-const selectedSort = ref(sortOptions[0]?.value ?? '-UpdateTime')
-const totalAmount = ref(0)
+const selectedSort = ref<CommissionToQuotaTotalQuery['Sort']>(sortOptions[0]?.value ?? '-UpdateTime')
+const totalAmount = ref<CommissionToQuotaTotalResponse['Data']['MoreItems']['TotalChangeGold']>(0)
 const records = ref<CommissionToQuotaTotalItem[]>([])
 
 
 const fetchCommissionToQuotaTotal = async () => {
   const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
-  const res = await API.admin.getCommissionToQuotaTotal({
-    Page: 1,
-    PageSize: 10,
-    BeginTime: quotaTime.value.startTime,
-    EndTime: quotaTime.value.endTime,
-    BillType: 0,
-    TransferType: 14,
-    Sort: selectedSort.value
-  })
-    if (res.data.Code !== 200) return
-    records.value = res.data.Data.Items as CommissionToQuotaTotalItem[] ?? []
+    const res = await API.admin.getCommissionToQuotaTotal({
+      Page: 1,
+      PageSize: 10,
+      BeginTime: quotaTime.value.startTime,
+      EndTime: quotaTime.value.endTime,
+      BillType: 0,
+      TransferType: 14,
+      Sort: selectedSort.value
+    })
+    if (res.data.Code !== 200) {
+      showFailToast(res.data.Msg)
+      return
+    }
+    records.value = (res.data.Data.Items as CommissionToQuotaTotalItem[]) ?? []
     totalAmount.value = res.data.Data.MoreItems?.TotalChangeGold ?? 0
+  } catch (error: any) {
+    console.error('获取佣金转额度记录失败：', error)
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     loadingToast.close()
   }

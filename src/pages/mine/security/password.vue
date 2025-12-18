@@ -10,49 +10,68 @@ import type { FormInstance } from 'vant'
 
 const router = useRouter()
 const userStore = useUserStore()
-
+const loading = ref<boolean>(false)
 const formRef = ref<FormInstance | null>(null)
-const oldPassword = ref('')
-const newPassword = ref('')
-const confirmPassword = ref('')
-const showPassword = {
-  old: ref(false),
-  new: ref(false),
-  confirm: ref(false)
-}
+const oldPassword = ref<string>('')
+const newPassword = ref<string>('')
+const confirmPassword = ref<string>('')
+const showPassword = ref<{ old: boolean, new: boolean, confirm: boolean }>({ old: false, new: false, confirm: false })
+
 const togglePassword = (type: 'old' | 'new' | 'confirm') => {
-  showPassword[type].value = !showPassword[type].value
+  showPassword.value[type] = !showPassword.value[type]
 }
 
 const validateConfirmPassword = (val: string) => {
   return val === newPassword.value
 }
 
-const loading = ref(false)
+const handleOldPasswordInput = (e: Event) => {
+  oldPassword.value = (e.target as HTMLInputElement).value
+  if (newPassword.value && oldPassword.value) {
+    formRef.value?.validate('oldPassword')
+  }
+}
+
+const handleNewPasswordInput = (e: Event) => {
+  newPassword.value = (e.target as HTMLInputElement).value
+  if (oldPassword.value && newPassword.value) {
+    formRef.value?.validate('newPassword')
+  }
+}
+
+const handleConfirmPasswordInput = (e: Event) => {
+  confirmPassword.value = (e.target as HTMLInputElement).value
+  if (newPassword.value && confirmPassword.value) {
+    formRef.value?.validate('confirmPassword')
+  }
+}
 
 const submit = async () => {
-  loading.value = true
-  formRef.value?.validate().then(async () => {
-    try {
-      const res = await API.admin.updateLoginPassword({
-        OldPassword: oldPassword.value?.trim(),
-        NewPassword: newPassword.value?.trim(),
-        ConfirmPassword: confirmPassword.value?.trim(),
-      })
-      if (res.data.Code !== 200) {
-        showFailToast(res.data.Msg)
-        return
-      }
-      showToast('修改成功，请重新登录')
-      userStore.logout()
-      router.replace({ name: 'login' })
-    } catch (error: any) {
-      console.error('更新失败：', error)
-      showFailToast(error?.response?.data?.Msg)
-    } finally {
-      loading.value = false
+  if (loading.value) return
+
+  try {
+    loading.value = true
+    await formRef.value?.validate()
+
+    const res = await API.admin.updateLoginPassword({
+      OldPassword: oldPassword.value?.trim(),
+      NewPassword: newPassword.value?.trim(),
+      ConfirmPassword: confirmPassword.value?.trim(),
+    })
+    if (res.data.Code !== 200) {
+      showFailToast(res.data.Msg)
+      return
     }
-  })
+
+    showSuccessToast('修改成功，请重新登录')
+    userStore.logout()
+    router.replace({ name: 'login' })
+  } catch (error: any) {
+    console.error('更新失败：', error)
+    showFailToast(error?.response?.data?.Msg)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -67,18 +86,13 @@ const submit = async () => {
         label="原密码"
         placeholder="请输入"
         required
-        :type="showPassword.old.value ? 'text' : 'password'"
+        :type="showPassword.old ? 'text' : 'password'"
         :rules="[rulesRequired(), rulesPassword()]"
-        @input="(e: Event) => {
-          oldPassword = (e.target as HTMLInputElement).value
-          if (newPassword && oldPassword) {
-            formRef?.validate('oldPassword')
-          }
-        }"
+        @input="handleOldPasswordInput"
       >
         <template #right-icon>
           <van-icon
-            :name="showPassword.old.value ? 'eye-o' : 'closed-eye'"
+            :name="showPassword.old ? 'eye-o' : 'closed-eye'"
             class="cursor-pointer"
             @click.stop="togglePassword('old')"
           />
@@ -92,17 +106,12 @@ const submit = async () => {
         placeholder="请输入"
         required
         :rules="[rulesRequired(), rulesPassword()]"
-        :type="showPassword.new.value ? 'text' : 'password'"
-        @input="(e: Event) => {
-          newPassword = (e.target as HTMLInputElement).value
-          if (oldPassword && newPassword) {
-            formRef?.validate('newPassword')
-          }
-        }"
+        :type="showPassword.new ? 'text' : 'password'"
+        @input="handleNewPasswordInput"
       >
         <template #right-icon>
           <van-icon
-            :name="showPassword.new.value ? 'eye-o' : 'closed-eye'"
+            :name="showPassword.new ? 'eye-o' : 'closed-eye'"
             class="cursor-pointer"
             @click.stop="togglePassword('new')"
           />
@@ -116,17 +125,12 @@ const submit = async () => {
         placeholder="请输入"
         required
         :rules="[rulesRequired(), rulesPassword(), { validator: validateConfirmPassword, message: '密码不一致' }]"
-        :type="showPassword.confirm.value ? 'text' : 'password'"
-        @input="(e: Event) => {
-          confirmPassword = (e.target as HTMLInputElement).value
-          if (newPassword && confirmPassword) {
-            formRef?.validate('confirmPassword')
-          }
-        }"
+        :type="showPassword.confirm ? 'text' : 'password'"
+        @input="handleConfirmPasswordInput"
       >
         <template #right-icon>
           <van-icon
-            :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
+            :name="showPassword.confirm ? 'eye-o' : 'closed-eye'"
             class="cursor-pointer"
             @click.stop="togglePassword('confirm')"
           />

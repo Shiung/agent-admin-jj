@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import NavBar from '@/components/NavBar/index.vue'
 import { useUserStore } from '@/stores/user'
@@ -7,7 +7,7 @@ import { useUserStore } from '@/stores/user'
 const router = useRouter()
 const userStore = useUserStore()
 const personalInfo = computed(() => userStore.accountInfo)
-const isReady = ref(false)
+const isReady = computed(() => !personalInfo.value)
 
 const goPasswordEdit = () => {
   router.push({ name: 'password' })
