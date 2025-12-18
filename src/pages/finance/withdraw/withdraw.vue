@@ -271,9 +271,10 @@ onMounted(() => {
         v-model="formData.Amount" 
         name="Amount" 
         label="提现金额" 
-        placeholder="请输入" 
+        type="number"
         maxlength="8"
         clearable 
+        disableSpace
         required 
         :disabled="selectPayTypeItem?.AllowInput === 0"
         :rules="[
@@ -308,9 +309,9 @@ onMounted(() => {
         name="PayPassword" 
         label="私人密码" 
         :type="showPassword ? 'text' : 'password'"
-        placeholder="请输入" 
         maxlength="24"
         clearable 
+        disableSpace
         required 
         :disabled="!isSetPrivatePassword"
         :rules="[rulesRequired()]" 

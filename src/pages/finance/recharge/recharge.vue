@@ -255,9 +255,10 @@ onUnmounted(() => {
           v-model="formData.Amount" 
           name="Amount" 
           label="充值金额" 
-          placeholder="请输入" 
+          type="number"
           maxlength="8"
           clearable 
+          disableSpace
           required 
           :disabled="selectRechargeChannelItem?.AllowInput === 2"
           :rules="[rulesRequired(), rulesPositiveIntegerNumber({ message: '请输入正确的金额' })]" 
