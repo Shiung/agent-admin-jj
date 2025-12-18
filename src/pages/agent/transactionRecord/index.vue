@@ -203,7 +203,7 @@ const onRefresh = () => {
 
 // 排序类型映射到API参数
 const getSortParam = (sortType: string): string => {
-  return pageConfig.value.sortMap[sortType] || pageConfig.value.sortMap['账变时间降序']
+  return (pageConfig.value.sortMap[sortType] || pageConfig.value.sortMap['账变时间降序']) as string
 }
 
 // 加载更多
@@ -388,7 +388,6 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
           :label="pageConfig.summaryLabel"
           :value="totalAmount"
           :icon="pageConfig.summaryIcon"
-          :color-type="pageConfig.summaryColorType"
         />
       </div>
 
