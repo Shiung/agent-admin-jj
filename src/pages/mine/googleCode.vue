@@ -3,21 +3,21 @@ import { ref, watch, watchEffect, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useClipboard } from '@vueuse/core'
+import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
+import type { GoogleValidResponseData } from '@/apis/codegen/data-contracts'
+import type { FormInstance } from 'vant'
+import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
-import API from '@/apis'
-import type { GoogleValidResponseData } from '@/apis/codegen/data-contracts'
-import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
-import type { FormInstance } from 'vant'
 
 const router = useRouter()
 const userStore = useUserStore()
-const isFetching = ref(false)
-const isLoading = ref(false)
+const isFetching = ref<boolean>(false)
+const isLoading = ref<boolean>(false)
 
 const username = computed(() => userStore.accountInfo?.Username || '')
-const googleCode = ref('')
-const verificationCode = ref('')
+const googleCode = ref<string>('')
+const verificationCode = ref<string>('')
 const formRef = ref<FormInstance | null>(null)
 const { copy, copied } = useClipboard()
 
@@ -31,9 +31,7 @@ watchEffect(() => {
 })
 
 const fetchGoogleCode = async () => {
-  if (!username.value || googleCode.value || isFetching.value) {
-    return
-  }
+  if (!username.value || googleCode.value || isFetching.value) return
 
   const storageKey = getStorageKey()
   const cachedCode = sessionStorage.getItem(storageKey)
@@ -46,10 +44,10 @@ const fetchGoogleCode = async () => {
   try {
     const res = await API.system.googleCode({ Username: username.value })
     if (res.data.Code !== 200) {
-      console.error(res.data)
       showFailToast(res.data.Msg)
       return
     }
+
     const data = res.data.Data as GoogleValidResponseData
     googleCode.value = data.Secret
     sessionStorage.setItem(storageKey, data.Secret)
@@ -73,35 +71,39 @@ onBeforeUnmount(() => {
   sessionStorage.removeItem(storageKey)
 })
 
-onBeforeUnmount(() => {
-  // 離開頁面清除暫存
-  const storageKey = getStorageKey()
-  sessionStorage.removeItem(storageKey)
-})
+const handleVerificationCodeInput = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  const value = target.value.replace(/\D/g, '')
+  verificationCode.value = value.slice(0, 6)
+}
 
 const submit = async () => {
-  formRef.value?.validate().then(async () => {
+  if (isLoading.value) return
+
+  try {
     isLoading.value = true
-    try {
-      const res = await API.admin.updateGoogleCode({
-        Username: username.value,
-        Code: verificationCode.value.trim(),
-      })
-      if (res.data.Code !== 200) {
-        showFailToast(res.data.Msg)
-        return
-      }
-      showToast('编辑成功')
-      const storageKey = getStorageKey()
-      sessionStorage.removeItem(storageKey)
-      router.replace({ name: 'mineProfile' })
-    } catch (error: any) {
-      console.error('更新失败：', error)
-      showFailToast(error?.response?.data?.Msg)
-    } finally {
-      isLoading.value = false
+    await formRef.value?.validate()
+
+    const res = await API.admin.updateGoogleCode({
+      Username: username.value,
+      Code: verificationCode.value.trim(),
+    })
+
+    if (res.data.Code !== 200) {
+      showFailToast(res.data.Msg)
+      return
     }
-  })
+
+    showSuccessToast('编辑成功')
+    const storageKey = getStorageKey()
+    sessionStorage.removeItem(storageKey)
+    router.replace({ name: 'mineProfile' })
+  } catch (error: any) {
+    console.error('更新失败：', error)
+    showFailToast(error?.response?.data?.Msg)
+  } finally {
+    isLoading.value = false
+  }
 }
 </script>
 <template>
@@ -135,10 +137,7 @@ const submit = async () => {
           :rules="[rulesRequired(), rulesVerifyCode()]"
           maxlength="6"
           type="number"
-          @input="(e: Event) => {
-            const value = (e.target as HTMLInputElement).value.replace(/\D/g, '')
-            verificationCode = value.slice(0, 6)
-          }"
+          @input="handleVerificationCodeInput"
         />
         <div class="px-4 my-4">
           <van-button

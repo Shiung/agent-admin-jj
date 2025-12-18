@@ -1,61 +1,79 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { rulesRequired, rulesPassword } from '@/utils/formRules'
+import type { FormInstance } from 'vant'
+import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
-import { rulesRequired, rulesPassword } from '@/utils/formRules'
-import API from '@/apis'
 import VerificationMethods from './components/VerificationMethods.vue'
-import type { FormInstance } from 'vant'
 
 const router = useRouter()
 
-const loading = ref(false)
+const loading = ref<boolean>(false)
 const formRef = ref<FormInstance | null>(null)
-const privatePassword = ref('')
-const confirmPrivatePassword = ref('')
-const validType = ref(0)
-const verificationCode = ref('')
-const showPassword = {
-  current: ref(false),
-  confirm: ref(false)
-}
+const privatePassword = ref<string>('')
+const confirmPrivatePassword = ref<string>('')
+const validType = ref<number>(0)
+const verificationCode = ref<string>('')
+const showPassword = ref<{ current: boolean, confirm: boolean }>({ current: false, confirm: false })
 
-const canGetVerificationCode = computed(() => {
-  return !!privatePassword.value && !!confirmPrivatePassword.value
+const enableEdit = computed(() => {
+  return !!privatePassword.value.trim() && !!confirmPrivatePassword.value.trim()
 })
 
 const togglePassword = (type: 'current' | 'confirm') => {
-  showPassword[type].value = !showPassword[type].value
+  showPassword.value[type] = !showPassword.value[type]
 }
 
 const validateConfirmPassword = (val: string) => {
   return val === privatePassword.value
 }
 
+const handlePrivatePasswordInput = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  privatePassword.value = target.value
+
+  if (confirmPrivatePassword.value) {
+    formRef.value?.validate('confirmPassword')
+  }
+}
+
+const handleConfirmPasswordInput = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  confirmPrivatePassword.value = target.value
+
+  if (confirmPrivatePassword.value && privatePassword.value) {
+    formRef.value?.validate('confirmPassword')
+  }
+}
+
 const submit = async () => {
-  loading.value = true
-  formRef.value?.validate().then(async () => {
-    try {
-      const res = await API.admin.updatePrivatePasswordV2({
-        NewPassword: privatePassword.value?.trim(),
-        ConfirmPassword: confirmPrivatePassword.value?.trim(),
-        VerifyCode: verificationCode.value?.trim(),
-        ValidType: validType.value,
-      })
-      if (res.data.Code !== 200) {
-        showFailToast(res.data.Msg)
-        return
-      }
-      showToast('修改成功')
-      router.replace({ name: 'security' })
-    } catch (error: any) {
-      console.error('更新失败：', error)
-      showFailToast(error?.response?.data?.Msg)
-    } finally {
-      loading.value = false
+  if (loading.value) return
+  try {
+    loading.value = true
+    await formRef.value?.validate()
+
+    const res = await API.admin.updatePrivatePasswordV2({
+      NewPassword: privatePassword.value.trim(),
+      ConfirmPassword: confirmPrivatePassword.value.trim(),
+      VerifyCode: verificationCode.value.trim(),
+      ValidType: validType.value,
+    })
+
+    if (res.data.Code !== 200) {
+      showFailToast(res.data.Msg)
+      return
     }
-  })
+
+    showSuccessToast('修改成功')
+    router.replace({ name: 'security' })
+  } catch (error: any) {
+    console.error('更新失败：', error)
+    showFailToast(error?.response?.data?.Msg)
+  } finally {
+    loading.value = false
+  }
 }
 
 </script>
@@ -72,17 +90,12 @@ const submit = async () => {
         placeholder="请输入"
         required
         :rules="[rulesRequired(), rulesPassword()]"
-        :type="showPassword.current.value ? 'text' : 'password'"
-        @input="(e: Event) => {
-          privatePassword = (e.target as HTMLInputElement).value
-          if (confirmPrivatePassword) {
-            formRef?.validate('confirmPassword')
-          }
-        }"
+        :type="showPassword.current ? 'text' : 'password'"
+        @input="handlePrivatePasswordInput"
       >
         <template #right-icon>
           <van-icon
-            :name="showPassword.current.value ? 'eye-o' : 'closed-eye'"
+            :name="showPassword.current ? 'eye-o' : 'closed-eye'"
             class="cursor-pointer"
             @click.stop="togglePassword('current')"
           />
@@ -96,17 +109,12 @@ const submit = async () => {
         placeholder="请输入"
         required
         :rules="[rulesRequired(), rulesPassword(), { validator: validateConfirmPassword, message: '密码不一致' }]"
-        :type="showPassword.confirm.value ? 'text' : 'password'"
-        @input="(e: Event) => {
-          confirmPrivatePassword = (e.target as HTMLInputElement).value
-          if (confirmPrivatePassword && privatePassword) {
-            formRef?.validate('confirmPassword')
-          }
-        }"
+        :type="showPassword.confirm ? 'text' : 'password'"
+        @input="handleConfirmPasswordInput"
       >
         <template #right-icon>
           <van-icon
-            :name="showPassword.confirm.value ? 'eye-o' : 'closed-eye'"
+            :name="showPassword.confirm ? 'eye-o' : 'closed-eye'"
             class="cursor-pointer"
             @click.stop="togglePassword('confirm')"
           />
@@ -115,7 +123,7 @@ const submit = async () => {
       <VerificationMethods
         :ValidType="validType"
         :VerifyCode="verificationCode"
-        :verifiable="canGetVerificationCode"
+        :verifiable="enableEdit"
         @update:ValidType="validType = $event"
         @update:VerifyCode="verificationCode = $event"
       />
@@ -125,7 +133,7 @@ const submit = async () => {
           round
           class="gray-disabled"
           type="primary"
-          :disabled="!privatePassword || !confirmPrivatePassword"
+          :disabled="!enableEdit"
           :loading="loading"
           native-type="submit"
         >

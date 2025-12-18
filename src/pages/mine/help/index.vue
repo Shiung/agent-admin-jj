@@ -10,14 +10,17 @@ const route = useRoute()
 const helpCenterList = ref<HelpCenterListData[]>([])
 const selectedHelpDetail = ref<HelpCenterListData | null>(null)
 
-  const fetchHelpCenterList = async () => {
+const fetchHelpCenterList = async () => {
   const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
     const res = await API.admin.getHelpList({ Page: 1, PageSize: 20 })
     if (res.data.Code !== 200) {
+      showFailToast(res.data.Msg)
       return
     }
     helpCenterList.value = res.data.Data?.Items || []
+  } catch (error: any) {
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     loadingToast.close()
   }

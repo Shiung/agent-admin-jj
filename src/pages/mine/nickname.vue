@@ -14,15 +14,17 @@ const nickname = ref(userStore.accountInfo?.Name || '')
 const loading = ref(false)
 
 const submit = async () => {
-  console.log('submit', nickname.value)
+  if (loading.value) return
+
   loading.value = true
   try {
-    const res = await API.admin.updateName({ Name: nickname.value?.trim() })
+    const res = await API.admin.updateName({ Name: nickname.value.trim() })
     if (res.data.Code !== 200) {
       showFailToast(res.data.Msg)
       return
     }
-    showToast('编辑成功')
+
+    showSuccessToast('编辑成功')
     router.replace({ name: 'mineProfile' })
   } catch (error: any) {
     console.error('更新失败：', error)
@@ -54,7 +56,7 @@ const submit = async () => {
           round
           type="primary"
           class="gray-disabled"
-          :disabled="!nickname"
+          :disabled="!nickname.trim()"
           :loading="loading"
           native-type="submit"
         >
