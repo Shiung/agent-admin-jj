@@ -17,8 +17,8 @@ const emit = defineEmits<{
 const IS_SERVE = import.meta.env.DEV
 
 const formData = ref({
-  Username: IS_SERVE ? 'rtest1105' : '',
-  Password: IS_SERVE ? 'test1234' : '',
+  Username: '',
+  Password: '',
   ValidCode: '',
   KeyCode: '',
   FromType: 7,

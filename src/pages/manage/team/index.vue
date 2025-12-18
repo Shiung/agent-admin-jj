@@ -69,11 +69,11 @@ const teamList = ref<NetcashteamListV2Item[]>([])
 const selectedSort = ref('-JoinTeamTime')
 const sortOptions = ref([
   { value: '-JoinTeamTime', label: '新增时间降序' },
-  { value: '+JoinTeamTime', label: '新增时间升序' },
+  { value: 'JoinTeamTime', label: '新增时间升序' },
   { value: '-Members', label: '会员数量降序' },
-  { value: '+Members', label: '会员数量升序' },
+  { value: 'Members', label: '会员数量升序' },
   { value: '-ActiveMembers', label: '活跃会员降序' },
-  { value: '+ActiveMembers', label: '活跃会员升序' },
+  { value: 'ActiveMembers', label: '活跃会员升序' },
 ])
 
 const fetchNetcashteamListV2 = async () => {

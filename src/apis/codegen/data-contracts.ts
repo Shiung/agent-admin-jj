@@ -1806,7 +1806,7 @@ export interface GetNetcashmultiInfoV2Data {
 export interface NetcashmultiListQuery {
   Page: number // 页码
   PageSize: number // 每页条数
-  Sort: string // 排序 前面帶正負號代表排序方式。ex: -CreateTime, +Members,支援參數: AccountLevel, CreateTime, Members
+  Sort: string // 排序 前面帶負號代表降序排序方式。ex: -CreateTime, Members,支援參數: AccountLevel, CreateTime, Members
   Username: string // 代理账号
   AccountLevel: number // 代理層級
   AdminId: number // 代理ID

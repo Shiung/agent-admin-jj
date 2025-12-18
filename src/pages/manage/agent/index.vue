@@ -47,11 +47,11 @@ const levelOptions = ref([
 const selectedSort = ref('-AccountLevel')
 const sortOptions = ref([
   { value: '-AccountLevel', label: '代理层级降序' },
-  { value: '+AccountLevel', label: '代理层级升序' },
+  { value: 'AccountLevel', label: '代理层级升序' },
   { value: '-CreateTime', label: '新增时间降序' },
-  { value: '+CreateTime', label: '新增时间升序' },
+  { value: 'CreateTime', label: '新增时间升序' },
   { value: '-Members', label: '会员数量降序' },
-  { value: '+Members', label: '会员数量升序' },
+  { value: 'Members', label: '会员数量升序' },
 ])
 
 const agentInfo = ref<GetNetcashmultiInfoV2Data>({
@@ -131,7 +131,7 @@ const finished = ref(false)
 const netcashmultiListQuery = ref<NetcashmultiListQuery>({
   Page: 0, // 页码，頁面load會觸發@load事件
   PageSize: 20, // 每页条数
-  Sort: computed(() => selectedSort.value) as unknown as string, // 排序 前面帶正負號代表排序方式。ex: -CreateTime, +Members,支援參數: AccountLevel, CreateTime, Members
+  Sort: computed(() => selectedSort.value) as unknown as string, // 排序 前面帶負號代表降序排序方式。ex: -CreateTime, Members,支援參數: AccountLevel, CreateTime, Members
   Username: selectedAgent.value?.text || '', // 代理账号
   AccountLevel: computed(() => selectedLevel.value) as unknown as number, // 代理層級
   AdminId: 0, // 代理ID
@@ -287,6 +287,7 @@ onMounted(() => {
     <van-popup
       v-model:show="showAgentForm"
       position="right"
+      teleport="#app"
       :style="{ width: '100%', height: '100%' }"
     >
       <AgentForm

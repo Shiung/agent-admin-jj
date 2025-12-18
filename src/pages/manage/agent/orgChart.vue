@@ -48,6 +48,10 @@ const fetchTreeData = async () => {
     loading.value = false
   }
 }
+const minLevel = computed(() => {
+  if (!treeData.value) return 1
+  return treeData.value.AccountLevel || 1
+})
 
 // 計算最大層級
 const maxLevel = computed(() => {
@@ -58,13 +62,13 @@ const maxLevel = computed(() => {
     return Math.max(...node.Children.map(child => getMaxLevel(child, level + 1)))
   }
   
-  return getMaxLevel(treeData.value, 1)
+  return getMaxLevel(treeData.value, minLevel.value)
 })
 
 // 層級標籤
 const levelTabs = computed(() => {
   const tabs = []
-  for (let i = 1; i <= Math.min(maxLevel.value, 5); i++) {
+  for (let i = minLevel.value; i <= Math.min(maxLevel.value, 5); i++) {
     tabs.push({ id: i, title: levelMap[i] })
   }
   return tabs
