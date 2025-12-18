@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import API from '@/apis'
@@ -60,11 +61,15 @@ const MENUS = [
 const router = useRouter()
 const userStore = useUserStore()
 
-const agentAccount = computed(() => {
-  return userStore.userInfo?.Admin?.Username || ''
-})
+const {
+  userInfo,
+  accountInfo,
+  commissionWalletBalance,
+  creditWalletBalance,
+  depositLimitInfo,
+} = storeToRefs(userStore)
 
-const accountInfo = computed(() => userStore.accountInfo)
+const agentAccount = computed(() => userInfo.value?.Admin?.Username || '')
 
 const goProfile = () => {
   router.push({ name: 'mineProfile' })
@@ -78,28 +83,13 @@ const goRecharge = () => {
   router.push({ name: 'rechargePage' })
 }
 
-const commissionWalletBalance = ref<number>(0)
-const fetchOverview = async () => {
-  const res = await API.finance.getCommissionOverview()
-  if (res.data.Code !== 200) return
-  commissionWalletBalance.value = res.data.Data.Available
-}
-
-const creditWalletBalance = ref<number>(0)
-const fetchAccountBalance = async () => {
-  const res = await API.finance.getAccountBalance()
-  if (res.data.Code !== 200) return
-  creditWalletBalance.value = res.data.Data.Items.Credit
-}
-
 const handleMenuClick = (key: string) => {
   router.push({ name: key })
 }
 
 
 onMounted(async () => {
-  fetchOverview()
-  fetchAccountBalance()
+  userStore.fetchUserBalancesAndLimits()
   await userStore.fetchAccountInfo()
 })
 </script>

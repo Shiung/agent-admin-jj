@@ -42,8 +42,8 @@ const statusLs = [
 const selectStatus = ref<number>(statusLs[1]?.value ?? 2)
 
 const sortOptions = [
-  { value: '-finishTime', label: '账变时间降序' },
-  { value: 'finishTime', label: '账变时间升序' },
+  { value: '-finish_time', label: '账变时间降序' },
+  { value: 'finish_time', label: '账变时间升序' },
   { value: '-amount', label: '充值金额降序' },
   { value: 'amount', label: '充值金额升序' },
 ]

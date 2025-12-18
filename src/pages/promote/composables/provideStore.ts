@@ -55,7 +55,9 @@ export const usePromote = () => {
   })
 
   const packageIdGroupByLs = computed(() => {
-    const ls = [...states.dataLs.agent ?? [], ...states.dataLs.exclusive ?? []].reduce<{ [key in number]: Array<PromotionlinkListV2ResponseData> }>((sum, cur) => {
+    const agentLs = JSON.parse(JSON.stringify(states.dataLs.agent ?? []))
+    const exclusiveLs =  JSON.parse(JSON.stringify(states.dataLs.exclusive ?? []))
+    const ls = [...agentLs, ...exclusiveLs].reduce<{ [key in number]: Array<PromotionlinkListV2ResponseData> }>((sum, cur) => {
       const packageId = cur.PackageId
       const hasDataLs = sum?.[packageId] ?? []
 

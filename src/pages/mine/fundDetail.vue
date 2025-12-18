@@ -83,6 +83,7 @@ const fetchData = async (page: number = 0) => {
       TransferType: selectTransferType.value,
       WalletType: selectWallet.value,
       Page: page,
+      PageSize: 20
     })
 
     moreItems.value = res.data.Data.MoreItems
@@ -131,7 +132,7 @@ watch([selectTime, selectWallet, selectTransferType, selectedSort], () => {
     </div>
 
     <div class="flex items-center px-4 my-2 overflow-x-auto space-x-2">
-      <TimeFilterDropdown v-model="selectTime" title="结算时间" />
+      <TimeFilterDropdown v-model="selectTime" title="账变时间" />
       <Filled v-model:model-value="selectWallet" :options="walletTypeList" />
       <Filled v-model:model-value="selectTransferType" :options="transferTypeList" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />

@@ -235,6 +235,17 @@ const copyHadandler = (c: string) => {
   showToast({ message: '复制成功' })
 }
 
+
+const handleGoToDeposit = (member: any) => {
+  router.push({
+    name: 'agentDeposit',
+    query: {
+      memberAccount: member.LoginAccount,
+      packageName: member.PackageName
+    }
+  })
+}
+
 watch([searchSelected, selectTime, selectedSort, regTime, activeMemberType, bindCard, bindPhone, packageId, vipLevels], () => {
   infinityRef.value?.fetchData()
 })
@@ -320,7 +331,7 @@ onMounted(() => {
                     </div>
                   </div>
                 </div>
-                <van-button round plain type="primary" size="small" class="absolute! top-0 right-0">
+                <van-button round plain type="primary" size="small" class="absolute! top-0 right-0" @click.stop="handleGoToDeposit(i)">
                   <div class="space-x-1">
                     <van-icon name="add" size="14" /><span>代存</span>
                   </div>

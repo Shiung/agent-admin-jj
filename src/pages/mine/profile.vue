@@ -13,10 +13,8 @@ const router = useRouter()
 const userStore = useUserStore()
 const globalStore = useGlobalStore()
 const personalCenterInfo = computed(() => userStore.accountInfo)
-const isLoading = ref(false)
-const isReady = computed(() => isLoading.value || !personalCenterInfo.value)
-const show = ref(false)
-const commissionRate = ref(0)
+const show = ref<boolean>(false)
+const commissionRate = ref<number>(0)
 
 const formatDate = (timestamp: number | string | null | undefined, format = 'YYYY-MM-DD'): string => {
   if (!timestamp) return '-'
@@ -100,17 +98,28 @@ const commissionRateList = computed(() => {
 })
 
 const fetchCompareCommission = async () => {
-  isLoading.value = true
   const res = await API.admin.getCompareCommission()
-  if (res.data.Code !== 200) return
+  if (res.data.Code !== 200) {
+    showFailToast(res.data.Msg)
+    return
+  }
   commissionRate.value = res.data.Data.CurrentMonth.CommissionRate
-  isLoading.value = false
 }
 
-fetchCompareCommission()
+const initPage = async () => {
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+  try {
+    await Promise.all([
+      userStore.fetchAccountInfo(),
+      fetchCompareCommission(),
+    ])
+  } finally {
+    loadingToast.close()
+  }
+}
 
-onMounted(async () => {
-  await userStore.fetchAccountInfo()
+onMounted(() => {
+  initPage()
 })
 </script>
 
@@ -119,22 +128,12 @@ onMounted(async () => {
     <!-- NavBar -->
     <NavBar title="个人资料" />
     <van-cell-group>
-      <van-cell title="代理账号">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.Username }}
-          </van-skeleton>
-        </template>
-      </van-cell>
+      <van-cell title="代理账号" :label="personalCenterInfo?.Username" />
       <van-cell
         title="代理昵称"
+        :label="personalCenterInfo?.Name"
         @click="router.push({ name: 'mineNickname' })"
       >
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.Name }}
-          </van-skeleton>
-        </template>
         <template #right-icon>
           <van-button
             round
@@ -148,41 +147,13 @@ onMounted(async () => {
           </van-button>
         </template>
       </van-cell>
-      <van-cell title="真实姓名">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.RealName }}
-          </van-skeleton>
-        </template>
+      <van-cell title="真实姓名" :label="personalCenterInfo?.RealName">
         <van-button v-if="!personalCenterInfo?.RealName" round size="small" type="primary" class="px-11" @click="router.push({ name: 'mineRealName' })">设置</van-button>
       </van-cell>
-      <van-cell title="注册日期">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ formatDate(personalCenterInfo?.CreateTime) }}
-          </van-skeleton>
-        </template>
-      </van-cell>
-      <van-cell title="登录次数">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.Count }}
-          </van-skeleton>
-        </template>
-      </van-cell>
-      <van-cell title="最近登录">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.Ip }} / {{ personalCenterInfo?.Address }}
-          </van-skeleton>
-        </template>
-      </van-cell>
-      <van-cell title="佣金比例">
-        <template #label>
-          <van-skeleton :loading="isLoading" :row="1">
-            {{ commissionRateParseFunction(commissionRate) }}%
-          </van-skeleton>
-        </template>
+      <van-cell title="注册日期" :label="formatDate(personalCenterInfo?.CreateTime)" />
+      <van-cell title="登录次数" :label="personalCenterInfo?.Count"/>
+      <van-cell title="最近登录" :label="personalCenterInfo?.Ip + ' / ' + personalCenterInfo?.Address" />
+      <van-cell title="佣金比例" :label="commissionRateParseFunction(commissionRate) + '%'">
         <template #right-icon>
           <van-button v-if="userStore.isSingleAgent" round size="small" type="primary" class="px-11" @click="show = true">查看</van-button>
         </template>
@@ -215,13 +186,7 @@ onMounted(async () => {
           </div>
         </van-action-sheet>
       </van-cell>
-      <van-cell title="佣金周期">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.SettlementType === 1 ? '日结' : personalCenterInfo?.SettlementType === 2 ? '周结' : '月结' }}
-          </van-skeleton>
-        </template>
-      </van-cell>
+      <van-cell title="佣金周期" :label="personalCenterInfo?.SettlementType === 1 ? '日结' : personalCenterInfo?.SettlementType === 2 ? '周结' : '月结'" />
       <!-- 上级代理显示规则：
         1. 单层代理：隐藏
         2. 单层团队代理-主线：隐藏
@@ -229,52 +194,29 @@ onMounted(async () => {
         4. 多层代理-一级：隐藏
         5. 多层代理-非一级：显示上级代理账号
       -->
-      <van-cell v-if="isShowParentAgent" title="上级代理">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ parentAgentUsername }}
-          </van-skeleton>
-        </template>
-      </van-cell>
-      <van-cell v-if="isShowPhoneBind" title="手机号" :class="{ 'danger': !personalCenterInfo?.Phone }">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.Phone || '尚未设置' }}
-          </van-skeleton>
-        </template>
+      <van-cell v-if="isShowParentAgent" title="上级代理" :label="parentAgentUsername" />
+      <van-cell v-if="isShowPhoneBind" title="手机号" :class="{ 'danger': !personalCenterInfo?.Phone }" :label="personalCenterInfo?.Phone || '尚未设置'">
         <template #right-icon>
           <van-button v-if="!personalCenterInfo?.Phone" round size="small" type="primary" class="px-11" @click="router.push({ name: 'minePhone' })">设置</van-button>
         </template>
       </van-cell>
-      <van-cell v-if="isShowEmailBind" title="邮箱地址" :class="{ 'danger': !personalCenterInfo?.Email }">
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.Email || '尚未设置' }}
-          </van-skeleton>
-        </template>
+      <van-cell v-if="isShowEmailBind" title="邮箱地址" :class="{ 'danger': !personalCenterInfo?.Email }" :label="personalCenterInfo?.Email || '尚未设置'">
         <van-button v-if="!personalCenterInfo?.Email" round size="small" type="primary" @click="router.push({ name: 'mineEmail' })">设置</van-button>
       </van-cell>
       <van-cell
         v-if="isShowGoogleBind"
         title="谷歌验证"
         :class="personalCenterInfo?.GoogleSecret ? 'success' : 'danger'"
+        :label="personalCenterInfo?.GoogleSecret ? '已设置' : '尚未设置'"
       >
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.GoogleSecret ? '已设置' : '尚未设置' }}
-          </van-skeleton>
-        </template>
         <van-button v-if="!personalCenterInfo?.GoogleSecret" round size="small" type="primary" @click="router.push({ name: 'mineGoogleCode' })">设置</van-button>
       </van-cell>
       <van-cell
         title="QQ号"
         :class="personalCenterInfo?.QQ ? 'success' : 'danger'"
+        :label="personalCenterInfo?.QQ ? '已设置' : '尚未设置'"
+        @click="router.push({ name: 'mineQQ' })"
       >
-        <template #label>
-          <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.QQ ? '已设置' : '尚未设置' }}
-          </van-skeleton>
-        </template>
         <template #right-icon>
           <van-button
             round
@@ -314,5 +256,8 @@ onMounted(async () => {
 }
 :deep(.van-button) {
   padding: 14px 11px;
+}
+:deep(.van-cell) {
+  align-items: center;
 }
 </style>

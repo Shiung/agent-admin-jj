@@ -214,17 +214,16 @@ const agentList = computed<AgentData[]>(() => {
 
   // 团队视图：使用真实的 teamAgentList 数据
   if (props.viewType === 1 && props.teamAgentList) {
-    const mappedData = props.teamAgentList.map((item: any) => {
+    return props.teamAgentList.map((item: any) => {
       const currentMonth = item.CurrentMonth || {}
       const lastMonth = item.LastMonth || {}
 
-      const isMainAgent = currentMonth.IsMain
-
+      const isMainAgent = currentMonth.IsMain === 1
       return {
         id: currentMonth.Username || currentMonth.Id?.toString() || '',
         account: currentMonth.Username || '',
         label: isMainAgent ? '主线' : '', // 主线代理会提示"主线"
-        isMainAgent, // 用于排序
+        isMainAgent,
         // 当期佣金（单层代理使用CommissionTotal）
         commission: currentMonth.CommissionTotal || 0,
         // 活跃会员
@@ -239,13 +238,6 @@ const agentList = computed<AgentData[]>(() => {
           lastMonth
         }
       }
-    })
-
-    // 主线代理强制排在第一位
-    return mappedData.sort((a, b) => {
-      if (a.isMainAgent && !b.isMainAgent) return -1
-      if (!a.isMainAgent && b.isMainAgent) return 1
-      return 0
     })
   }
 
@@ -376,7 +368,7 @@ const handleAgentClick = (agent: AgentData) => {
 
     currentAgentDetail.value = {
       account: agent.account,
-      label: agent.isMainAgent ? '主线' : (agent.label || ''),
+      label: agent.label,
       viewType: 1, // 团队视图
       basicInfo: {
         payableCommission: {

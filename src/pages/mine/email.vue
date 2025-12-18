@@ -2,74 +2,74 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
+import { rulesRequired, rulesMail, rulesVerifyCode } from '@/utils/formRules'
+import { useVerificationCountdown } from './useVerificationCountdown.ts'
+import type { FormInstance } from 'vant'
+import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
-import API from '@/apis'
-import { rulesRequired, rulesMail, rulesVerifyCode } from '@/utils/formRules'
-import type { FormInstance } from 'vant'
 
 const router = useRouter()
 const userStore = useUserStore()
-
-const email = ref(userStore.accountInfo?.Email || '')
-const verificationCode = ref('')
-const loading = ref(false)
-const codeLoading = ref(false)
-const countdown = ref(0)
 const formRef = ref<FormInstance | null>(null)
+const email = ref<string>(userStore.accountInfo?.Email || '')
+const verificationCode = ref<string>('')
+const loading = ref<boolean>(false)
+
+const {
+  countdown,
+  loading: codeLoading,
+  start: startCountdown
+} = useVerificationCountdown(60)
+
 
 // 获取验证码
 const getVerificationCode = async () => {
-  if (countdown.value > 0) {
+  const emailValue = email.value.trim()
+  if (!emailValue) return
+
+  try {
+    await formRef.value?.validate('email')
+  } catch {
     return
   }
 
-  codeLoading.value = true
-  try {
-    const res = await API.system.emailVerify({ Email: email.value.trim() })
+  await startCountdown(async () => {
+    const res = await API.system.emailVerify({ Email: emailValue })
     if (res.data.Code !== 200) {
-      console.error(res.data)
+      showFailToast(res.data.Msg)
+      return false
+    }
+
+    return true
+  })
+}
+
+const submit = async () => {
+  if (loading.value) return
+
+  try {
+    loading.value = true
+    await formRef.value?.validate()
+
+    const res = await API.admin.updateEmail({
+      Email: email.value.trim(),
+      VerifyCode: verificationCode.value.trim()
+    })
+
+    if (res.data.Code !== 200) {
       showFailToast(res.data.Msg)
       return
     }
 
-    // 开始倒计时
-    countdown.value = 60
-    const timer = setInterval(() => {
-      countdown.value--
-      if (countdown.value <= 0) {
-        clearInterval(timer)
-      }
-    }, 1000)
+    showSuccessToast('修改成功')
+    router.replace({ name: 'mineProfile' })
   } catch (error: any) {
-    console.error('获取验证码失败：', error)
+    console.error('更新失败：', error)
     showFailToast(error?.response?.data?.Msg)
   } finally {
-    codeLoading.value = false
+    loading.value = false
   }
-}
-
-const submit = async () => {
-  loading.value = true
-  formRef.value?.validate().then(async () => {
-    try {
-      const res = await API.admin.updateEmail({
-        Email: email.value.trim(),
-        VerifyCode: verificationCode.value.trim()
-      })
-      if (res.data.Code !== 200) {
-        showFailToast(res.data.Msg)
-        return
-      }
-      showToast('修改成功')
-      router.replace({ name: 'mineProfile' })
-      } catch (error: any) {
-        console.error('更新失败：', error)
-        showFailToast(error?.response?.data?.Msg)
-      } finally {
-        loading.value = false
-      }
-  })
 }
 </script>
 

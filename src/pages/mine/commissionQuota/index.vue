@@ -2,41 +2,55 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { rulesRequired, rulesPassword } from '@/utils/formRules'
-import type { FormInstance } from 'vant'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
+import type { AccountBalanceData } from '@/apis/codegen/Finance/type'
+import type { FormInstance } from 'vant'
 import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
 
-const accountBalance = ref<any>({})
-const loading = ref(false)
 const router = useRouter()
 const route = useRoute()
-const showPassword = ref(false)
-const privatePassword = ref('')
-const togglePassword = () => {
-  showPassword.value = !showPassword.value
-}
-const goRecord = () => {
-  router.push({ name: 'record' })
-}
+const loading = ref<boolean>(false)
+const accountBalance = ref<AccountBalanceData['Items']>({})
+const showPassword = ref<boolean>(false)
+const privatePassword = ref<string>('')
+const amount = ref<string>('')
+const formRef = ref<FormInstance | null>(null)
+const patternAmount = /^(?:0|[1-9]\d{0,8})(?:\.\d{0,2})?$/
+
+const goRecord = () => { router.push({ name: 'record' }) }
+const togglePassword = () => { showPassword.value = !showPassword.value }
+
+const navBarTitle = computed(() => {
+  const name = route.name ?? 'commissionQuota'
+  const map = {
+    commissionQuota: '佣金转额度',
+    record: '转换记录'
+  }
+  return map[name as keyof typeof map]
+})
+const navBarShowDetail = computed(() => route.name === 'commissionQuota')
 
 const fetchAccountBalance = async () => {
   const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
     const res = await API.finance.getAccountBalance()
-    if (res.data.Code !== 200) return
+    if (res.data.Code !== 200) {
+      showFailToast(res.data.Msg)
+      return
+    }
     accountBalance.value = res.data.Data.Items
+  } catch (error: any) {
+    console.error('获取账户余额失败：', error)
+    showFailToast(error?.response?.data?.Msg)
   } finally {
     loadingToast.close()
   }
 }
 
-const amount = ref('')
-const formRef = ref<FormInstance | null>(null)
-
 const validateAmount = (value: string) => {
   if (!value) return true
-  if (!/^(?:\d{1,9})(?:\.\d{0,2})?$/.test(value)) {
+  if (!patternAmount.test(value)) {
     return '请输入正确的金额'
   }
   const numValue = Number(value)
@@ -56,37 +70,35 @@ const resetFormFields = () => {
 }
 
 const submit = async () => {
-  formRef.value?.validate().then(async () => {
-    try {
-      const res = await API.admin.postCommissionToQuota({ Amount: Number(amount.value) * 100, PayPassword: privatePassword.value })
-      if (res.data.Code !== 200) {
-        showFailToast(res.data.Msg)
-        return
-      }
-      showToast('操作成功')
-      resetFormFields()
-    } catch (error:any) {
-      console.error('转账失败：', error)
-      showFailToast(error?.response?.data?.Msg)
-    } finally {
-      loading.value = false
+  if (loading.value) return
+
+  try {
+    loading.value = true
+    await formRef.value?.validate()
+
+    const res = await API.admin.postCommissionToQuota({
+      Amount: Number(amount.value) * 100,
+      PayPassword: privatePassword.value.trim()
+    })
+
+    if (res.data.Code !== 200) {
+      showFailToast(res.data.Msg)
+      return
     }
-  })
+
+    showSuccessToast('操作成功')
+    resetFormFields()
+  } catch (error: any) {
+    console.error('[submit error]:', error)
+    showFailToast(error?.response?.data?.Msg)
+  } finally {
+    loading.value = false
+  }
 }
 
 onMounted(() => {
   fetchAccountBalance()
 })
-
-const navBarTitle = computed(() => {
-  const name = router.currentRoute.value.name ?? 'commissionQuota'
-  const map = {
-    commissionQuota: '佣金转额度',
-    record: '转换记录'
-  }
-  return map[name as keyof typeof map]
-})
-const navBarShowDetail = computed(() => router.currentRoute.value.name === 'commissionQuota')
 
 </script>
 
@@ -125,7 +137,7 @@ const navBarShowDetail = computed(() => router.currentRoute.value.name === 'comm
           type="number"
           @input="(e: Event) => {
             amount = (e.target as HTMLInputElement).value
-            amount = /^(?:\d{1,9})(?:\.\d{0,2})?$/.test(amount) ? amount : amount.slice(0, -1)
+            amount = patternAmount.test(amount) ? amount : amount.slice(0, -1)
           }"
         />
 

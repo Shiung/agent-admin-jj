@@ -173,8 +173,8 @@ onMounted(() => {
         v-model="formData.LoginAccount" 
         name="LoginAccount" 
         label="会员账号" 
-        placeholder="请输入" 
         clearable 
+        disableSpace
         required 
         :disabled="isCheckingLoginAccount"
         :rules="[
@@ -194,8 +194,9 @@ onMounted(() => {
         v-model="formData.Amount" 
         name="Amount" 
         label="充值金额" 
-        placeholder="请输入" 
+        type="number"
         clearable 
+        disableSpace
         required 
         :rules="[rulesRequired(), rulesPositiveIntegerNumber({ message: '请输入正确的金额' })]" 
       />

@@ -52,6 +52,10 @@ import type {
   CommissionToQuotaResponse,
   CommissionToQuotaTotalQuery,
   CommissionToQuotaTotalResponse,
+  AgentCreditLimitTransactionInsertRequest,
+  AgentCreditLimitTransactionInsertResponse,
+  AgentCreditLimitTransactionListQuery,
+  AgentCreditLimitTransactionListResponse,
 } from './data-contracts'
 import type { HttpClient, RequestParams } from './http-client'
 import { ContentType } from './http-client'
@@ -859,4 +863,42 @@ export class Admin<SecurityDataType = unknown> {
       format: "json",
       ...params
     })
+
+  /**
+   * 代理代存
+   *
+   * @tags Admin
+   * @name AgentCreditLimitTransactionInsert
+   * @request POST:/admin/agentcreditlimittransaction/insert
+   * @secure
+   */
+  postAgentCreditLimitTransactionInsert = (data: AgentCreditLimitTransactionInsertRequest, params: RequestParams = {}) =>
+    this.http.request<AgentCreditLimitTransactionInsertResponse, any>({
+      path: '/admin/agentcreditlimittransaction/insert',
+      method: "POST",
+      secure: true,
+      body: data,
+      type: ContentType.Json,
+      format: "json",
+      ...params,
+    });
+
+  /**
+   * 代理代存记录列表
+   *
+   * @tags Admin
+   * @name AgentCreditLimitTransactionList
+   * @request GET:/admin/agentcreditlimittransaction/list
+   * @secure
+   */
+  getAgentCreditLimitTransactionList = (query: AgentCreditLimitTransactionListQuery, params: RequestParams = {}) =>
+    this.http.request<AgentCreditLimitTransactionListResponse, any>({
+      path: '/admin/agentcreditlimittransaction/list',
+      method: "GET",
+      secure: true,
+      query,
+      format: "json",
+      ...params,
+    });
+
 }

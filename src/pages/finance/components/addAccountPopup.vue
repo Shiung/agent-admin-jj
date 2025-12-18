@@ -337,7 +337,6 @@ onUnmounted(() => {
           v-model="formData.DigitalAlias" 
           name="DigitalAlias" 
           label="别名" 
-          placeholder="请输入" 
           maxlength="40"
           clearable 
           required 
@@ -347,7 +346,6 @@ onUnmounted(() => {
           v-model="formData.DigitalAddress" 
           name="DigitalAddress" 
           label="虚拟币地址" 
-          placeholder="请输入" 
           clearable 
           required 
           :rules="[
@@ -391,7 +389,6 @@ onUnmounted(() => {
           v-model="formData.BankCardNum" 
           name="BankCardNum" 
           :label="props.selectPayTypeItem!.PayType === 1001 ? '银行卡号' : '支付宝账号'" 
-          placeholder="请输入" 
           clearable 
           required 
           :rules="[
@@ -404,7 +401,6 @@ onUnmounted(() => {
           v-model="formData.RealName" 
           name="RealName" 
           :label="props.selectPayTypeItem!.PayType === 1001 ? '持卡人' : '账户名称'" 
-          placeholder="请输入" 
           clearable 
           required 
           :rules="[rulesRequired()]" 
@@ -447,7 +443,6 @@ onUnmounted(() => {
         v-if="formData.ValidType === 0"
         name="Mobile" 
         label="手机号码" 
-        placeholder="请输入" 
         required 
         disabled 
       >
@@ -459,7 +454,6 @@ onUnmounted(() => {
         v-if="formData.ValidType === 1"
         name="Email" 
         label="邮箱地址" 
-        placeholder="请输入" 
         required 
         disabled 
       >
@@ -470,7 +464,6 @@ onUnmounted(() => {
       <AppField 
         v-model="formData.Code" 
         name="Code"  
-        placeholder="请输入" 
         type="password"
         maxlength="24"
         clearable 

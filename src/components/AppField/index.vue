@@ -17,13 +17,18 @@ export type AppFieldProps = {
   readonly?: FieldProps['readonly']
   border?: FieldProps['border']
   error?: FieldProps['error']
+
+  /** 禁止輸入空格 */
+  disableSpace?: boolean
   // 之後有需要可以再把其它常用 prop 補進來
   [key: string]: any
 }
 
 const props = withDefaults(defineProps<AppFieldProps>(), {
   labelAlign: 'top',
-  border: false
+  placeholder: '请输入',
+  border: false,
+  disableSpace: false
 })
 
 const emit = defineEmits<{
@@ -45,11 +50,26 @@ useMutationObserver(
   },
   { childList: true, subtree: true }
 )
+
+const updateModelValue = (val: FieldProps['modelValue']) => {
+  if (props.disableSpace && typeof val === 'string') {
+    emit('update:modelValue', val.replace(/\s+/g, ''))
+    return
+  }
+
+  emit('update:modelValue', val)
+}
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (props.disableSpace && e.key === ' ') {
+    e.preventDefault()
+  }
+}
 </script>
 
 <template>
   <van-field ref="fieldRef" v-bind="props" class="app-field" :class="{ 'app-field--error': hasError }"
-    :model-value="modelValue" @update:model-value="val => emit('update:modelValue', val)">
+    :model-value="modelValue" @update:model-value="updateModelValue" @keydown="onKeydown">
     <template v-if="slots.label" #label>
       <slot name="label" />
     </template>

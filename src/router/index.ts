@@ -70,6 +70,32 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/manage/agent/orgChart.vue'),
       },
       {
+        path: 'agent/deposit',
+        name: 'agentDeposit',
+        component: () => import('@/pages/agent/deposit/index.vue'),
+      },
+      {
+        path: 'agent/depositRecord',
+        name: 'agentDepositRecord',
+        component: () => import('@/pages/agent/transactionRecord/index.vue'),
+        meta: {
+          recordType: 'deposit'
+        }
+      },
+      {
+        path: 'agent/transfer',
+        name: 'agentTransfer',
+        component: () => import('@/pages/agent/transfer/index.vue'),
+      },
+      {
+        path: 'agent/transferRecord',
+        name: 'agentTransferRecord',
+        component: () => import('@/pages/agent/transactionRecord/index.vue'),
+        meta: {
+          recordType: 'transfer'
+        }
+      },
+      {
         path: 'team',
         name: 'manageTeam',
         component: () => import('@/pages/manage/team/index.vue'),

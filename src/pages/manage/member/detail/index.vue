@@ -3,6 +3,7 @@ import { computed, ref, defineAsyncComponent } from 'vue'
 import UnitCard from '../../components/UnitCard.vue'
 import type SwitchTab from '@/components/SwitchTab/index.vue'
 import { useClipboard } from '@vueuse/core'
+import { useRouter } from 'vue-router'
 
 import dayjs from 'dayjs'
 import { useWindowSize, useElementSize } from '@vueuse/core'
@@ -42,9 +43,24 @@ const showDate = (ts: number | string | null | undefined) => {
 
 const { states, playerInfoPermission } = useProvider()
 
+const router = useRouter()
+
 const copyHadandler = (c: string) => {
   useClipboard().copy(c)
   showToast({ message: '复制成功' })
+}
+
+const handleGoToDeposit = () => {
+  if (!states.playerInfo) return
+
+  const member = states.playerInfo.PlayerInfo
+  router.push({
+    name: 'agentDeposit',
+    query: {
+      memberAccount: member.LoginAccount,
+      packageName: member.PackageName
+    }
+  })
 }
 
 </script>
@@ -53,7 +69,7 @@ const copyHadandler = (c: string) => {
   <div class="space-y-2 flex-1">
     <div ref="heightEl" class="space-y-2">
       <NavBar title="会员详情"></NavBar>
-  
+
       <div class="px-4">
         <UnitCard>
           <template #header>
@@ -78,9 +94,9 @@ const copyHadandler = (c: string) => {
                       <div>注册时间</div>
                       <div>{{ showDate(states.playerInfo?.PlayerInfo.CreateTime) }}</div>
                     </div>
-                    
+
                     <div class="w-[1px] h-3 bg-neutral2-seventh" />
-                    
+
                     <div >
                       <div>最后登录时间</div>
                       <div>{{ showDate(states.playerInfo?.PlayerInfo.LastLoginTime) }}</div>
@@ -88,14 +104,14 @@ const copyHadandler = (c: string) => {
                   </div>
                 </div>
               </div>
-              <van-button round type="primary" size="small" class="absolute! top-0 right-0">
+              <van-button round type="primary" size="small" class="absolute! top-0 right-0" @click.stop="handleGoToDeposit">
                 <div class="space-x-1">
                   <van-icon name="add" size="14" /><span>代存</span>
                 </div>
               </van-button>
             </div>
           </template>
-    
+
           <div class="flex items-center justify-start px-2 py-1 space-x-2">
             <div class="flex items-center space-x-1">
               <van-icon :name="states.playerInfo?.PlayerInfo.IsActiveMember ? 'checked' : 'clear'" :class="states.playerInfo?.PlayerInfo.IsActiveMember ? 'text-success-normal' : 'text-error-normal'" />

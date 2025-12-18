@@ -411,7 +411,7 @@ onMounted(async () => {
 
             <!-- 排序方式 -->
             <div class="filter-dropdown">
-              <Dropdown
+              <Filled
                 v-model="sortType"
                 :options="sortOptions"
                 height="1.5rem"

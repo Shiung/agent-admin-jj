@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import NavBar from '@/components/NavBar/index.vue'
-import AppField from '@/components/AppField/index.vue'
-import { rulesRequired, rulesPassword } from '@/utils/formRules'
 import { useUserStore } from '@/stores/user'
+import { rulesRequired, rulesPassword } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 import API from '@/apis'
+import NavBar from '@/components/NavBar/index.vue'
+import AppField from '@/components/AppField/index.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -28,11 +28,15 @@ const togglePassword = () => {
 }
 
 const submit = async () => {
-  loading.value = true
+  if (loading.value) return
+
   try {
+    loading.value = true
+    await formRef.value?.validate()
+
     const res = await API.admin.updateLoginSetting({
       LoginType: 1,
-      PrivatePassword: privatePassword.value,
+      PrivatePassword: privatePassword.value.trim(),
       IsAllowOtherDeviceLogin: isAllowOtherDeviceLogin.value,
       TimeFreeVerification: 0,
     })
@@ -40,7 +44,7 @@ const submit = async () => {
       showFailToast(res.data.Msg)
       return
     }
-    showToast('修改成功')
+    showSuccessToast('修改成功')
     router.push({ name: 'security' })
   } catch (error: any) {
     console.error('更新失败：', error)
@@ -98,7 +102,7 @@ const submit = async () => {
           round
           type="primary"
           :loading="loading"
-          :disabled="!privatePassword"
+          :disabled="!privatePassword.trim()"
           class="gray-disabled"
           native-type="submit"
         >

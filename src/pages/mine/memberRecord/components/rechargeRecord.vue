@@ -143,7 +143,7 @@ onMounted(() => {
   <div class="flex-1 flex flex-col">
     <div class="flex items-center px-3 py-2 gap-2 overflow-auto">
       <TimeFilterDropdown v-model="operationTime" title="操作时间" />
-      <Dropdown v-model="formData.Status!" class="dropDownCus" :options="statusOptions" />
+      <Filled v-model="formData.Status!" :options="statusOptions" />
     </div>
     <div class="listContainer mt-2 px-3 pb-2">
       <van-pull-refresh v-model="refreshing" :style="[list.length === 0 && !listLoading && { height: '100%' }]" @refresh="onRefresh">
@@ -204,17 +204,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-:deep(.dropDownCus) {
-  width: auto;
-  height: calc(var(--spacing) * 6);
-  padding: calc(var(--spacing) * 0.5) calc(var(--spacing) * 2);
-  font-weight: var(--font-weight-normal);
-  font-size: var(--text-xs);
-  color: var(--color-neutral2-basic);
-  background: var(--color-bg-floor-1-2);
-  border: none;
-  box-shadow: none;
-}
 .listContainer {
   height: calc(100vh - calc(var(--spacing) * 40));
   overflow: auto;
