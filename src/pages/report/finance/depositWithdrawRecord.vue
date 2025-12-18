@@ -115,9 +115,9 @@ const statusFilter = ref('全部状态')
 // 充值状态选项
 const depositStatusOptions = [
   { label: '全部状态', value: '全部状态' },
-  { label: '处理中', value: '处理中' },
   { label: '充值完成', value: '充值完成' },
   { label: '充值失败', value: '充值失败' },
+  { label: '处理中', value: '处理中' },
   { label: '已审核', value: '已审核' },
   { label: '充值取消', value: '充值取消' },
   { label: '用户取消', value: '用户取消' }
@@ -126,10 +126,10 @@ const depositStatusOptions = [
 // 提现状态选项
 const withdrawStatusOptions = [
   { label: '全部状态', value: '全部状态' },
-  { label: '待处理', value: '待处理' },
   { label: '已出款', value: '已出款' },
   { label: '退款驳回', value: '退款驳回' },
-  { label: '处理中', value: '处理中' },
+  { label: '待处理', value: '待处理' },
+  { label: '处理中', value: '处理中' }
 ]
 
 // 当前状态选项
@@ -150,7 +150,7 @@ const depositStatusMap: Record<string, number> = {
 }
 
 // 提现状态映射：UI显示 -> API参数（用于筛选）
-const withdrawStatusMap: Record<string, number> = {
+const withdrawStatusMap: Record<string, number | ''> = {
   '全部状态': 0,
   '待处理': 1,
   '已出款': 2,
@@ -168,12 +168,41 @@ const depositStatusToType: Record<number, 'completed' | 'failed' | 'primary' | '
   13: 'cancelled'    // 用户取消
 }
 
-// 提现状态反向映射：API参数 -> 状态标识（用于显示）
-const withdrawStatusToType: Record<number, 'completed' | 'failed' | 'primary' | 'cancelled'> = {
-  1: 'primary',      // 待处理
-  2: 'completed',    // 已出款
-  3: 'failed',       // 退款驳回
-  5: 'primary'       // 处理中
+// 充值状态文本映射：API参数 -> 状态文本
+const depositStatusToText: Record<number, string> = {
+  1: '处理中',
+  2: '充值完成',
+  3: '充值失败',
+  4: '已审核',
+  12: '充值取消',
+  13: '用户取消'
+}
+
+/**
+ * 根据 Status、Process、RefundScore 判断提现状态
+ * @param status 订单状态
+ * @param process 处理状态
+ * @param refundScore 退款状态(0:待定 1:退币 2:不退)
+ * @returns 状态标识和状态文本
+ */
+const getWithdrawStatus = (status?: number, process?: number, refundScore?: number): {
+  type: 'completed' | 'failed' | 'primary' | 'cancelled'
+  text: string
+} => {
+  // 待处理
+  if (status === 1 && process !== undefined && process <= 4) {
+    return { type: 'primary', text: '待处理' }
+  }
+  // 已出款
+  if ((status === 2 || status === 4) && process === 7) {
+    return { type: 'completed', text: '已出款' }
+  }
+  // 退款驳回
+  if (status === 3 && process === 8 && refundScore === 1) {
+    return { type: 'failed', text: '退款驳回' }
+  }
+  // 默认：处理中
+  return { type: 'primary', text: '处理中' }
 }
 
 // 排序选择
@@ -226,10 +255,13 @@ const formatRechargeOrder = (item: PlayerRechargeList) => {
   const payTypeName = item.PayType ? (payTypeMap.value[item.PayType] || `支付方式${item.PayType}`) : '-'
   // 将API状态数字转换为状态标识（completed/failed/primary/cancelled）
   const statusType = item.Status !== undefined ? (depositStatusToType[item.Status] || 'failed') : 'failed'
+  // 获取状态文本
+  const statusText = item.Status !== undefined ? (depositStatusToText[item.Status] || '未知状态') : '未知状态'
 
   return {
     orderNo: item.OrderId || '-',
     status: statusType,
+    statusText: statusText,
     username: item.LoginAccount || '-',
     vipLevel: 'VIP0', // API 未返回 VIP 等级
     applyAmount: item.Amount || 0,
@@ -244,12 +276,13 @@ const formatRechargeOrder = (item: PlayerRechargeList) => {
 
 // 格式化提现订单数据
 const formatWithdrawOrder = (item: PlayerWithdrawList) => {
-  // 将API状态数字转换为状态标识（completed/failed/primary/cancelled）
-  const statusType = item.Status !== undefined ? (withdrawStatusToType[item.Status] || 'failed') : 'failed'
+  // 根据 Status、Process、RefundScore 判断提现状态
+  const withdrawStatus = getWithdrawStatus(item.Status, item.Process, item.RefundScore)
   const withdrawTypeName = getWithdrawName(item.AccountType || '')
   return {
     orderNo: item.OrderId || '-',
-    status: statusType,
+    status: withdrawStatus.type,
+    statusText: withdrawStatus.text,
     username: '-', // API 未返回会员账号
     vipLevel: 'VIP0', // API 未返回 VIP 等级
     applyAmount: item.Amount || 0,
