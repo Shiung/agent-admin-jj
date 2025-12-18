@@ -3,6 +3,12 @@ import { useUserStore } from '@/stores/user'
 // import { emitter } from '@/core/mitt'
 // import { APIERROR } from './config'
 
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    customErrorHandling?: boolean
+  }
+}
+
 interface SecurityDataType {
   token?: string
 }
@@ -44,19 +50,19 @@ apiClient.instance.interceptors.request.use(
 apiClient.instance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const resp = error.response
+    const { status, response, config } = error
 
-    if (!resp) {
-      return Promise.reject(error)
-    }
-
-    const { status, data } = resp
+    // 沒有 response 或 customErrorHandling 為 true 則不處理
+    if (!response || config?.customErrorHandling ) return Promise.reject(error)
 
     // 401：權限或登入失效
     if (status === 401) {
       const userStore = useUserStore()
       userStore.logout()
       showToast('登录逾期，请重新登录')
+    } else {
+      const msg = response?.data?.Msg || '请求失败'
+      showToast(msg)
     }
 
     // TODO 權限異常
