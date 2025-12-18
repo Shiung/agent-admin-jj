@@ -273,6 +273,7 @@ const handleSubmit = async () => {
             placeholder="请输入"
             :rules="agentAccountRules"
             :maxlength="20"
+            autocomplete="off"
           />
         </div>
 
@@ -287,6 +288,7 @@ const handleSubmit = async () => {
             placeholder="请输入"
             maxlength="12"
             :rules="amountRules"
+            autocomplete="off"
           />
           <div v-if="transferLimitInfo.isActive === 1" class="field-hint">
             单次转账金额 {{ transferLimitInfo.minAmount }}-{{ transferLimitInfo.maxAmount }} / 当日限额 {{ transferLimitInfo.dailyAmount }}
@@ -305,6 +307,7 @@ const handleSubmit = async () => {
             :rules="privatePasswordRules"
             :maxlength="20"
             label-align="top"
+            autocomplete="off"
           >
             <template #right-icon>
               <van-icon
@@ -326,8 +329,9 @@ const handleSubmit = async () => {
             :maxlength="100"
             show-word-limit
             :rows="4"
+            autocomplete="off"
           />
-          <div class="remark-tags">
+          <div v-if="false" class="remark-tags">
             <button
               v-for="tag in remarkTags"
               :key="tag"
