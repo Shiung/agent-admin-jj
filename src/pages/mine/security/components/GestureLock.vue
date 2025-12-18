@@ -203,7 +203,7 @@
 
   const lineSegment = computed(() => {
     const segments: Array<{ top: number; left: number; width: number; angle: number }> = []
-    const lineHeight = 4 // 線條高度
+    const lineHeight = 4 // 线条高度
 
     for (let i = 0; i < selectedPoints.value.length - 1; i++) {
       const from = selectedPoints.value[i]
@@ -220,10 +220,10 @@
       const angle = Math.atan2(dy, dx) * (180 / Math.PI)
 
       segments.push({
-        top: fromPos.y - lineHeight / 2, // 線條垂直中心對齊小圓中心
-        left: fromPos.x, // 起點 x（小圓中心）
-        width: distance, // 兩點之間的距離
-        angle, // 旋轉角度
+        top: fromPos.y - lineHeight / 2, // 线条垂直中心对齐小圆中心
+        left: fromPos.x, // 起点 x（小圆中心）
+        width: distance, // 两点之间的距离
+        angle, // 旋转角度
       })
     }
 
@@ -236,10 +236,10 @@
       const angle = Math.atan2(dy, dx) * (180 / Math.PI)
 
       segments.push({
-        top: from.y - lineHeight / 2, // 線條垂直中心對齊小圓中心
-        left: from.x, // 起點 x（小圓中心）
-        width: distance, // 兩點之間的距離
-        angle, // 旋轉角度
+        top: from.y - lineHeight / 2, // 线条垂直中心对齐小圆中心
+        left: from.x, // 起点 x（小圆中心）
+        width: distance, // 两点之间的距离
+        angle, // 旋转角度
       })
     }
 

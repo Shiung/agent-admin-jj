@@ -49,7 +49,7 @@ export default function useProvider() {
     const otherKey = [
       { Key: 111, Name: "充值调整" },
       { Key: 137, Name: "佣金代存" },
-      { Key: 138, Name: "額度代存" },
+      { Key: 138, Name: "额度代存" },
       { Key: 22, Name: "代客充值" },
       { Key: -2, Name: "代客充值" },
       { Key: -10, Name: "充值调整" },

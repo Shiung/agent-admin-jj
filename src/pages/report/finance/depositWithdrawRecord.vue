@@ -405,8 +405,8 @@ const containerRef = ref<HTMLElement | null>(null)
 
 const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
   containerRef,
-  tabQueryIndex: 'none', // 此頁面不基於 tab 顯示，給一個不會匹配的值
-  stickyTop: 84 // 吸頂時距離頂部的距離
+  tabQueryIndex: 'none', // 此页面不基于 tab 显示，给一个不会匹配的值
+  stickyTop: 84 // 吸顶时距离顶部的距离
 })
 
 // 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
@@ -465,7 +465,7 @@ const fetchRechargeTypeList = async () => {
       const otherKey = [
         { Key: 111, Name: '充值调整' },
         { Key: 137, Name: '佣金代存' },
-        { Key: 138, Name: '額度代存' },
+        { Key: 138, Name: '额度代存' },
         { Key: 22, Name: '代客充值' },
         { Key: -2, Name: '代客充值' },
         { Key: -10, Name: '充值调整' }

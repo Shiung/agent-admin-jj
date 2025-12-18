@@ -163,7 +163,7 @@ const fetchRechargeOrder = async (hideLoading: boolean = true) => {
     const res = await API.finance.getRechargeRecordList({ Status: '1,4' })
     if (res.data.Code !== 200) return
     const { Items } = res.data.Data
-    if (Items && Items.length) { // 有訂單進入訂單明細
+    if (Items && Items.length) { // 有订单进入订单明细
       const item = Items[0] as RechargeRecordListDataItem
       item.OrderInfo = item.OrderInfo ? JSON.parse(item.OrderInfo) : {}
       const newThirdRechargeData: RechargeMoneyData = {
@@ -181,7 +181,7 @@ const fetchRechargeOrder = async (hideLoading: boolean = true) => {
       } else {
         process.value = 1
       }
-    } else { // 沒有訂單進入充值表單
+    } else { // 没有订单进入充值表单
       process.value = 0
       fetchRechargeList()
     }

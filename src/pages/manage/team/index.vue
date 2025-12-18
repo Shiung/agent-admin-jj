@@ -55,9 +55,9 @@ const finished = ref(false)
 const selectTimeRange = ref({ startTime: 0, endTime: 0 })
 
 const netcashteamListV2Query = ref<NetcashteamListV2Query>({
-  Page: 0, // 页码，頁面load會觸發@load事件
+  Page: 0, // 页码，页面load会触发@load事件
   PageSize: 20, // 每页条数
-  Sort: computed(() => selectedSort.value) as unknown as string, // 排序(示例: 按照渠道正向排序 'ChannelId'，按照渠道反向排序 '-ChannelId')。如果為空，默認按照Id反向排序
+  Sort: computed(() => selectedSort.value) as unknown as string, // 排序(示例: 按照渠道正向排序 'ChannelId'，按照渠道反向排序 '-ChannelId')。如果为空，默认按照Id反向排序
   JoinTeamTimeBegin: computed(() => selectTimeRange.value.startTime) as unknown as number, // 开始时间
   JoinTeamTimeEnd: computed(() => selectTimeRange.value.endTime) as unknown as number, // 结束时间
   AdminId: 0 // 代理ID

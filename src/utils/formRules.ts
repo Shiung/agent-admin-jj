@@ -10,7 +10,7 @@ export const rulesRequired = (params: any = {}) => {
 export const rulesPositiveIntegerNumber = (params: any = {}) => {
   return {
     pattern: /^[1-9]\d*$/,
-    message: '请输入正确的數字',
+    message: '请输入正确的数字',
     ...(params)
   }
 }

@@ -71,7 +71,7 @@ export interface PhoneSendCodeQuery {
   OpType: number
   Number: string
   KeyCode: string // imagevalidcode回的KeyCode
-  ValidCode: string // imagevalidcode的驗證碼
+  ValidCode: string // imagevalidcode的验证码
   AgentId: number
   Username: string
 }
@@ -81,7 +81,7 @@ export interface EmailSendCodeQuery {
   OpType: number
   Email: string
   KeyCode: string // imagevalidcode回的KeyCode
-  ValidCode: string // imagevalidcode的驗證碼
+  ValidCode: string // imagevalidcode的验证码
   AgentId: number
   Username: string
 }
@@ -118,8 +118,8 @@ export interface GoogleCodeResponse {
 }
 
 export interface GoogleLoginAuthFormData {
-  Username: string // 代理帳號
-  GoogleLoginAuthToken: string // 請求綁定 google 驗證碼 token (來自 /system/user/login 回傳的 GoogleLoginAuthToken)
+  Username: string // 代理帐号
+  GoogleLoginAuthToken: string // 请求绑定 google 验证码 token (来自 /system/user/login 回传的 GoogleLoginAuthToken)
 }
 
 export interface GoogleLoginAuthResponse {
@@ -134,9 +134,9 @@ export interface GoogleLoginAuthData {
 }
 
 export interface GoogleLoginAuthBindFormData {
-  Username: string // 代理帳號
-  GoogleLoginAuthToken: string // 請求綁定 google 驗證碼 token (來自 /system/user/login 回傳的 GoogleLoginAuthToken)
-  ValidCode: string // google驗證碼
+  Username: string // 代理帐号
+  GoogleLoginAuthToken: string // 请求绑定 google 验证码 token (来自 /system/user/login 回传的 GoogleLoginAuthToken)
+  ValidCode: string // google验证码
 }
 
 export interface GoogleLoginAuthBindResponse {
@@ -146,14 +146,14 @@ export interface GoogleLoginAuthBindResponse {
 }
 
 export interface ValidUserV2FormData {
-  Username: string // 代理帳號
-  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
-  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
-  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
-  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  Username: string // 代理帐号
+  ValidType: number // 验证方式 (0: 手机号 1: 邮箱 2: 谷歌)
+  IAC?: string // 国际区号 (当 ValidType = 0 时需带入)
+  Number?: string // 手机号 (当 ValidType = 0 时需带入)
+  Email?: string // 邮箱 (当 ValidType = 1 时需带入)
   AgentId: number // 代理ID
-  Code?: string // 驗證碼 (當 ValidType = 2 時需帶入)
-  Domain?: string // 域名 (目前沒有使用這個欄位)
+  Code?: string // 验证码 (当 ValidType = 2 时需带入)
+  Domain?: string // 域名 (目前没有使用这个栏位)
 }
 
 export interface ValidUserV2Response {
@@ -163,14 +163,14 @@ export interface ValidUserV2Response {
 }
 
 export interface ValideCodeV2FormData {
-  Username: string // 代理帳號
-  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
-  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
-  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
-  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  Username: string // 代理帐号
+  ValidType: number // 验证方式 (0: 手机号 1: 邮箱 2: 谷歌)
+  IAC?: string // 国际区号 (当 ValidType = 0 时需带入)
+  Number?: string // 手机号 (当 ValidType = 0 时需带入)
+  Email?: string // 邮箱 (当 ValidType = 1 时需带入)
   AgentId: number // 代理ID
-  Code: string // 驗證碼
-  Domain?: string // 域名 (目前沒有使用這個欄位)
+  Code: string // 验证码
+  Domain?: string // 域名 (目前没有使用这个栏位)
 }
 
 export interface ValideCodeV2Data {
@@ -184,14 +184,14 @@ export interface ValideCodeV2Response {
 }
 
 export interface RetrievePasswordV2FormData {
-  Username: string // 代理帳號
-  ValidType: number // 驗證方式 (0: 手機號 1: 郵箱 2: 谷歌)
-  IAC?: string // 國際區號 (當 ValidType = 0 時需帶入)
-  Number?: string // 手機號 (當 ValidType = 0 時需帶入)
-  Email?: string // 郵箱 (當 ValidType = 1 時需帶入)
+  Username: string // 代理帐号
+  ValidType: number // 验证方式 (0: 手机号 1: 邮箱 2: 谷歌)
+  IAC?: string // 国际区号 (当 ValidType = 0 时需带入)
+  Number?: string // 手机号 (当 ValidType = 0 时需带入)
+  Email?: string // 邮箱 (当 ValidType = 1 时需带入)
   Code: string // validecodev2拿到的Token
-  Password: string // 密碼
-  ConfirmPassword: string // 確認密碼
+  Password: string // 密码
+  ConfirmPassword: string // 确认密码
 }
 
 export interface RetrievePasswordV2Response {
@@ -201,23 +201,23 @@ export interface RetrievePasswordV2Response {
 }
 
 export interface Registerv2FormData {
-  Username: string // 代理帳號
-  Password: string // 密碼
-  Invt: string // 邀請碼
-  DevicePlatform: string // 設備類型 Example : H5
+  Username: string // 代理帐号
+  Password: string // 密码
+  Invt: string // 邀请码
+  DevicePlatform: string // 设备类型 Example : H5
   AgentId: number // 代理ID
-  DeviceId: string // 設備ID Example : 51t1h23q-w841--57mt--n541-1l986yh8kmpf
+  DeviceId: string // 设备ID Example : 51t1h23q-w841--57mt--n541-1l986yh8kmpf
 }
 
 export interface PhoneRegisterv2FormData extends Registerv2FormData {
-  IAC: string // 國際區號
-  Number: string // 手機號
-  Code: string // 手機驗證碼
+  IAC: string // 国际区号
+  Number: string // 手机号
+  Code: string // 手机验证码
 }
 
 export interface EmailRegisterv2FormData extends Registerv2FormData {
-  Email: string // 郵件
-  Code: string // 郵件驗證碼
+  Email: string // 邮件
+  Code: string // 邮件验证码
 }
 
 export interface Registerv2Response {
@@ -330,21 +330,21 @@ export interface CompareCommissionResponseData {
 
 export interface CompareCommissionData {
   ReportMonth: string // 佣金月份
-  CommissionTotal: number // 预计佣金(單層)
-  CommissionRate: number // 佣金比例(單層:30代表30%,多層3000代表30%)
-  BetWinTotal: number // 公司输赢，單位:分
-  MoneyChangeFee: number // 輸贏調整承擔費用，單位:分
-  ApiFeeTotalFee: number // 平台費承擔費用，單位:分
-  PayMoneyFee: number // 存款承擔費用，單位:分
-  WithdrawMoneyFee: number // 提款承擔費用，單位:分
-  BackWaterGoldFee: number // 返水承擔費用，單位:分
-  RedGoldFee: number // 紅利承擔費用，單位:分
-  LastMonthCleanBetWinTotal: number // 上期结余，單位:分
-  AdminChargeMoneyFee: number // 代存回馈，單位:分
-  CommissionChildTotal: number // 下級貢獻，單位:分(多層)
-  CommissionChildList: CommissionChildList[] // 各層下級貢獻
-  CleanBetWinTotal: number // 净输赢，單位:分
-  CommissionSelfTotal: number // 会员佣金，單位:分(多層)
+  CommissionTotal: number // 预计佣金(单层)
+  CommissionRate: number // 佣金比例(单层:30代表30%,多层3000代表30%)
+  BetWinTotal: number // 公司输赢，单位:分
+  MoneyChangeFee: number // 输赢调整承担费用，单位:分
+  ApiFeeTotalFee: number // 平台费承担费用，单位:分
+  PayMoneyFee: number // 存款承担费用，单位:分
+  WithdrawMoneyFee: number // 提款承担费用，单位:分
+  BackWaterGoldFee: number // 返水承担费用，单位:分
+  RedGoldFee: number // 红利承担费用，单位:分
+  LastMonthCleanBetWinTotal: number // 上期结余，单位:分
+  AdminChargeMoneyFee: number // 代存回馈，单位:分
+  CommissionChildTotal: number // 下级贡献，单位:分(多层)
+  CommissionChildList: CommissionChildList[] // 各层下级贡献
+  CleanBetWinTotal: number // 净输赢，单位:分
+  CommissionSelfTotal: number // 会员佣金，单位:分(多层)
 }
 
 export interface CommissionChildList {
@@ -611,37 +611,37 @@ export interface NetcashdashboardInfoV2Response {
 }
 
 export interface NetcashdashboardInfoV2Query {
-  ReportType: number // 報表類型，1:日報，2:月報
-  MonthDate: string // 查詢月份
+  ReportType: number // 报表类型，1:日报，2:月报
+  MonthDate: string // 查询月份
   PackageId: number
 }
 
 export interface NetcashdashboardInfoV2MonthTotal {
   SumNewRegNum: number // 注册人数
   SumPayNum: number // 充值人数 (去重)
-  SumWithdrawNum: number // 提現人数 (去重)
-  SumNewPayMoney: number // 新會員存款金额，單位:分
-  SumPayMoney: number // 充值金额，單位:分
-  SumWithdrawMoney: number // 提現金额，單位:分
+  SumWithdrawNum: number // 提现人数 (去重)
+  SumNewPayMoney: number // 新会员存款金额，单位:分
+  SumPayMoney: number // 充值金额，单位:分
+  SumWithdrawMoney: number // 提现金额，单位:分
   SumFirstPayNum: number // 首存人数
   SumBetGameNum: number // 投注人数 (去重)
-  SumGoodBetGameMoney: number // 有效投注金额，單位:分
-  SumFirstPayMoney: number // 首存金额，單位:分
-  SumBetGameMoney: number // 投注金额，單位:分
-  SumWinLostMoney: number // 公司输赢，單位:分
-  SumAgentCustomerPayMoney: number // 代存金额，單位:分
+  SumGoodBetGameMoney: number // 有效投注金额，单位:分
+  SumFirstPayMoney: number // 首存金额，单位:分
+  SumBetGameMoney: number // 投注金额，单位:分
+  SumWinLostMoney: number // 公司输赢，单位:分
+  SumAgentCustomerPayMoney: number // 代存金额，单位:分
   SumAgentCustomerPayNum: number // 代存人数
 }
 
 export interface NetcashdashboardInfoV2Data {
-  PlayerNum: number // 下級成員數
-  ActivityUserNum: number // 活躍會員數
-  LastMonthTotal: NetcashdashboardInfoV2MonthTotal // 上月加總
-  MonthTotal: NetcashdashboardInfoV2MonthTotal // 本月加總
+  PlayerNum: number // 下级成员数
+  ActivityUserNum: number // 活跃会员数
+  LastMonthTotal: NetcashdashboardInfoV2MonthTotal // 上月加总
+  MonthTotal: NetcashdashboardInfoV2MonthTotal // 本月加总
 }
 
 export interface CompareGameDataQuery {
-  ReportType: number // 報表類型，1:日報，2:月報
+  ReportType: number // 报表类型，1:日报，2:月报
 }
 
 export interface CompareGameDataResponse {
@@ -652,14 +652,14 @@ export interface CompareGameDataResponse {
 }
 
 export interface CompareGameDataData {
-  GameData: GameDataItem[] // 當前週期遊戲數據
-  LastPeriodGameData: GameDataItem[] // 之前週期遊戲數據
+  GameData: GameDataItem[] // 当前周期游戏数据
+  LastPeriodGameData: GameDataItem[] // 之前周期游戏数据
 }
 
 export interface GameDataItem {
-  GameType: string // 遊戲代號(請前端mapping到遊戲名稱)
-  SumValidWater: number // 有效投注，單位:分
-  SumWinLose: number // 總盈利(公司輸贏)，單位:分
+  GameType: string // 游戏代号(请前端mapping到游戏名称)
+  SumValidWater: number // 有效投注，单位:分
+  SumWinLose: number // 总盈利(公司输赢)，单位:分
 }
 
 export interface SolidConfigResponse {
@@ -698,12 +698,12 @@ export interface GameListConfigResponse {
 
 
 export interface ReportsChartsQuery {
-  ReportType: number // 報表類型，1:日報，2:月報
+  ReportType: number // 报表类型，1:日报，2:月报
   PackageId: number
-  ParamAmountLeft: string // 金額維度指標名稱
-  ParamAmountRight: string // 金額維度指標名稱
-  ParamCountLeft: string // 數量維度指標名稱
-  ParamCountRight: string // 數量維度指標名稱
+  ParamAmountLeft: string // 金额维度指标名称
+  ParamAmountRight: string // 金额维度指标名称
+  ParamCountLeft: string // 数量维度指标名称
+  ParamCountRight: string // 数量维度指标名称
 }
 
 export interface ReportsChartsResponse {
@@ -714,10 +714,10 @@ export interface ReportsChartsResponse {
 }
 
 export interface ReportsChartsData {
-  ParamAmountList: string[] // 金額維度下拉選單
-  ParamCountList: string[] // 數量維度下拉選單
-  MonthReportChartItems: ReportChartItems // 月報各項指標資料
-  DayReportChartItems: ReportChartItems // 日報各項指標資料
+  ParamAmountList: string[] // 金额维度下拉选单
+  ParamCountList: string[] // 数量维度下拉选单
+  MonthReportChartItems: ReportChartItems // 月报各项指标资料
+  DayReportChartItems: ReportChartItems // 日报各项指标资料
 }
 
 export interface ReportChartItems {
@@ -731,17 +731,17 @@ export interface ReportChartItem {
   ReportDay?: string
   ReportMonth?: string
   ParamName: string
-  ParamValue: string // 指標值，如為金額(ParamAmount)則單位為分
+  ParamValue: string // 指标值，如为金额(ParamAmount)则单位为分
 }
 
 // ==================== 报表 - 佣金 API ====================
 export interface PutNetcashmultiRequest {
   AdminId: number // 代理ID
-  Password: string // 密碼
-  ConfirmPassword: string // 確認密碼
-  Name: string // 名稱
-  CommissionRate: string // 佣金比例（單費率為數值，多費率為JSON格式保存不同的場館類型分成）
-  Remark: string // 備註
+  Password: string // 密码
+  ConfirmPassword: string // 确认密码
+  Name: string // 名称
+  CommissionRate: string // 佣金比例（单费率为数值，多费率为JSON格式保存不同的场馆类型分成）
+  Remark: string // 备注
 }
 
 export interface ReportCenterCommissionQuery {
@@ -769,7 +769,7 @@ export interface MultiLayerCommissionData {
   AccountType: number // 1=单层代理,2=多层代理-单费率,3=多层
   ActivityUserNum: number // 活跃用户数量
   ActualCommissionChangeAfter: number // 调整后实际应发佣金
-  ActualCommissionTotal: number // 实际应发佣金, 系统发放一级代理=自己+所有下級, 系统发放所有代
+  ActualCommissionTotal: number // 实际应发佣金, 系统发放一级代理=自己+所有下级, 系统发放所有代
   AdminChargeMoney: number // 代充金额
   AdminChargeMoneyFee: number // 代充金额奖励
   AdminChargeMoneyRate: number // 代充金额奖励比例
@@ -778,12 +778,12 @@ export interface MultiLayerCommissionData {
   AlgorithmTemplateId: number // 佣金算法方案
   ApiFeeTemplateId: number // 场馆费率模板id
   ApiFeeTotal: number // 平台费，不同场馆汇总
-  ApiFeeTotalFee: number // 平台费費用
+  ApiFeeTotalFee: number // 平台费费用
   BackWaterGold: number // 返水
-  BackWaterGoldFee: number // 返水費用
+  BackWaterGoldFee: number // 返水费用
   BetGold: number // 总押注
   CleanBetWinTotal: number // 当月净输赢
-  CommissionActiveDate: string // 佣金設定生效日期
+  CommissionActiveDate: string // 佣金设定生效日期
   CommissionChangeAfter: number // 调整后佣金
   CommissionChangeAmount: number // 调整金额：计算佣金+调整金额=调整后佣金
   CommissionChildTotal: number // 计算佣金-下级贡献
@@ -796,30 +796,30 @@ export interface MultiLayerCommissionData {
   CommissionType: number // 佣金类型：1=场馆佣金,2=流水佣金
   CreateTime: number
   CreditDue: number // 代理代存还款金额
-  DataSearchType: number // 数据查询类型, 数据类型 0:正式,1:測試,2:全部
+  DataSearchType: number // 数据查询类型, 数据类型 0:正式,1:测试,2:全部
   Desc: string // 备注
-  Id: number // 資料id
+  Id: number // 资料id
   IsNegativeWinAdd: number // 当月的负盈利是否累积到下月 1:累积 0:不累积
   IsPositiveWinAdd: number // 当月的正盈利是否累积到下月：未达到佣金档次 1:累积 0:不累积
   IsSettlement: number // 是否已经结算，-1未处理 1成功 2拒绝
-  LastCommissionRate: string // 最後佣金比例
+  LastCommissionRate: string // 最后佣金比例
   LastMonthAdminChargeMoneyFee: number // 上月代充金额奖励
-  LastMonthCleanBetWinTotal: number // 上期結餘
-  LastSettlementType: number // 最後佣金週期
-  MoneyChange: number // 輸贏調整
-  MoneyChangeFee: number // 輸贏調整費用
+  LastMonthCleanBetWinTotal: number // 上期结余
+  LastSettlementType: number // 最后佣金周期
+  MoneyChange: number // 输赢调整
+  MoneyChangeFee: number // 输赢调整费用
   MonthCleanBetWinTotal: number // 本月累计值，提供给下个月使用
   ParentAdminId: number // 显示上级代理, 用于无限代理显示上层代理
   PayMoney: number // 存款
   PayMoneyFee: number // 存款费用
   PayMoneyRate: number // 存款费率:10000分之一
   PlatformTypeWinLose: string // 场馆输赢存储
-  RealCleanBetWinTotal: number // 本期結餘
+  RealCleanBetWinTotal: number // 本期结余
   RedAdminChargeCommissionGold: number // 佣金代充红利
   RedAdminChargeGold: number // 代理代充红利:包含信用代充红利和佣金代充红利
   RedAdminGold: number // 代理红利，人工存入
   RedGold: number // 红利
-  RedGoldFee: number // 红利費用
+  RedGoldFee: number // 红利费用
   RedRecommendGold: number // 推荐红利自动，邀请好友
   RedRecommendGold2: number // 推广红利2推荐红利，人工存入
   Remark: string // 调整原因
@@ -855,12 +855,12 @@ export interface SingleLayerCommissionData {
   AlgorithmTemplateId: number // 佣金算法方案
   ApiFeeTemplateId: number // 平台费又名场馆费ID
   ApiFeeTotal: number // 平台费，不同场馆汇总
-  ApiFeeTotalFee: number // 平台费費用
+  ApiFeeTotalFee: number // 平台费费用
   BackWaterGold: number // 返水
-  BackWaterGoldFee: number // 返水費用
+  BackWaterGoldFee: number // 返水费用
   BetGold: number // 总押注
   CleanBetWinTotal: number // 当月净输赢
-  CommissionActiveDate: string // 佣金設定生效日期
+  CommissionActiveDate: string // 佣金设定生效日期
   CommissionChangeAfter: number // 调整后佣金
   CommissionChangeAmount: number // 调整金额：计算佣金+调整金额=调整后佣金
   CommissionLv: number // 佣金方案档次
@@ -868,26 +868,26 @@ export interface SingleLayerCommissionData {
   CommissionTemplateId: number // 佣金方案ID
   CommissionTotal: number // 计算佣金
   CreateTime: number // 创建时间
-  DataSearchType: number // 数据查询类型, 数据类型 0:正式,1:測試,2:全部
-  Id: number // 資料id
+  DataSearchType: number // 数据查询类型, 数据类型 0:正式,1:测试,2:全部
+  Id: number // 资料id
   IsNegativeWinAdd: number // 当月的负盈利是否累积到下月 1:累积 0:不累积
   IsPositiveWinAdd: number // 当月的正盈利是否累积到下月：未达到佣金档次 1:累积 0:不累积
   IsSettlement: number // 是否已经结算，-1未处理 1成功 2拒绝
-  LastCommissionRate: string // 最後佣金比例
+  LastCommissionRate: string // 最后佣金比例
   LastMonthAdminChargeMoneyFee: number  // 上月代充金额奖励
-  LastMonthCleanBetWinTotal: number // 上期結餘
-  LastSettlementType: number // 最後佣金週期
-  MoneyChange: number // 輸贏調整
-  MoneyChangeFee: number // 輸贏調整費用
+  LastMonthCleanBetWinTotal: number // 上期结余
+  LastSettlementType: number // 最后佣金周期
+  MoneyChange: number // 输赢调整
+  MoneyChangeFee: number // 输赢调整费用
   PayMoney: number // 存款
   PayMoneyFee: number // 存款费用
   PayMoneyRate: number // 存款费率：10000分之一
-  RealCleanBetWinTotal: number // 本期結餘
+  RealCleanBetWinTotal: number // 本期结余
   RedAdminChargeCommissionGold: number // 佣金代充红利
   RedAdminChargeGold: number // 代理代充红利:包含信用代充红利和佣金代充红利
   RedAdminGold: number // 代理红利，人工存入
   RedGold: number // 红利
-  RedGoldFee: number // 红利費用
+  RedGoldFee: number // 红利费用
   RedRecommendGold: number // 推荐红利自动，邀请好友
   RedRecommendGold2: number // 推荐红利，人工存入
   ReportDay: string // 统计日期2019-04-16
@@ -982,7 +982,7 @@ export interface ReportCenterCommissionTeamQuery {
   ReportMonth: string // 报表月份，格式：YYYY-MM
   Page?: number // 当前页数
   PageSize?: number // 分页笔数
-  Username?: string // 代理名稱
+  Username?: string // 代理名称
 }
 
 // 团队佣金成员数据
@@ -1335,7 +1335,7 @@ export interface GameDetailItem {
 export interface SumItem {
   GameId: number // 游戏ID
   SumAddGold: number // 总增加金额，单位:分
-  SumApiFee: number // 場館費，单位:分
+  SumApiFee: number // 场馆费，单位:分
   SumBetGold: number // 总投注，单位:分
   SumPlayerWinLose: number // 会员总输赢，单位:分
   SumProfitGold: number // 总盈利，单位:分
@@ -1695,7 +1695,7 @@ export interface BonusRecordQuery {
   BeginTime: number // 查询开始时间（Unix时间戳）
   EndTime: number // 查询结束时间（Unix时间戳）
   Sort?: string // 排序字段(send_time:领奖时间 bonus:红利金额)，前面带正负号代表排序方式
-  Status?: number // 状态(2:申請成功 5:待領取)
+  Status?: number // 状态(2:申请成功 5:待领取)
   LoginAccount?: string // 会员账号
 }
 
@@ -1715,7 +1715,7 @@ export interface BonusRecordItem {
   OrderId: string // 订单号
   PlayerId: number // 会员id
   SendTime: number // 领奖时间（Unix时间戳）
-  Status: number // 状态(2:申請成功 5:待領取)
+  Status: number // 状态(2:申请成功 5:待领取)
   UpdateTime: number // 更新时间（Unix时间戳）
   VipLevel: string // VIP等级
 }
@@ -1773,12 +1773,12 @@ export interface PutNetcashmultiResponse {
 }
 
 export interface PostNetcashmultiRequest {
-  Username: string // 代理帳號
-  Password: string // 密碼
-  ConfirmPassword: string // 確認密碼
-  Name: string // 名稱
-  CommissionRate: string // 佣金比例（單費率為數值，多費率為JSON格式保存不同的場館類型分成）
-  Remark: string // 備註
+  Username: string // 代理帐号
+  Password: string // 密码
+  ConfirmPassword: string // 确认密码
+  Name: string // 名称
+  CommissionRate: string // 佣金比例（单费率为数值，多费率为JSON格式保存不同的场馆类型分成）
+  Remark: string // 备注
 }
 
 export interface PostNetcashmultiResponse {
@@ -1796,19 +1796,19 @@ export interface GetNetcashmultiInfoV2Response {
 }
 
 export interface GetNetcashmultiInfoV2Data {
-  AccountLevel: number // 代理層級
+  AccountLevel: number // 代理层级
   CommissionRate: string // 佣金比例
-  DownLineAgents: number // 下級代理數
-  DownLineMembers: number // 會員數
+  DownLineAgents: number // 下级代理数
+  DownLineMembers: number // 会员数
   Username: string // 代理账号
 }
 
 export interface NetcashmultiListQuery {
   Page: number // 页码
   PageSize: number // 每页条数
-  Sort: string // 排序 前面帶負號代表降序排序方式。ex: -CreateTime, Members,支援參數: AccountLevel, CreateTime, Members
+  Sort: string // 排序 前面带负号代表降序排序方式。ex: -CreateTime, Members,支援参数: AccountLevel, CreateTime, Members
   Username: string // 代理账号
-  AccountLevel: number // 代理層級
+  AccountLevel: number // 代理层级
   AdminId: number // 代理ID
   CreateTimeBegin: number // 创建时间开始
   CreateTimeEnd: number // 创建时间结束
@@ -1847,7 +1847,7 @@ export interface NetcashmultiListItem {
 
 export interface NetcashmultiSearchAdminQuery {
   Username: string // 代理账号
-  AccountLevel: number // 代理層級
+  AccountLevel: number // 代理层级
 }
 
 export interface GetNetcashmultiSearchAdminResponse {
@@ -1910,7 +1910,7 @@ export interface GetNetcashteamInfoData {
 export interface NetcashteamListV2Query {
   Page: number // 页码
   PageSize: number // 每页条数
-  Sort: string // 排序(示例: 按照渠道正向排序 'ChannelId'，按照渠道反向排序 '-ChannelId')。如果為空，默認按照Id反向排序
+  Sort: string // 排序(示例: 按照渠道正向排序 'ChannelId'，按照渠道反向排序 '-ChannelId')。如果为空，默认按照Id反向排序
   JoinTeamTimeBegin: number // 开始时间
   JoinTeamTimeEnd: number // 结束时间
   AdminId: number // 代理ID
@@ -1978,7 +1978,7 @@ export interface PrivatePasswordV2Request {
   NewPassword: string // 新密码
   ConfirmPassword: string // 确认密码
   VerifyCode: string // 验证码
-  ValidType: number // 0:手機號,1:email,2:google (驗證方式)
+  ValidType: number // 0:手机号,1:email,2:google (验证方式)
 }
 export interface BindingPhoneVerifyRequest {
   Phone: string // 手机号

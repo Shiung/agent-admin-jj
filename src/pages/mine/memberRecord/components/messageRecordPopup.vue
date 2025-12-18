@@ -35,7 +35,7 @@ const formatTime = (time: number) => dayjs(time).format('YYYY-MM-DD HH:mm:ss')
       <div v-for="(item, index) in list" :key="index" class="flex flex-col p-3 rounded-2xl text-xs font-normal leading-5 bg-bg-floor-1-2">
         <div class="px-3 bg-white rounded-2xl">
           <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic">
-            <div class="min-w-20">回覆人员</div>
+            <div class="min-w-20">回复人员</div>
             <div class="text-right break-all font-semibold">{{ item.reply_user }}</div>
           </div>
 
@@ -45,7 +45,7 @@ const formatTime = (time: number) => dayjs(time).format('YYYY-MM-DD HH:mm:ss')
           </div>
         </div>
         <div class="flex items-center justify-between mt-2">
-          <div>回覆时间</div>
+          <div>回复时间</div>
           <div>{{ formatTime(item.update_time * 1000) }}</div>
         </div>
       </div>

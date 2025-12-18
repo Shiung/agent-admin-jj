@@ -45,7 +45,7 @@ defineExpose<{
     <div class="text-sm text-neutral2-basic flex justify-between items-center">
       <div>{{ timeTitle }}</div>
       <div class="flex items-center justify-between space-x-1">
-        <span>全選</span>
+        <span>全选</span>
         <van-checkbox
           v-model="isCheckAll"
           :indeterminate="isIndeterminate"

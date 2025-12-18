@@ -108,7 +108,7 @@ interface AgentData {
 
   // 新增 PM 规则相关字段
   SendType?: number // 佣金类型: 1=云平台发放,2=代理后台发放
-  IsSettlement?: number // 佣金發放狀態(-1:未發放 0:全部 1:已發放 2:已拒絕)
+  IsSettlement?: number // 佣金发放状态(-1:未发放 0:全部 1:已发放 2:已拒绝)
 
   // 个人视图数据
   personalView?: {

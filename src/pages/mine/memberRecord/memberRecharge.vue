@@ -100,7 +100,7 @@ const checkLoginAccount = async () => {
     loginAccountError.value = ''
     formData.value.PlayerId = res.data.Data.PlayerId
   } catch (err) {
-    loginAccountError.value = '無此會員帳號'
+    loginAccountError.value = '无此会员帐号'
   } finally {
     isCheckingLoginAccount.value = false
     nextTick(() => {

@@ -110,7 +110,7 @@ const fetchNetcashmultiInfoV2 = async () => {
 
 const netcashmultiSearchAdminQuery = ref<NetcashmultiSearchAdminQuery>({
   Username: '', // 代理账号
-  AccountLevel: 0 // 代理層級
+  AccountLevel: 0 // 代理层级
 })
 
 const netcashmultiSearchAdminItem = ref<NetcashmultiSearchAdminItem[]>([])
@@ -129,11 +129,11 @@ const loading = ref(false)
 const finished = ref(false)
 
 const netcashmultiListQuery = ref<NetcashmultiListQuery>({
-  Page: 0, // 页码，頁面load會觸發@load事件
+  Page: 0, // 页码，页面load会触发@load事件
   PageSize: 20, // 每页条数
-  Sort: computed(() => selectedSort.value) as unknown as string, // 排序 前面帶負號代表降序排序方式。ex: -CreateTime, Members,支援參數: AccountLevel, CreateTime, Members
+  Sort: computed(() => selectedSort.value) as unknown as string, // 排序 前面带负号代表降序排序方式。ex: -CreateTime, Members,支援参数: AccountLevel, CreateTime, Members
   Username: selectedAgent.value?.text || '', // 代理账号
-  AccountLevel: computed(() => selectedLevel.value) as unknown as number, // 代理層級
+  AccountLevel: computed(() => selectedLevel.value) as unknown as number, // 代理层级
   AdminId: 0, // 代理ID
   CreateTimeBegin: computed(() => selectTimeRange.value.startTime) as unknown as number, // 创建时间开始
   CreateTimeEnd: computed(() => selectTimeRange.value.endTime) as unknown as number, // 创建时间结束

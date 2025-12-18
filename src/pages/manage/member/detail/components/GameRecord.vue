@@ -62,7 +62,7 @@ const showTimeRangeTitle = computed(() => {
 
 const showProductFilterTitle = computed(() => {
   const productLs = gameTypeLs.value
-  return productLs.length > 0 ? `場館(${productLs.length})` : '全部場館'
+  return productLs.length > 0 ? `场馆(${productLs.length})` : '全部场馆'
 })
 
 

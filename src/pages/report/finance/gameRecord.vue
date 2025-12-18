@@ -186,8 +186,8 @@ const containerRef = ref<HTMLElement | null>(null)
 
 const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
   containerRef,
-  tabQueryIndex: 'none', // 此頁面不基於 tab 顯示，給一個不會匹配的值
-  stickyTop: 44 // 吸頂時距離頂部的距離
+  tabQueryIndex: 'none', // 此页面不基于 tab 显示，给一个不会匹配的值
+  stickyTop: 44 // 吸顶时距离顶部的距离
 })
 
 // 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
@@ -331,7 +331,7 @@ const handleGameClick = (gameData: any) => {
 <style lang="scss" scoped>
 .game-record-container {
   background-color: white;
-  padding-bottom: 2rem; /* 增加底部內邊距，避免內容被遮擋 */
+  padding-bottom: 2rem; /* 增加底部内边距，避免内容被遮挡 */
 }
 
 /* Header 固定在顶部 */

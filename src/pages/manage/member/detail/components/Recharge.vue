@@ -92,7 +92,7 @@ const StatusComp = defineComponent(
           break
         }
         case 13: {
-          text = '用戶取消'
+          text = '用户取消'
           color = 'text-neutral2-secondary border-neutral2-secondary/50 bg-neutral2-secondary/10'
           break
         }

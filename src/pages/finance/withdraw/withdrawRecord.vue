@@ -37,7 +37,7 @@ const statusOptions = [
   { label: '待处理', value: 1 },
   { label: '已出款', value: '2,4' },
   { label: '退款驳回', value: 3 },
-  { label: '處理中', value: 5 }
+  { label: '处理中', value: 5 }
 ]
 const sortOptions = [
   { label: '提现时间降序', value: '-CreateTime' },
@@ -215,7 +215,7 @@ const getStatusText = (OrderType: number, Status: number, Process: number): stri
         case 3:
           return '退款驳回'
         case 5:
-          return '處理中'
+          return '处理中'
         default:
           return ''
       }
@@ -227,7 +227,7 @@ const getStatusText = (OrderType: number, Status: number, Process: number): stri
       } else if (Status == 3 && Process == 8) {
         return '退款驳回'
       } else {
-        return '處理中'
+        return '处理中'
       }
     default:
       return ''

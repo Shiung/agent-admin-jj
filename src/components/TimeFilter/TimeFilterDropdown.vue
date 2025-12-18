@@ -25,13 +25,13 @@ interface Props {
   placeholder?: string
   disabled?: boolean
   title?: string
-  options?: TimeRangeOption[] // 可選的自定義選項
-  maxDate?: Date // 可選的最大日期（默認為今天）
-  showAll?: boolean // 是否顯示全部選項，並解除180天限制
+  options?: TimeRangeOption[] // 可选的自定义选项
+  maxDate?: Date // 可选的最大日期（默认为今天）
+  showAll?: boolean // 是否显示全部选项，并解除180天限制
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: '請選擇',
+  placeholder: '请选择',
   disabled: false,
   height: '1.5rem',
   title: '',
@@ -84,7 +84,7 @@ const getTimeValue = (value: number | (() => number) | ComputedRef<number>): num
 
 const displayText = computed(() => {
   console.log(model.value)
-  if (!model.value) return props.placeholder || '請選擇'
+  if (!model.value) return props.placeholder || '请选择'
 
   const timeItem = timeRangeOptions.value.find(item => {
     const itemStartTime = getTimeValue(item.startTime)

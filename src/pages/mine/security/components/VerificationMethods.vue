@@ -82,7 +82,7 @@ const getVerificationCode = async () => {
       return
     }
 
-    showToast('驗證碼已發送，請注意查收')
+    showToast('验证码已发送，请注意查收')
 
     countdown.value = 60
     const timer = setInterval(() => {
@@ -92,7 +92,7 @@ const getVerificationCode = async () => {
       }
     }, 1000)
   } catch (error: any) {
-    console.error('獲取驗證碼失敗：', error)
+    console.error('获取验证码失败：', error)
     showFailToast(error?.response?.data?.Msg)
   } finally {
     codeLoading.value = false

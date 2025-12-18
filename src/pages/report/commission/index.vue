@@ -731,7 +731,7 @@ onMounted(async () => {
   /* 当滚动超过阈值时，切换为 fixed */
   &.is-fixed {
     position: fixed;
-    top: 108px; /* Header (44px) + fixed Tab (64px) 的總和 */
+    top: 108px; /* Header (44px) + fixed Tab (64px) 的总和 */
     left: 0;
     right: 0;
   }

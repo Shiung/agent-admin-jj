@@ -40,7 +40,7 @@ const statusLs = [
   { label: '全部状态', value: 0 },
   { label: '申请中', value: 1 },
   { label: '同意', value: 2 },
-  { label: '拒絕', value: 3 },
+  { label: '拒绝', value: 3 },
 ]
 
 const selectStatus = ref<number>(statusLs?.[0]?.value ?? 0)
@@ -62,7 +62,7 @@ const StatusComp = defineComponent(
       let text, color
       switch (props.status) {
         case 1: {
-          text = '申請中'
+          text = '申请中'
           color = 'text-neutral2-secondary border-neutral2-secondary/50 bg-neutral2-secondary/10'
           break
         }
@@ -72,7 +72,7 @@ const StatusComp = defineComponent(
           break
         }
         case 3: {
-          text = '拒絕'
+          text = '拒绝'
           color = 'text-error-normal border-error-normal/50 bg-error-normal/10'
           break
         }

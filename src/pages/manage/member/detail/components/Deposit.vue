@@ -68,7 +68,7 @@ const agentType = (type: number) => {
 
 const transferType = (type: number) => {
   if (type === 2) return '代存'
-  if (type === 10) return '紅利'
+  if (type === 10) return '红利'
   return type
 }
 

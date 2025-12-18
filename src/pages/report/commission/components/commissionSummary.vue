@@ -148,7 +148,7 @@ const closeInfoSheet = () => {
 
   margin: 0 auto;  /* 水平置中 */
   margin-top: -6px;
-  margin-bottom: 6px; /* 與標題區保持距離 */
+  margin-bottom: 6px; /* 与标题区保持距离 */
 }
 
 .sheet-header {
@@ -161,7 +161,7 @@ const closeInfoSheet = () => {
 
 /* 左側占位，讓 title 可以真正置中 */
 .header-left {
-  width: 24px; /* 跟 close-btn 寬度相同即可 */
+  width: 24px; /* 跟 close-btn 宽度相同即可 */
   height: 24px;
 }
 
@@ -191,7 +191,7 @@ const closeInfoSheet = () => {
 
 /* 左側占位，讓 title 可以真正置中 */
 .header-left {
-  width: 24px; /* 跟 close-btn 寬度相同即可 */
+  width: 24px; /* 跟 close-btn 宽度相同即可 */
   height: 24px;
 }
 
@@ -234,9 +234,9 @@ const closeInfoSheet = () => {
 }
 
 .formula-item {
-  display: flex;              /* 像 list-item，方便控制對齊 */
-  align-items: flex-start;    /* 對齊第一行文字 */
-  gap: 8px;                   /* 圓點與文字間距 */
+  display: flex;              /* 像 list-item，方便控制对齐 */
+  align-items: flex-start;    /* 对齐第一行文字 */
+  gap: 8px;                   /* 圆点与文字间距 */
   font-size: 14px;
   line-height: 1.6;
   color: #1D2756B2;
@@ -249,7 +249,7 @@ const closeInfoSheet = () => {
   justify-content: center;
   font-size: x-large;         /* 你要的尺寸 */
   line-height: 1;             /* 避免上下溢出 */
-  width: 10px;                 /* 正方形空間，適合垂直置中 */
+  width: 10px;                 /* 正方形空间，适合垂直置中 */
   height: 20px;
   color: #1D2756B2;
 }

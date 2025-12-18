@@ -28,10 +28,10 @@ const operationTime = ref({
 const statusOptions = [
   { value: 0, label: '全部状态' },
   { value: '1', label: '发送中' },
-  { value: '2', label: '待處理' },
+  { value: '2', label: '待处理' },
   { value: '3', label: '发送失败' },
-  { value: '5', label: '審核中' },
-  { value: '4', label: '已建單' },
+  { value: '5', label: '审核中' },
+  { value: '4', label: '已建单' },
 ]
 
 const list = ref<Record<string, any>>([])
@@ -125,13 +125,13 @@ const getStatusText = (status: number): string => {
     case 1:
       return '发送中'
     case 2:
-      return '待處理'
+      return '待处理'
     case 3:
       return '发送失败'
     case 5:
-      return '審核中'
+      return '审核中'
     case 4:
-      return '已建單'
+      return '已建单'
     default:
       return ''
   }
@@ -186,7 +186,7 @@ onMounted(() => {
             </div>
             <div class="mt-2 px-3 bg-white rounded-2xl">
               <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic">
-                <div class="min-w-20">訊息ID</div>
+                <div class="min-w-20">讯息ID</div>
                 <div class="flex items-center justify-center font-semibold">
                   <div class="text-right break-all">{{ item.PlatformUuid }}</div>
                   <van-image src="./static/images/promote/copy_lite.png" class="ml-1 w-3 flex-shrink-0" fit="contain" @click="handleCopy(item.PlatformUuid)" />
