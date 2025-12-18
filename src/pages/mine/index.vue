@@ -84,18 +84,7 @@ const goRecharge = () => {
 }
 
 const handleMenuClick = (key: string) => {
-  // 跳转到代理代存页面时，传递余额数据和限额信息
-  if (key === 'agentDeposit') {
-    router.push({
-      name: key,
-    })
-  } else if (key === 'agentTransfer') {
-    router.push({
-      name: key,
-    })
-  } else {
-    router.push({ name: key })
-  }
+  router.push({ name: key })
 }
 
 
