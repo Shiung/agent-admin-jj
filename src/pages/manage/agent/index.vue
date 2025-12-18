@@ -287,6 +287,7 @@ onMounted(() => {
     <van-popup
       v-model:show="showAgentForm"
       position="right"
+      teleport="#app"
       :style="{ width: '100%', height: '100%' }"
     >
       <AgentForm
