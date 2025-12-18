@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, useAttrs, watch } from 'vue'
+import { computed, useAttrs, watchEffect } from 'vue'
 import {
   Select,
   SelectContent,
@@ -44,8 +44,8 @@ const displayText = computed(() => {
   return selectedOption.value?.label || props.placeholder
 })
 
-watch(model, (newVal) => {
-  emit('change', newVal)
+watchEffect(() => {
+  emit('change', model.value)
 })
 </script>
 
