@@ -425,7 +425,7 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
 
             <!-- 类型筛选 -->
             <div class="filter-dropdown">
-              <Dropdown
+              <Filled
                 v-model="typeFilter"
                 :options="pageConfig.typeFilterOptions"
                 height="1.5rem"
@@ -434,7 +434,7 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
 
             <!-- 排序 -->
             <div class="filter-dropdown">
-              <Dropdown
+              <Filled
                 v-model="sortType"
                 :options="pageConfig.sortOptions"
                 height="1.5rem"
