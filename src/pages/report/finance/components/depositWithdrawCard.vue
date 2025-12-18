@@ -4,6 +4,7 @@ import { formatMoneyWithCommas } from '@/utils/formatNumber'
 interface DepositWithdrawRecord {
   orderNo: string
   status: 'completed' | 'failed' | 'primary' | 'cancelled'
+  statusText?: string // 可选的自定义状态文本
   username: string
   vipLevel: string
   applyAmount: number
@@ -41,23 +42,19 @@ const copyOrderNo = (orderNo: string) => {
 }
 
 // 状态标签配置（只负责返回文本和样式类）
-const getStatusConfig = (status: string, type: string): { text: string; class: string } => {
-  const depositConfigs: Record<string, { text: string; class: string }> = {
-    completed: { text: '充值完成', class: 'status-completed' },
-    failed: { text: '充值失败', class: 'status-failed' },
-    primary: { text: '处理中', class: 'status-primary' },
-    cancelled: { text: '充值取消', class: 'status-cancelled' }
+const getStatusConfig = (status: string, customText?: string): { text: string; class: string } => {
+  // 状态到样式类的映射
+  const statusToClass: Record<string, string> = {
+    completed: 'status-completed',
+    failed: 'status-failed',
+    primary: 'status-primary',
+    cancelled: 'status-cancelled'
   }
 
-  const withdrawConfigs: Record<string, { text: string; class: string }> = {
-    completed: { text: '提现完成', class: 'status-completed' },
-    failed: { text: '退款驳回', class: 'status-failed' },
-    primary: { text: '处理中', class: 'status-primary' },
-    cancelled: { text: '提现取消', class: 'status-cancelled' }
+  return {
+    text: customText || '未知状态',
+    class: statusToClass[status] || 'status-failed'
   }
-
-  const configs = type === 'deposit' ? depositConfigs : withdrawConfigs
-  return configs[status] || configs.failed || { text: '未知状态', class: 'status-failed' }
 }
 </script>
 
@@ -69,8 +66,8 @@ const getStatusConfig = (status: string, type: string): { text: string; class: s
           <span class="username">{{ record.username }}</span>
           <span class="vip-badge">{{ record.vipLevel }}</span>
         </div>
-        <div v-if="!isDepositWithdrawFee" class="status-tag" :class="getStatusConfig(record.status, type).class">
-          {{ getStatusConfig(record.status, type).text }}
+        <div v-if="!isDepositWithdrawFee" class="status-tag" :class="getStatusConfig(record.status, record.statusText).class">
+          {{ getStatusConfig(record.status, record.statusText).text }}
         </div>
       </div>
     <!-- 内层白色表格 -->
