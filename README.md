@@ -1,3 +1,16 @@
+# JJ zone
+
+## 1. promte
+page/promte --> all
+
+- useImage.ts , phote.vue -> qrcode 合併 素材
+
+## manage/member
+
+- InfinityScroll 無限加載
+
+
+
 # cashnet-admin-v2
 
 ## 🚀 環境要求
