@@ -26,7 +26,7 @@ interface Props {
 const model = defineModel<string | number | null>('modelValue', { required: true })
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: '請選擇',
+  placeholder: '请选择',
   disabled: false,
   height: '1.5rem',
 })
@@ -42,7 +42,6 @@ const selectedOption = computed(() => {
 const displayText = computed(() => {
   return selectedOption.value?.label || props.placeholder
 })
-
 
 watch(model, (val) => emit('change', val))
 </script>
