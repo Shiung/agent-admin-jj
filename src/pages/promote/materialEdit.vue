@@ -70,28 +70,41 @@ const selectTheme = ref<number | string | null>(null)
 const selectSize = ref<number | string | null>(null)
 const channelOptions = computed(() => dataBind.value.map((d) => ({ label: d.ChannelId, value: d.ChannelId })))
 
+const replaceLabelName = (s: string, key: string) => {
+  return s.replace(new RegExp(key, 'g'), '')
+}
+
+const deviceBindHandler = (ls: Map<string, any>, data: Array<any>, device: 'APP' | 'PC/H5', type: 'agent' | 'exclusive') => {
+    const hasMulti = data.length > 1
+    data.forEach((d, idx) => {
+      const typeKey = `${type}_`
+      const key = hasMulti ? `${typeKey}${device}_${idx + 1}` : `${typeKey}${device}`
+      if (!ls.has(key)) {
+        const prefixName = type === 'agent' ? '代理' : '专属'
+        const labelName = replaceLabelName(key, typeKey)
+        ls.set(key, { label: `${labelName}(${prefixName})`, value: d.Domain + `${seletorKeySplit}${key}` })
+      }
+    })
+  }
+
 const deviceOptions = computed<Array<{ label: string, value: string }>>(() => {
   const hasExistChannel = dataBind.value.find((bind) => bind.ChannelId === selectChannelId.value)
   if (!hasExistChannel) return []
   const ls = new Map()
   const { AppDomains = [], H5Domains = [] } = hasExistChannel
-  const AppLsMulti = AppDomains.length > 1
-  const H5DomainsMulti = H5Domains.length > 1
-  AppDomains.forEach((d, idx) => {
-    const key = AppLsMulti ? `APP_${idx + 1}` : 'APP'
-    if (!ls.has(key)) {
-      const prefixName = d.NetCashDomainType === 0 ? '代理' : '专属'
-      ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain + `${seletorKeySplit}${key}` })
-    }
-  })
 
-  H5Domains.forEach((d, idx) => {
-    const key = H5DomainsMulti ? `PC/H5_${idx + 1}` : 'PC/H5'
-    if (!ls.has(key)) {
-      const prefixName = d.NetCashDomainType === 0 ? '代理' : '专属'
-      ls.set(key, { label: `${key}(${prefixName})`, value: d.Domain + `${seletorKeySplit}${key}` })
-    }
-  })
+  /** app 代理 */
+  deviceBindHandler(ls, AppDomains.filter(d => d.NetCashDomainType === 0), 'APP', 'agent')
+
+  /** app 专属 */
+  deviceBindHandler(ls, AppDomains.filter(d => d.NetCashDomainType === 1), 'APP', 'exclusive')
+
+  /** h5 代理 */
+  deviceBindHandler(ls, H5Domains.filter(d => d.NetCashDomainType === 0), 'PC/H5', 'agent')
+
+  /** h5 专属 */
+  deviceBindHandler(ls, H5Domains.filter(d => d.NetCashDomainType === 1), 'PC/H5', 'exclusive')
+
   return [...ls.values()]
 })
 
