@@ -150,7 +150,7 @@ const depositStatusMap: Record<string, number> = {
 }
 
 // 提现状态映射：UI显示 -> API参数（用于筛选）
-const withdrawStatusMap: Record<string, number | ''> = {
+const withdrawStatusMap: Record<string, number> = {
   '全部状态': 0,
   '待处理': 1,
   '已出款': 2,
