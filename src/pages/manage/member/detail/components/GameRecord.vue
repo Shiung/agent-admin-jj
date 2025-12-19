@@ -345,7 +345,7 @@ onMounted(() => {
   <div class="flex-1 flex flex-col">
     <FilterBox>
       <AdvancedBottomSheet v-model:show="showTimeAdvanced" :title="showTimeRangeTitle" sheet-title="时间筛选" :ls="advancedTimeLs" @change="timeFilterHandler" />
-      <AdvancedBottomSheet v-model:show="showGameTypeAdvanced" :title="showProductFilterTitle" :ls="advancedGameType" @change="gameTypeHandler" />
+      <AdvancedBottomSheet v-model:show="showGameTypeAdvanced" :title="showProductFilterTitle" :ls="advancedGameType" is-all-check-box @change="gameTypeHandler" />
       <Filled v-model:model-value="selectBetStatus" :options="BetStatus" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
     </FilterBox>

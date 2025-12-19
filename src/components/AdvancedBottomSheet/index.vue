@@ -5,7 +5,7 @@ import Radio from './Radio.vue'
 import CheckBox from './CheckBox.vue'
 
 const show = defineModel<boolean>('show', { required: true })
-const { title = '标题', sheetTitle = '进阶筛选' } = defineProps<{
+const { title = '标题', sheetTitle = '进阶筛选', isAllCheckBox = false, ls: dataLs } = defineProps<{
   title?: string
   sheetTitle?: string
   ls: Array<{
@@ -26,18 +26,34 @@ const { title = '标题', sheetTitle = '进阶筛选' } = defineProps<{
     timeDisableAll?: boolean
     timeDisableTimeRange?: boolean
   }>
+  isAllCheckBox?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'change', value: Map<string, any>): void
 }>()
 
-const procces = ref<boolean>(false)
-const fieldDoms = ref<Record<string, { getValue: () => any, reset: () => void }>>({})
+/** only `isAllCheckBox` 顯示點選後checkbox 數量 */
+const tempCheckLs = ref<Array<any>>([])
+/** 進行中 */
+const proccesVal = ref<Map<string, any> | null>(null)
+/** 選擇器 dom ref */
+const fieldDoms = ref<Record<string, { getValue: () => any, reset: (v?: any) => void }>>({})
 
 const setUnitFieldDom = (el: any, key: string) => {
   if (el) fieldDoms.value[key] = el
   else delete fieldDoms.value[key]
+}
+
+const handleCheckBoxChange = () => {
+  if (!isAllCheckBox) return
+  const ls = new Map()
+  Object.entries(fieldDoms.value).forEach(([key, val]) => {
+    if (!ls.has(key)) {
+      ls.set(key, typeof val?.getValue === 'function' ? val?.getValue() : null)
+    }
+  })
+  tempCheckLs.value = [...ls.values()].flat()
 }
 
 const onConfirm = () => {
@@ -49,8 +65,36 @@ const onConfirm = () => {
   })
 
   emit('change', ls)
-  procces.value = true
+  proccesVal.value = ls
   show.value = false
+}
+
+/** only `isAllCheckBox` 全選功能 */
+const checkBoxAll = () => {
+  const checkBoxLs = dataLs.filter((l) => l.type === 'checkbox')
+  Object.entries(fieldDoms.value).forEach(([key, val]) => {
+    const getList = checkBoxLs.find((c) => c.key === key)
+    if (typeof val.reset === 'function' && getList) {
+      val.reset(getList.list?.map(l => l.value))
+    }
+  })
+}
+
+/** only `isAllCheckBox` 全選功能 */
+const resetCheckBoxAll = () => {
+  Object.entries(fieldDoms.value).forEach(([key, val]) => {
+    if (typeof val.reset === 'function') {
+      val.reset()
+    }
+  })
+}
+
+/** 有進行中的選項 關閉彈窗後重置回上次送出的選單 */
+const onResetToProcessVal = () => {
+  Object.entries(fieldDoms.value).forEach(([key, val]) => {
+    const hasProcessVal = proccesVal.value?.get(key)
+    val.reset(hasProcessVal ? hasProcessVal : undefined)
+  })
 }
 
 const onReset = () => {
@@ -66,19 +110,21 @@ const onReset = () => {
   })
 
   emit('change', ls)
-  procces.value = true
+  proccesVal.value = null
   show.value = false
 }
 
 watch(show, (s) => {
   if (!s) {
-    if (procces.value) return
+    if (proccesVal.value) {
+      onResetToProcessVal()
+      return
+    }
     Object.entries(fieldDoms.value).forEach(([key, val]) => {
       if (typeof val.reset === 'function') {
         val.reset()
       }
     })
-    procces.value = false
   }
 })
 </script>
@@ -104,13 +150,27 @@ watch(show, (s) => {
           :time-disable-all="!!l.timeDisableAll"
           :time-diasble-range-limit="!!l.timeDisableTimeRange"
         />
-        <CheckBox v-else-if="l.type === 'checkbox'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" />
+        <CheckBox v-else-if="l.type === 'checkbox'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" @change="handleCheckBoxChange" />
         <Radio v-else-if="l.type === 'radio'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" />
       </template>
   
-      <div class="flex items-center gap-3">
-        <van-button type="primary" round block plain @click="onReset">重置</van-button>
-        <van-button type="primary" round block @click="onConfirm">确认</van-button>
+    </div>
+    <div v-if="!isAllCheckBox" class="flex items-center gap-3 sticky bottom-0 px-4 py-3 bg-white">
+      <van-button type="primary" round block plain @click="onReset">重置</van-button>
+      <van-button type="primary" round block @click="onConfirm">确认</van-button>
+    </div>
+    <div v-else class="sticky bottom-0 px-4 py-3 bg-white space-y-2">
+      <div class="text-neutral2-tertiary text-xs text-left">选取 <span class="text-primary-normal">{{ tempCheckLs.length }}</span> 场馆</div>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div>
+            <van-button type="primary" round block plain size="small" @click="checkBoxAll">全选</van-button>
+          </div>
+          <div>
+            <van-button type="primary" round block plain size="small" @click="resetCheckBoxAll">清除</van-button>
+          </div>
+        </div>
+        <van-button type="primary" class="!w-[108px]" round block @click="onConfirm">确认</van-button>
       </div>
     </div>
   </van-action-sheet>
