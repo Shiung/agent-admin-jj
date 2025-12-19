@@ -49,11 +49,11 @@ defineExpose<{
 </script>
 
 <template>
-  <div class="space-y-1 cusCheckbox">
+  <div class="space-y-1 app-checkbox">
     <div class="text-sm text-neutral2-basic flex justify-between items-center">
       <div>{{ timeTitle }}</div>
       <div class="flex items-center justify-between space-x-1">
-        <span>全选</span>
+        <span class="text-neutral2-tertiary">全选</span>
         <van-checkbox
           v-model="isCheckAll"
           :indeterminate="isIndeterminate"
@@ -65,12 +65,12 @@ defineExpose<{
     <div class="flex items-center gap-2 flex-wrap">
       <van-checkbox-group v-model="checkedResult" @change="checkedResultChange">
         <van-cell-group inset class="flex flex-wrap mx-0 gap-2">
-          <van-checkbox 
+          <van-checkbox
             v-for="item in ls"
             :key="item.value"
             :name="item.value"
             :class="cn('flex items-center justify-center min-w-15 px-1 py-3 rounded-full text-xs font-semibold text-neutral2-tertiary border border-neutral2-tertiary', {
-              'bg-primary-5 border-primary-normal text-primary-normal cusCheckbox_active': checkedResult.includes(item.value) 
+              'bg-primary-5 border-primary-normal text-primary-normal app-checkbox_active': checkedResult.includes(item.value)
             })"
           >
             <template #icon></template>
@@ -83,8 +83,13 @@ defineExpose<{
 </template>
 
 <style lang="scss" scoped>
-.cusCheckbox {
+.app-checkbox {
   --van-cell-group-inset-padding: 0;
+
+  :deep(.van-checkbox__icon .van-icon) {
+    border-radius: 6px;
+  }
+
   :deep(.van-checkbox__label) {
     margin-left: 0;
     color: var(--color-neutral2-tertiary);

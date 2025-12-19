@@ -228,8 +228,3 @@
   color: #ffffff;
   background-color: var(--color-primary-normal);
 }
-
-/* vant checkbox 樣式調整 */
-.van-checkbox__icon .van-icon {
-  border-radius: 6px;
-}
