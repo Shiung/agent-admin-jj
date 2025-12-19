@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import NavBar from '@/components/NavBar/index.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
 import OrgNode from './components/OrgNode.vue'
@@ -51,6 +51,10 @@ const fetchTreeData = async () => {
 const minLevel = computed(() => {
   if (!treeData.value) return 1
   return treeData.value.AccountLevel || 1
+})
+
+watch(minLevel, (newVal: number) => {
+  currentVisibleLevel.value = newVal
 })
 
 // 計算最大層級
@@ -210,7 +214,7 @@ onMounted(() => {
       @scroll="handleChartScroll"
     >
       <div class="tree-wrapper">
-        <OrgNode :node="treeData" :level="1" :display-mode="displayMode" is-root />
+        <OrgNode :node="treeData" :level="minLevel" :display-mode="displayMode" is-root />
       </div>
     </div>
     
