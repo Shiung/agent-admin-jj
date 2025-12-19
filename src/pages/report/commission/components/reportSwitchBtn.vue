@@ -23,7 +23,7 @@ defineProps<{
 <style lang="scss" scoped>
 .fixed-switch-btn {
   position: fixed;
-  bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 4px);
+  bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 8px);
   width: 7.25rem;
   left: 50%;
   transform: translateX(-50%);

@@ -9,7 +9,7 @@ import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 
 const userStore = useUserStore()
-const { isSingleAgent } = storeToRefs(userStore)
+const { isSingleAgent, userInfo } = storeToRefs(userStore)
 interface Props {
   viewType: number
   selectedDate: string // 格式: 'YYYY-MM'
@@ -143,6 +143,10 @@ interface AgentData {
   isReleased?: boolean // 是否已发放（下级视图使用）
   SettlementTime?: number // 结算时间，用于判断是否可操作
 }
+
+const sendCommissionType = computed(() => {
+  return Number(userInfo.value?.NetCashAccount?.SendCommissionType ?? 0)
+})
 
 // 将代理层级数字映射为标签
 const getAgentLevelLabel = (level: number): string => {
@@ -930,7 +934,7 @@ const handleReleaseConfirm = async () => {
                   <template v-if="agent.isReleased">
                     <span class="released-tag">已发放</span>
                   </template>
-                  <template v-else-if="!agent.isReleased && agent.SendType === 2">
+                  <template v-else-if="!agent.isReleased && agent.SendType === 2 && sendCommissionType === 1">
                     <button
                       class="action-btn adjust-btn"
                       @click="handleAdjust(agent, $event)"

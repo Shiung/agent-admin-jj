@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
+import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'
 
 interface Props {
   payableTotal: number  // 应发佣金总计
@@ -10,6 +12,13 @@ interface Props {
 }
 
 defineProps<Props>()
+
+const userStore = useUserStore()
+const { userInfo } = storeToRefs(userStore)
+
+const sendCommissionType = computed(() => {
+  return Number(userInfo.value?.NetCashAccount?.SendCommissionType ?? 0)
+})
 
 const emit = defineEmits<{
   release: []  // 一键发放事件
@@ -49,7 +58,7 @@ const handleCancel = () => {
     </div>
 
     <!-- 一键发放按钮 -->
-    <button class="release-button" :disabled="isSettlement === -1 && settlementTime === 0" @click="handleRelease">
+    <button v-if="sendCommissionType === 1" class="release-button" :disabled="isSettlement === -1 && settlementTime === 0" @click="handleRelease">
       一键发放
     </button>
 
