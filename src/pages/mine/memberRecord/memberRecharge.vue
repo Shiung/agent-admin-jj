@@ -76,11 +76,17 @@ const notifyRoomIdOptions = computed(() => {
   })
 })
 
+const originPackageName = ref<string>('')
+const originLoginAccount = ref<string>('')
 const isCheckingLoginAccount = ref<boolean>(false)
 const loginAccountPass = ref<boolean>(false)
 const loginAccountError = ref<string>('')
 /** 檢查帳號 */
 const checkLoginAccount = async () => {
+  if (formData.value.PackageName === originPackageName.value && formData.value.LoginAccount === originLoginAccount.value) {
+    return
+  }
+
   loginAccountPass.value = false
   if (!formData.value.PackageName || !formData.value.LoginAccount) {
     loginAccountError.value = ''
@@ -108,12 +114,21 @@ const checkLoginAccount = async () => {
     })
   }
 }
+watch(
+  () => formData.value.PackageName,
+  (newVal) => {
+    originPackageName.value = newVal
+    checkLoginAccount()
+  },
+  { deep: true }
+)
 
 const ImageUploadRef = ref<InstanceType<typeof ImageUpload> | null>(null)
 const handleChangeImageUrls = (newVal: string[]) => {
   formData.value.ImageUrls = newVal.length === 0 ? '' : newVal.join(',')
 }
 
+const submitLoading = ref<boolean>(false)
 const submitDisabled = computed(() => {
   return Object.values(formData.value).some((item) => {
     if (Array.isArray(item)) return item.length === 0
@@ -123,6 +138,7 @@ const submitDisabled = computed(() => {
 const handleMemberRechargeConfirm = () => {
   formDataRef.value?.validate().then(async () => {
     const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+    submitLoading.value = true
     try {
       const params = {
         ...formData.value,
@@ -136,6 +152,7 @@ const handleMemberRechargeConfirm = () => {
       ImageUploadRef.value?.cleanUrls()
     } finally {
       loading.close()
+      submitLoading.value = false
     }
   }).catch((err) => {
     console.log('validate error', err)
@@ -160,12 +177,11 @@ onMounted(() => {
         :rules="[rulesRequired()]"
       >
         <template #input>
-          <Dropdown
-            v-model="formData.PackageName"
-            class="dropDownCus"
-            :options="productPackageOptions"
-            :disabled="isCheckingLoginAccount"
-            @change="checkLoginAccount"
+          <Dropdown 
+            v-model="formData.PackageName" 
+            class="dropDownCus" 
+            :options="productPackageOptions" 
+            :disabled="isCheckingLoginAccount" 
           />
         </template>
       </FormField>
@@ -180,7 +196,8 @@ onMounted(() => {
         :rules="[
           rulesRequired(),
           ...(loginAccountError.length > 0 ? [{ validator: () => loginAccountError }] : [])
-        ]"
+        ]" 
+        @focus="originLoginAccount = formData.LoginAccount"
         @blur="checkLoginAccount"
       >
         <template #right-icon>
@@ -228,7 +245,15 @@ onMounted(() => {
         </template>
       </FormField>
       <div class="mt-4 mx-4 mb-8">
-        <van-button type="primary" round block native-type="submit" :disabled="submitDisabled" class="!h-12 !text-base font-semibold gray-disabled">
+        <van-button 
+          class="!h-12 !text-base font-semibold gray-disabled"
+          type="primary" 
+          round 
+          block 
+          native-type="submit" 
+          :disabled="submitDisabled" 
+          :loading="submitLoading"
+        >
           提交
         </van-button>
       </div>

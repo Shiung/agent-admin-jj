@@ -29,9 +29,9 @@ const isDDWallet = computed(() => {
   return props.thirdRechargeData.PayType === 40
 })
 
-const loading = ref<boolean>(false)
+const submitLoading = ref<boolean>(false)
 const cancelOrder = async () => {
-  loading.value = true
+  submitLoading.value = true
   try {
     const params = {
       PlayerId: adminInfo.value.Id,
@@ -43,7 +43,7 @@ const cancelOrder = async () => {
     // if (res.data.Code !== 200) return
     emit('checkOrder')
   } finally {
-    loading.value = false
+    submitLoading.value = false
   }
 }
 
@@ -206,7 +206,15 @@ onUnmounted(() => {
       <div v-if="process === 2 && !isDDWallet" class="mt-2 text-xs font-normal text-primary-normal leading-5">若无法在时间内完成支付，请重新匹配订单！超时不予赔付！</div>
     </div>
     <div class="mt-4 mx-4 mb-8">
-      <van-button type="primary" plain round block :disabled="loading" class="!h-12 !text-base font-semibold gray-disabled" @click="cancelOrder">
+      <van-button 
+        class="!h-12 !text-base font-semibold gray-disabled" 
+        type="primary" 
+        plain 
+        round 
+        block 
+        :loading="submitLoading"
+        @click="cancelOrder"
+      >
         取消订单
       </van-button>
     </div>

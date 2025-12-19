@@ -7,6 +7,7 @@ interface Props {
   cancelText?: string
   confirmText?: string
   confirmDisabled?: boolean
+  submitLoading?: boolean
   height?: string
 }
 
@@ -17,6 +18,7 @@ withDefaults(defineProps<Props>(), {
   cancelText: '取消',
   confirmText: '确定',
   confirmDisabled: false,
+  submitLoading: false,
   height: '93%',
 })
 
@@ -56,10 +58,25 @@ const handleConfirm = () => {
       
       <!-- 按钮 -->
       <div v-if="showButton" class="flex gap-3 p-4">
-        <van-button type="primary" plain round class="flex-1 !h-12 !text-base" @click="handleClose">
+        <van-button 
+          class="flex-1 !h-12 !text-base" 
+          type="primary" 
+          plain 
+          round 
+          :loading="submitLoading"
+          @click="handleClose"
+        >
           {{ cancelText }}
         </van-button>
-        <van-button type="primary" round native-type="submit" class="flex-1 !h-12 !text-base gray-disabled" :disabled="confirmDisabled" @click="handleConfirm">
+        <van-button 
+          class="flex-1 !h-12 !text-base gray-disabled" 
+          type="primary" 
+          round 
+          native-type="submit" 
+          :disabled="confirmDisabled" 
+          :loading="submitLoading"
+          @click="handleConfirm"
+        >
           {{ confirmText }}
         </van-button>
       </div>
