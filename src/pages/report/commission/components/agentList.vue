@@ -945,6 +945,9 @@ const handleReleaseConfirm = async () => {
                       @click="handleReleaseCommission(agent, $event)"
                     >发放</button>
                   </template>
+                  <template v-else>
+                    <span class="not-released-tag">未发放</span>
+                  </template>
                 </div>
               </div>
             </template>
@@ -1576,6 +1579,16 @@ const handleReleaseConfirm = async () => {
   border: 1px solid var(--color-success-50);
   background-color: var(--color-success-10);
   color: var(--color-success-normal);
+}
+/* 未已发放标签 */
+.not-released-tag {
+  padding: 1px 6px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 400;
+  border: 1px solid var(--color-primary-50);
+  background-color: var(--color-primary-10);
+  color: var(--color-primary-normal);
 }
 
 /* 操作按钮基础样式 */
