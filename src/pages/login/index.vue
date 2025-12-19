@@ -79,13 +79,13 @@ const handleCloseForgotPassword = () => {
       <!-- Tab 切換 -->
       <van-tabs v-model:active="activeTab" class="login-tabs">
         <van-tab title="登录" name="login">
-          <LoginForm 
-            @show-google-verify="handleShowGoogleVerify" 
+          <LoginForm
+            @show-google-verify="handleShowGoogleVerify"
             @show-google-bind="handleShowGoogleBind"
             @show-forgot-password="handleShowForgotPassword"
           />
         </van-tab>
-        
+
         <van-tab title="注册" name="register">
           <RegisterForm @register-success="handleRegisterSuccess" />
         </van-tab>
@@ -101,7 +101,7 @@ const handleCloseForgotPassword = () => {
         :overlay="false"
         class="google-popup"
       >
-        <GoogleVerifyForm 
+        <GoogleVerifyForm
           v-if="showGoogleVerify"
           :username="googleVerifyData.username"
           :password="googleVerifyData.password"
@@ -118,7 +118,7 @@ const handleCloseForgotPassword = () => {
         :overlay="false"
         class="google-popup"
       >
-        <GoogleBindForm 
+        <GoogleBindForm
           v-if="showGoogleBind"
           :username="googleBindData.username"
           :password="googleBindData.password"
@@ -137,7 +137,7 @@ const handleCloseForgotPassword = () => {
         :overlay="false"
         class="google-popup"
       >
-        <ForgotPasswordForm 
+        <ForgotPasswordForm
           v-if="showForgotPassword"
           @close="handleCloseForgotPassword"
           @success="handleCloseForgotPassword"
