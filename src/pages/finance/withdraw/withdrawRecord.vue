@@ -7,6 +7,7 @@ import { type WithdrawRecordListQuery } from '@/apis/codegen/data-contracts'
 import { type ListItem } from '../components/payTypeList.vue'
 import dayjs from 'dayjs'
 import API from '@/apis'
+import { getWithdrawSourceName } from '@/utils/finance'
 
 const { copy } = useClipboard()
 
@@ -282,6 +283,11 @@ onMounted(async () => {
                   <div class="text-right break-all">{{ item.OrderId }}</div>
                   <van-image src="./static/images/promote/copy_lite.png" class="ml-1 w-3 flex-shrink-0" fit="contain" @click="handleCopy(item.OrderId)" />
                 </div>
+              </div>
+
+              <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
+                <div class="min-w-20">提现来源</div>
+                <div class="text-right font-semibold">{{ getWithdrawSourceName(item.WithdrawSource) }}</div>
               </div>
 
               <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">

@@ -12,9 +12,20 @@ import AccountList, { type AccountListItem } from '../components/accountList.vue
 import DDWallet from '../components/ddWallet.vue'
 import WithdrawConfirmPopup from '../components/withdrawConfirmPopup.vue'
 import { type FormInstance } from 'vant'
-
+import { useRouter } from 'vue-router'
 const userStore = useUserStore()
+const router = useRouter()
 
+const walletTypeInfo = computed(() => {
+  const data = selectPayTypeItem.value
+  const isQuotaWithdraw = router.currentRoute.value.name === 'quotaWithdraw'
+  const info = {
+    title: isQuotaWithdraw ? '额度' : '佣金',
+    type: isQuotaWithdraw ? 2 : 1,
+    maxDailyAmount: isQuotaWithdraw ? data?.MaxDailyQuotaAmount : data?.MaxDailyAmount
+  }
+  return info
+})
 /** 選中的提現方式 */
 const selectPayTypeItem = ref<ListItem | null>(null)
 /** 選中的帳號 */
@@ -123,7 +134,8 @@ const fetchAppliedAmount = async () => {
   const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
     const res = await API.finance.getAppliedAmount({
-      AccountType: selectPayTypeItem.value.PayType
+      AccountType: selectPayTypeItem.value.PayType,
+      WithdrawSource: walletTypeInfo.value.type
     })
     if (res.data.Code !== 200) return
     appliedAmount.value = new Big(res.data.Data.AppliedAmount).div(100).toNumber()
@@ -189,7 +201,7 @@ const handleWithdrawSuccess = () => {
 }
 
 onMounted(() => {
-  allowMultipleToast()
+  //allowMultipleToast()
   fetchWithdrawList()
 })
 </script>
@@ -243,9 +255,9 @@ onMounted(() => {
         <van-image src="./static/images/common/lightBulb.png" fit="contain" class="w-5 h-5 mr-2" />
         <div class="flex-1 flex flex-col gap-1 text-sm font-normal leading-6 text-neutral2-basic">
           <div class="flex items-center">
-            当日可提现佣金
+            当日可提现{{walletTypeInfo.title}}
             <span class="inline-block ml-2">
-              (<span class="text-primary-normal">{{ formatMoneyWithComma((selectPayTypeItem?.MaxDailyAmount - appliedAmount), 2, false) }}</span>/{{ formatMoneyWithComma(selectPayTypeItem?.MaxDailyAmount, 2, false) }})
+              (<span class="text-primary-normal">{{ formatMoneyWithComma((walletTypeInfo.maxDailyAmount - appliedAmount), 2, false) }}</span>/{{ formatMoneyWithComma(walletTypeInfo.maxDailyAmount, 2, false) }})
             </span>
             <van-image src="./static/images/common/circleReload.svg" fit="contain" class="w-4 h-4 ml-auto" @click="fetchAppliedAmount" />
           </div>
@@ -339,6 +351,7 @@ onMounted(() => {
     :selectAccountItem="selectAccountItem"
     :USDTRate="USDTRate"
     :formData="formData"
+    :withdrawSource="walletTypeInfo.type"
     @withdrawSuccess="handleWithdrawSuccess"
   />
 </template>

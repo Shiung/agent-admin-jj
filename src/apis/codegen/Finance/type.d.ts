@@ -159,6 +159,8 @@ export interface DeleteCryptoAccountResponse {
 export interface AppliedAmountQuery {
   /** PayType */
   AccountType: number
+  /** 1:佣金, 2:额度 */
+  WithdrawSource: number
 }
 
 export interface AppliedAmountResponse {
@@ -245,6 +247,8 @@ export interface WithdrawMoneyFormData {
   Amount: number
   /** 私人密碼 */
   PayPassword: string
+  /** 提現來源 */
+  WithdrawSource: number
 }
 
 export interface WithdrawMoneyResponse {
@@ -467,6 +471,18 @@ export interface RechargeUSDTRateResponse {
   Data: {
     /** USDT匯率 */
     CryptoRate: number
+  }
+  Msg: string
+  Id: string
+}
+export interface WithdrawaSourceSwitchConfigQuery {
+  WithdrawSource: number
+}
+export interface WithdrawaSourceSwitchConfigResponse {
+  Code: number
+  Data: {
+    /** 1:開, 2:關 **/
+    IsOpen: number
   }
   Msg: string
   Id: string

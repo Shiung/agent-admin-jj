@@ -34,7 +34,9 @@ import type {
   RechargeRecordListQuery,
   RechargeRecordListResponse,
   RechargeUSDTRateFormData,
-  RechargeUSDTRateResponse
+  RechargeUSDTRateResponse,
+  WithdrawaSourceSwitchConfigQuery,
+  WithdrawaSourceSwitchConfigResponse
 } from '../data-contracts'
 import type { HttpClient, RequestParams } from '../http-client'
 import { ContentType } from '../http-client'
@@ -339,4 +341,18 @@ export class Finance<SecurityDataType = unknown> {
       format: "json",
       ...params,
     })
+  
+  /** 取得額度提款功能開關 */
+  getWithdrawaSourceSwitchConfig = (
+    query: WithdrawaSourceSwitchConfigQuery,
+    params: RequestParams = {},
+  ) =>
+    this.http.request<WithdrawaSourceSwitchConfigResponse, any>({
+      path: '/api/config/getwithdrawsourceswitchconfig',
+      method: "GET",
+      secure: true,
+      query,
+      ...params,
+    })
 }
+

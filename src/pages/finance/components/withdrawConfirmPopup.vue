@@ -20,11 +20,13 @@ interface Props {
   selectAccountItem: AccountListItem
   USDTRate?: number
   formData: FormData
+  withdrawSource?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   show: false,
   USDTRate: 0,
+  withdrawSource: 1
 })
 
 const emit = defineEmits<{
@@ -96,6 +98,7 @@ const handleWithdrawConfirm = async () => {
       DigitalAddressId: props.selectAccountItem.Id,
       Amount: new Big(props.formData.Amount! ?? 0).times(100).toNumber(),
       PayPassword: props.formData.PayPassword,
+      WithdrawSource: props.withdrawSource
     }
     if (isCrypto.value && !isDDWallet.value) {
       params.DigitalAddress = props.selectAccountItem.DigitalAddress

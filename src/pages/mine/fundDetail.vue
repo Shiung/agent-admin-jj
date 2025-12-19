@@ -43,6 +43,8 @@ const transferTypeMap = [
   { label: '代理充值', value: 11, wallet: ['all', 'quota'] },
   { label: '额度还款', value: 8, wallet: ['all', 'quota'] },
   { label: '额度调整', value: 3, wallet: ['all', 'quota'] },
+  { label: '额度提现', value: 17, wallet: ['all', 'quota'] },
+  { label: '额度提现返还', value: 18, wallet: ['all', 'quota'] },
 ]
 
 const transferTypeList = computed(() => {
