@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { cn } from '@/utils/className'
 const { timeTitle = '标题', defaultVal = [], ls = [] } = defineProps<{
   timeTitle: string,
@@ -26,15 +26,23 @@ onMounted(() => {
   checkedResultChange(checkedResult.value)
 })
 
+const emit = defineEmits<{
+  (e: 'change'): void
+}>()
+
+watch(checkedResult, () => {
+  emit('change')
+})
+
 defineExpose<{
   getValue: () => any
-  reset: () => void
+  reset: (v?: any) => void
 }>({
   getValue: () => {
     return checkedResult.value
   },
-  reset: () => {
-    checkedResult.value = defaultVal
+  reset: (v) => {
+    checkedResult.value = v ? v : defaultVal
   }
 })
 
@@ -45,10 +53,11 @@ defineExpose<{
     <div class="text-sm text-neutral2-basic flex justify-between items-center">
       <div>{{ timeTitle }}</div>
       <div class="flex items-center justify-between space-x-1">
-        <span>全選</span>
+        <span>全选</span>
         <van-checkbox
           v-model="isCheckAll"
           :indeterminate="isIndeterminate"
+          shape="square"
           @change="checkAllChange"
         />
       </div>
