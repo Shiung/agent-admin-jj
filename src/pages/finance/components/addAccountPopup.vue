@@ -272,12 +272,14 @@ const isConfirmDisabled = computed(() => {
     )
 })
 
+const submitLoading = ref<boolean>(false)
 const handleAddAccountCancel = () => {
   emit('update:show', false)
 }
 const handleAddAccountConfirm = async () => {
   formDataRef.value?.validate().then(async () => {
     const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+    submitLoading.value = true
     try {
       let res
       if (props.selectPayTypeItem.IsCrypto) {
@@ -307,6 +309,7 @@ const handleAddAccountConfirm = async () => {
       emit('update:show', false)
     } finally {
       loading.close()
+      submitLoading.value = false
     }
   }).catch((err) => {
     console.log('validate error', err)
@@ -327,6 +330,7 @@ onUnmounted(() => {
     :title="`添加${getWithdrawAccountName(selectPayTypeItem.PayType ?? 0)}账号`"
     confirmText="绑定"
     :confirmDisabled="isConfirmDisabled"
+    :submitLoading="submitLoading"
     @close="handleAddAccountCancel"
     @confirm="handleAddAccountConfirm"
   >
