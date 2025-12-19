@@ -21,6 +21,7 @@ const sortOptions = [
 const selectedSort = ref<CommissionToQuotaTotalQuery['Sort']>(sortOptions[0]?.value ?? '-UpdateTime')
 const totalAmount = ref<CommissionToQuotaTotalResponse['Data']['MoreItems']['TotalChangeGold']>(0)
 const records = ref<CommissionToQuotaTotalItem[]>([])
+const refreshing = ref<boolean>(false)
 
 
 const fetchCommissionToQuotaTotal = async () => {
@@ -46,6 +47,7 @@ const fetchCommissionToQuotaTotal = async () => {
     showFailToast(error?.response?.data?.Msg)
   } finally {
     loadingToast.close()
+    refreshing.value = false
   }
 }
 
@@ -65,15 +67,15 @@ watch([quotaTime, selectedSort], () => {
       <TimeFilterDropdown v-model="quotaTime" title="账变时间" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />
     </div>
-    <div class="flex flex-col gap-2 mx-3 mt-2">
-      <template v-if="records.length > 0">
-        <template v-for="item in records" :key="item.Id">
-          <RecordItem :record="item" />
+    <van-pull-refresh v-model="refreshing" @refresh="fetchCommissionToQuotaTotal">
+      <div class="flex flex-col gap-2 mx-3 mt-2">
+        <template v-if="records.length > 0">
+          <template v-for="item in records" :key="item.Id">
+            <RecordItem :record="item" />
+          </template>
         </template>
-      </template>
-      <div v-else class="min-h-[500px] flex flex-1 items-center">
-        <empty />
+        <empty v-else class="min-h-[500px] flex-1" />
       </div>
-    </div>
+    </van-pull-refresh>
   </div>
 </template>

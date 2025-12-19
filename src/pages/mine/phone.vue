@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
 import { useVerificationCountdown } from './useVerificationCountdown.ts'
+import { countryCodeOptions } from '@/consts/constant'
 import type { FormInstance } from 'vant'
 import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
@@ -14,7 +15,7 @@ import getDeviceId from '@/utils/getDeviceId'
 const router = useRouter()
 const userStore = useUserStore()
 const formRef = ref<FormInstance | null>(null)
-const countryCode = ref<string>('+86')
+const countryCode = ref<string>('86')
 const mobile = ref<string>(userStore.accountInfo?.Phone || '')
 const verificationCode = ref<string>('')
 const loading = ref<boolean>(false)
@@ -28,22 +29,6 @@ const {
   hasRequested: hasRequestedCode,
   start: startCountdown
 } = useVerificationCountdown(60)
-
-const countryCodeOptions = [
-  { label: '+86', value: '+86' },
-  { label: '+1', value: '+1' },
-  { label: '+60', value: '+60' },
-  { label: '+65', value: '+65' },
-  { label: '+66', value: '+66' },
-  { label: '+81', value: '+81' },
-  { label: '+82', value: '+82' },
-  { label: '+84', value: '+84' },
-  { label: '+852', value: '+852' },
-  { label: '+853', value: '+853' },
-  { label: '+855', value: '+855' },
-  { label: '+856', value: '+856' },
-  { label: '+886', value: '+886' },
-]
 
 // 获取验证码
 const getVerificationCode = async () => {
@@ -66,7 +51,7 @@ const getVerificationCode = async () => {
 
   await startCountdown(async () => {
     const res = await API.system.phoneVerify({
-      Number: `${countryCode.value.replace('+', '')}_${mobileValue}`,
+      Number: `${countryCode.value.trim()}_${mobileValue}`,
       DeviceId: getDeviceId() ?? '',
       OpType: 12
     })
@@ -85,11 +70,11 @@ const submit = async () => {
     loading.value = true
     await formRef.value?.validate()
 
-    const phoneNumber = `${countryCode.value.replace('+', '')}_${mobile.value.trim()}`
+    const phoneNumber = `${countryCode.value.trim()}_${mobile.value.trim()}`
     const res = await API.admin.updatePhone({
       Phone: phoneNumber,
       VerifyCode: verificationCode.value.trim(),
-      AreaCode: countryCode.value.replace('+', '')
+      AreaCode: countryCode.value.trim()
     })
 
     if (res.data.Code !== 200) {

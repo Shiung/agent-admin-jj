@@ -5,6 +5,7 @@ import API from '@/apis'
 import getDeviceId from '@/utils/getDeviceId'
 import ImageCaptchaDialog from '@/components/ImageCaptchaDialog/index.vue'
 import DropdownFilled from '@/components/Dropdown/Filled.vue'
+import { countryCodeOptions } from '@/consts/constant'
 
 const IS_SERVE = import.meta.env.DEV
 
@@ -158,23 +159,6 @@ const clearError = (field: keyof typeof errors) => {
   errors[field] = ''
 }
 
-const countryCodeOptions = [
-  { value: '86', label: '+86' },
-  { value: '1', label: '+1'},
-  { value: '60', label: '+60' },
-  { value: '62', label: '+62' },
-  { value: '63', label: '+63' },
-  { value: '65', label: '+65' },
-  { value: '66', label: '+66' },
-  { value: '81', label: '+81' },
-  { value: '82', label: '+82' },
-  { value: '84', label: '+84' },
-  { value: '853', label: '+853' },
-  { value: '855', label: '+855' },
-  { value: '886', label: '+886' },
-  { value: '852', label: '+852' },
-]
-
 const showPassword = ref(false)
 const emailLoading = ref(false)
 const phoneLoading = ref(false)
@@ -289,7 +273,7 @@ const fullPhoneNumber = computed(() => {
       <div class="form-group">
         <label class="form-label">账号</label>
         <div class="input-wrapper" :class="{ 'input-error': errors.username }">
-          <input 
+          <input
             v-model="formData.username"
             type="text"
             placeholder="请输入"
@@ -304,17 +288,17 @@ const fullPhoneNumber = computed(() => {
       <div class="form-group">
         <label class="form-label">密码</label>
         <div class="input-wrapper" :class="{ 'input-error': errors.password }">
-          <input 
+          <input
             v-model="formData.password"
-            :type="showPassword ? 'text' : 'password'" 
+            :type="showPassword ? 'text' : 'password'"
             placeholder="请输入"
             class="form-input"
             @input="clearError('password')"
           />
-          <van-icon 
-            :name="showPassword ? 'eye-o' : 'closed-eye'" 
+          <van-icon
+            :name="showPassword ? 'eye-o' : 'closed-eye'"
             class="input-icon"
-            @click="togglePassword" 
+            @click="togglePassword"
           />
         </div>
         <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
@@ -324,9 +308,9 @@ const fullPhoneNumber = computed(() => {
       <div class="form-group">
         <label class="form-label">确认密码</label>
         <div class="input-wrapper" :class="{ 'input-error': errors.confirmPassword }">
-          <input 
+          <input
             v-model="formData.confirmPassword"
-            type="password" 
+            type="password"
             placeholder="请输入"
             class="form-input"
             @input="clearError('confirmPassword')"
@@ -340,9 +324,9 @@ const fullPhoneNumber = computed(() => {
         <div class="form-group">
           <label class="form-label">邮箱地址</label>
           <div class="input-wrapper" :class="{ 'input-error': errors.email }">
-            <input 
+            <input
               v-model="formData.email"
-              type="email" 
+              type="email"
               placeholder="请输入"
               class="form-input"
               @input="clearError('email')"
@@ -355,17 +339,17 @@ const fullPhoneNumber = computed(() => {
         <div class="form-group">
           <label class="form-label">邮箱验证码</label>
           <div class="input-wrapper code-wrapper" :class="{ 'input-error': errors.emailCode }">
-            <input 
+            <input
               v-model="formData.emailCode"
-              type="text" 
+              type="text"
               placeholder="请输入"
               class="form-input"
               autocomplete="off"
               @input="clearError('emailCode')"
             />
-            <van-button 
-              type="primary" 
-              round 
+            <van-button
+              type="primary"
+              round
               class="code-btn"
               :loading="emailLoading"
               :disabled="emailCountdown > 0"
@@ -386,9 +370,9 @@ const fullPhoneNumber = computed(() => {
             <div class="country-code">
               <DropdownFilled v-model="formData.countryCode" placeholder="请选择" height="2rem" :options="countryCodeOptions" />
             </div>
-            <input 
+            <input
               v-model="formData.phone"
-              type="tel" 
+              type="tel"
               placeholder="请输入"
               class="form-input"
               @input="clearError('phone')"
@@ -401,17 +385,17 @@ const fullPhoneNumber = computed(() => {
         <div class="form-group">
           <label class="form-label">手机号验证码</label>
           <div class="input-wrapper code-wrapper" :class="{ 'input-error': errors.phoneCode }">
-            <input 
+            <input
               v-model="formData.phoneCode"
-              type="text" 
+              type="text"
               placeholder="请输入"
               class="form-input"
               autocomplete="off"
               @input="clearError('phoneCode')"
             />
-            <van-button 
-              type="primary" 
-              round 
+            <van-button
+              type="primary"
+              round
               class="code-btn"
               :loading="phoneLoading"
               :disabled="phoneCountdown > 0"
@@ -428,9 +412,9 @@ const fullPhoneNumber = computed(() => {
       <div class="form-group">
         <label class="form-label">邀请码</label>
         <div class="input-wrapper">
-          <input 
+          <input
             v-model="formData.inviteCode"
-            type="text" 
+            type="text"
             placeholder="请输入"
             class="form-input"
           />
@@ -439,10 +423,10 @@ const fullPhoneNumber = computed(() => {
 
       <!-- 注册按鈕 -->
       <div class="button-section">
-        <van-button 
-          block 
-          round 
-          type="primary" 
+        <van-button
+          block
+          round
+          type="primary"
           native-type="submit"
           class="submit-btn"
         >
