@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
-import API from '@/apis'
 
 declare const __APP_VERSION__: string
 const APP_VERSION = `v${__APP_VERSION__}`
@@ -66,7 +65,6 @@ const {
   accountInfo,
   commissionWalletBalance,
   creditWalletBalance,
-  depositLimitInfo,
 } = storeToRefs(userStore)
 
 const agentAccount = computed(() => userInfo.value?.Admin?.Username || '')
