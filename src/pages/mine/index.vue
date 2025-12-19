@@ -21,7 +21,7 @@ const SHORTCUTS = [
   },
   {
     key: 'agentTransfer',
-    title: '代理转帐',
+    title: '代理转账',
   },
   {
     key: 'commissionQuota',
@@ -33,7 +33,7 @@ const SHORTCUTS = [
 const MENUS = [
   {
     key: 'withdrawAccount',
-    title: '提现帐号',
+    title: '提现账号',
   },
   {
     key: 'betRecord',

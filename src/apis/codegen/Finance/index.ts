@@ -83,7 +83,7 @@ export class Finance<SecurityDataType = unknown> {
       ...params,
     })
 
-  /** 添加银行卡/支付宝帐号 */
+  /** 添加银行卡/支付宝账号 */
   addBankCardAccount = (
     data: AddBankCardAccountFormData,
     params: RequestParams = {},
@@ -97,8 +97,8 @@ export class Finance<SecurityDataType = unknown> {
       format: "json",
       ...params,
     })
-  
-  /** 删除银行卡/支付宝帐号 */
+
+  /** 删除银行卡/支付宝账号 */
   deleteBankCardAccount = (
     query: {
       Id: string | number,
@@ -112,7 +112,7 @@ export class Finance<SecurityDataType = unknown> {
       ...params,
     })
 
-  /** 取得虚拟币帐号列表 */
+  /** 取得虚拟币账号列表 */
   getCryptoAccountList = (
     query: CryptoAccountListQuery,
     params: RequestParams = {},
@@ -125,7 +125,7 @@ export class Finance<SecurityDataType = unknown> {
       ...params,
     })
 
-  /** 添加虚拟币帐号 */
+  /** 添加虚拟币账号 */
   addCryptoAccount = (
     data: AddCryptoAccountFormData,
     params: RequestParams = {},
@@ -139,8 +139,8 @@ export class Finance<SecurityDataType = unknown> {
       format: "json",
       ...params,
     })
-  
-  /** 删除虚拟币帐号 */
+
+  /** 删除虚拟币账号 */
   deleteCryptoAccount = (
     query: {
       Id: string | number,
@@ -166,7 +166,7 @@ export class Finance<SecurityDataType = unknown> {
       query,
       ...params,
     })
-  
+
   /** 取得提现USDT汇率 */
   getWithdrawUSDTRate = (
     query: WithdrawUSDTRateQuery,

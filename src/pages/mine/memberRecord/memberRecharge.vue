@@ -60,7 +60,7 @@ const getWhatsAppGroupList = async () => {
       BotStatus: 3
     }
     await useMemberRecharge.fetchWhatsAppGroupList(params)
-    if (!useMemberRecharge.whatsAppGroupList[0]) return 
+    if (!useMemberRecharge.whatsAppGroupList[0]) return
     formData.value.NotifyRoomId = useMemberRecharge.whatsAppGroupList[0].Id
   } catch (err) {
     console.log("err", err)
@@ -82,7 +82,7 @@ const loginAccountError = ref<string>('')
 /** 檢查帳號 */
 const checkLoginAccount = async () => {
   loginAccountPass.value = false
-  if (!formData.value.PackageName || !formData.value.LoginAccount) { 
+  if (!formData.value.PackageName || !formData.value.LoginAccount) {
     loginAccountError.value = ''
     return
   }
@@ -100,7 +100,7 @@ const checkLoginAccount = async () => {
     loginAccountError.value = ''
     formData.value.PlayerId = res.data.Data.PlayerId
   } catch (err) {
-    loginAccountError.value = '无此会员帐号'
+    loginAccountError.value = '无此会员账号'
   } finally {
     isCheckingLoginAccount.value = false
     nextTick(() => {
@@ -152,35 +152,35 @@ onMounted(() => {
   <div class="flex-1 flex flex-col">
     <NavBar title="会员充值" showDetail @detailClick="goRecord" />
     <van-form ref="formDataRef" :trigger="['onBlur', 'onChange']" @submit="handleMemberRechargeConfirm">
-      <FormField 
-        v-model="formData.PackageName" 
-        name="PackageName" 
-        label="产品包" 
-        required 
+      <FormField
+        v-model="formData.PackageName"
+        name="PackageName"
+        label="产品包"
+        required
         :rules="[rulesRequired()]"
       >
         <template #input>
-          <Dropdown 
-            v-model="formData.PackageName" 
-            class="dropDownCus" 
-            :options="productPackageOptions" 
-            :disabled="isCheckingLoginAccount" 
-            @change="checkLoginAccount" 
+          <Dropdown
+            v-model="formData.PackageName"
+            class="dropDownCus"
+            :options="productPackageOptions"
+            :disabled="isCheckingLoginAccount"
+            @change="checkLoginAccount"
           />
         </template>
       </FormField>
-      <AppField 
-        v-model="formData.LoginAccount" 
-        name="LoginAccount" 
-        label="会员账号" 
-        clearable 
+      <AppField
+        v-model="formData.LoginAccount"
+        name="LoginAccount"
+        label="会员账号"
+        clearable
         disableSpace
-        required 
+        required
         :disabled="isCheckingLoginAccount"
         :rules="[
           rulesRequired(),
           ...(loginAccountError.length > 0 ? [{ validator: () => loginAccountError }] : [])
-        ]" 
+        ]"
         @blur="checkLoginAccount"
       >
         <template #right-icon>
@@ -190,37 +190,37 @@ onMounted(() => {
           </div>
         </template>
       </AppField>
-      <AppField 
-        v-model="formData.Amount" 
-        name="Amount" 
-        label="充值金额" 
+      <AppField
+        v-model="formData.Amount"
+        name="Amount"
+        label="充值金额"
         type="number"
-        clearable 
+        clearable
         disableSpace
-        required 
-        :rules="[rulesRequired(), rulesPositiveIntegerNumber({ message: '请输入正确的金额' })]" 
+        required
+        :rules="[rulesRequired(), rulesPositiveIntegerNumber({ message: '请输入正确的金额' })]"
       />
-      <FormField 
+      <FormField
         v-model="formData.ImageUrls"
-        name="ImageUrls" 
-        label="上传凭证" 
-        required 
+        name="ImageUrls"
+        label="上传凭证"
+        required
         :rules="[rulesRequired()]"
       >
         <template #input>
-          <ImageUpload 
-            v-model="ImageFileList" 
+          <ImageUpload
+            v-model="ImageFileList"
             ref="ImageUploadRef"
             :max-count="5"
             @change="handleChangeImageUrls"
           />
         </template>
       </FormField>
-      <FormField 
+      <FormField
         v-model="formData.NotifyRoomId"
-        name="NotifyRoomId" 
-        label="通知群组" 
-        required 
+        name="NotifyRoomId"
+        label="通知群组"
+        required
         :rules="[rulesRequired()]"
       >
         <template #input>

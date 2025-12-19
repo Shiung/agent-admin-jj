@@ -43,7 +43,7 @@ onMounted(() => {
     <NavBar title="提现账号" />
     <div class="listContainer px-3 py-2">
       <van-pull-refresh v-model="refreshing" style="height: 100%" @refresh="fetchWithdrawAccount">
-        <div v-for="(item, index) in list" :key="index" 
+        <div v-for="(item, index) in list" :key="index"
           :class="[
             'flex flex-col p-3 rounded-2xl bg-bg-floor-1-2',
             index !== list.length - 1 && 'mb-2'
@@ -51,7 +51,7 @@ onMounted(() => {
           <div class="text-sm font-semibold leading-6 text-neutral2-basic">{{ item.Name }}</div>
           <div class="mt-2 px-3 bg-white rounded-2xl">
             <div class="flex justify-between py-2 leading-5 text-xs text-neutral2-basic">
-              <div class="font-normal">提现帐号</div>
+              <div class="font-normal">提现账号</div>
               <div class="flex items-center justify-center font-semibold">
                 {{ item.AccountNum }}
                 <van-image src="./static/images/promote/copy_lite.png" class="ml-1 w-3 h-3" fit="contain" @click="handleCopy(item.AccountNum)" />

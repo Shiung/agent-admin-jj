@@ -118,7 +118,7 @@ export interface GoogleCodeResponse {
 }
 
 export interface GoogleLoginAuthFormData {
-  Username: string // 代理帐号
+  Username: string // 代理账号
   GoogleLoginAuthToken: string // 请求绑定 google 验证码 token (来自 /system/user/login 回传的 GoogleLoginAuthToken)
 }
 
@@ -134,7 +134,7 @@ export interface GoogleLoginAuthData {
 }
 
 export interface GoogleLoginAuthBindFormData {
-  Username: string // 代理帐号
+  Username: string // 代理账号
   GoogleLoginAuthToken: string // 请求绑定 google 验证码 token (来自 /system/user/login 回传的 GoogleLoginAuthToken)
   ValidCode: string // google验证码
 }
@@ -146,7 +146,7 @@ export interface GoogleLoginAuthBindResponse {
 }
 
 export interface ValidUserV2FormData {
-  Username: string // 代理帐号
+  Username: string // 代理账号
   ValidType: number // 验证方式 (0: 手机号 1: 邮箱 2: 谷歌)
   IAC?: string // 国际区号 (当 ValidType = 0 时需带入)
   Number?: string // 手机号 (当 ValidType = 0 时需带入)
@@ -163,7 +163,7 @@ export interface ValidUserV2Response {
 }
 
 export interface ValideCodeV2FormData {
-  Username: string // 代理帐号
+  Username: string // 代理账号
   ValidType: number // 验证方式 (0: 手机号 1: 邮箱 2: 谷歌)
   IAC?: string // 国际区号 (当 ValidType = 0 时需带入)
   Number?: string // 手机号 (当 ValidType = 0 时需带入)
@@ -184,7 +184,7 @@ export interface ValideCodeV2Response {
 }
 
 export interface RetrievePasswordV2FormData {
-  Username: string // 代理帐号
+  Username: string // 代理账号
   ValidType: number // 验证方式 (0: 手机号 1: 邮箱 2: 谷歌)
   IAC?: string // 国际区号 (当 ValidType = 0 时需带入)
   Number?: string // 手机号 (当 ValidType = 0 时需带入)
@@ -201,7 +201,7 @@ export interface RetrievePasswordV2Response {
 }
 
 export interface Registerv2FormData {
-  Username: string // 代理帐号
+  Username: string // 代理账号
   Password: string // 密码
   Invt: string // 邀请码
   DevicePlatform: string // 设备类型 Example : H5
@@ -310,7 +310,7 @@ export interface AgentCreditLimitTransactionListResponse {
     }
     Total: {
       TotalAmount: number // 总金额（分）
-      TotalAbsApplyAmount: number // 转帐总金额绝对值（分）
+      TotalAbsApplyAmount: number // 转账总金额绝对值（分）
     }
   }
   Msg: string
@@ -1773,7 +1773,7 @@ export interface PutNetcashmultiResponse {
 }
 
 export interface PostNetcashmultiRequest {
-  Username: string // 代理帐号
+  Username: string // 代理账号
   Password: string // 密码
   ConfirmPassword: string // 确认密码
   Name: string // 名称
