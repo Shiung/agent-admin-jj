@@ -91,7 +91,7 @@ const handleWithdrawConfirm = async () => {
   const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   submitLoading.value = true
   try {
-    let params: WithdrawMoneyFormData = {
+    const params: WithdrawMoneyFormData = {
       AccountType: props.selectPayTypeItem.PayType,
       BankCardId: props.selectAccountItem.Id,
       DigitalAddressId: props.selectAccountItem.Id,

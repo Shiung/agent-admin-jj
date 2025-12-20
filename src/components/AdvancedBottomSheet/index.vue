@@ -19,7 +19,7 @@ const { title = '标题', sheetTitle = '进阶筛选', isAllCheckBox = false, ls
     type: 'time' | 'radio' | 'checkbox'
     /** defaultSelected */
     defaultSelected?: string | number | Array<any> | null
-    /** 
+    /**
      * for Calendar option
      * isShow all
      **/
@@ -153,7 +153,7 @@ watch(show, (s) => {
         <CheckBox v-else-if="l.type === 'checkbox'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" @change="handleCheckBoxChange" />
         <Radio v-else-if="l.type === 'radio'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" />
       </template>
-  
+
     </div>
     <div v-if="!isAllCheckBox" class="flex items-center gap-3 sticky bottom-0 px-4 py-3 bg-white">
       <van-button type="primary" round block plain @click="onReset">重置</van-button>

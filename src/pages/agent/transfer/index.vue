@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import FinanceCard from '@/pages/report/finance/components/financeCard.vue'
 import { useUserStore } from '@/stores/user'
@@ -11,7 +11,6 @@ import AppField from '@/components/AppField/index.vue'
 import API from '@/apis'
 
 const router = useRouter()
-const route = useRoute()
 const userStore = useUserStore()
 const { userInfo, commissionWalletBalance, creditWalletBalance, transferLimitInfo: transferLimitInfo_store } = storeToRefs(userStore)
 
@@ -37,11 +36,6 @@ const remark = ref('')
 // 密码显示/隐藏
 const showPassword = ref(false)
 
-// 返回上一页
-const handleBack = () => {
-  router.back()
-}
-
 // 跳转到转账记录
 const goTransferRecord = () => {
   router.push({ name: 'agentTransferRecord' })
@@ -50,11 +44,6 @@ const goTransferRecord = () => {
 // 获取当前选中钱包的余额
 const currentWalletBalance = computed(() => {
   return transferType.value === 0 ? availableQuota.value : availableCommission.value
-})
-
-// 获取当前选中钱包的名称
-const currentWalletName = computed(() => {
-  return transferType.value === 0 ? '额度钱包' : '佣金钱包'
 })
 
 // 代理账号验证

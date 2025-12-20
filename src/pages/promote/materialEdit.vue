@@ -53,7 +53,7 @@ const emblaMainApi = ref<CarouselApi>()
 const selectedIndex = ref<number>(0)
 const tabsEl = ref<HTMLDivElement>()
 const prevCardW = '56px'
-const blockW = ref<String>('0px')
+const blockW = ref<string>('0px')
 
 const qrcodeURL = ref<string>('')
 

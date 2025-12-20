@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useGlobalStore } from '@/stores/global'
-const globalStore = useGlobalStore()
 const activeTab = defineModel<number>('productActiveTab', { required: true })
 defineProps<{
   productTabs: Array<{ id: number, title: string }>

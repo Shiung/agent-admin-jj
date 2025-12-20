@@ -226,13 +226,6 @@ const parseOrderDetail = (rawData: GameDetailItem): OrderDetail | null => {
   }
 }
 
-// 获取订单详情的游戏名称（根据游戏类型）
-const orderGameName = computed(() => {
-  if (!props.rawData) return '-'
-  const rawData = props.rawData
-  return gameStore.allGameTypeMapping[rawData.GameType] ?? rawData.GameType
-})
-
 // 获取订单摘要字段（根据游戏类型动态显示）
 const orderSummaryFields = computed(() => {
   if (!props.rawData) {

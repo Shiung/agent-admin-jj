@@ -122,7 +122,7 @@ const rechargeConfirm = async () => {
   const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   submitLoading.value = true
   try {
-    let params = {
+    const params = {
       AgentId: adminInfo.value.AgentId,
       PlayerId: adminInfo.value.Id,
       PlayerUserName: adminInfo.value.Username,
@@ -137,7 +137,7 @@ const rechargeConfirm = async () => {
     }
     const res = await API.finance.rechargeMoney(params)
     if (res.data.Code !== 200) return
-    let { Data } = res.data
+    const { Data } = res.data
     Data.payUrl = JSON.parse(Data.payUrl as string) as RechargeMoneyPayUrlData
     Data.amount = new Big(Data.amount).div(100).toNumber()
     if (getRechargeType(selectPayTypeItem.value.PayType) === 'thirdParty') {
