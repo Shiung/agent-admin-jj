@@ -78,13 +78,11 @@ const getTimeRange = (): { BeginTime: number; EndTime: number } => {
 }
 
 // 加载数据
-const loading = ref(true) // 初始为 true，避免进入页面时先显示空状态
 const fetchFinanceData = async (isRefreshing = false) => {
+  // 下拉刷新时不显示 loading toast（顶部已有刷新动画）
+  const loadingToast = !isRefreshing ? showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 }) : null
+
   try {
-    // 下拉刷新时不显示 loading（顶部已有刷新动画）
-    if (!isRefreshing) {
-      loading.value = true
-    }
     const { BeginTime, EndTime } = getTimeRange()
     const response = await apis.report.getReportCenterFinancePersonal({
       BeginTime,
@@ -106,9 +104,7 @@ const fetchFinanceData = async (isRefreshing = false) => {
       position: 'bottom',
     })
   } finally {
-    if (!isRefreshing) {
-      loading.value = false
-    }
+    loadingToast?.close()
   }
 }
 
@@ -333,15 +329,8 @@ const handleCardClick = (cardName: string) => {
         </div>
       </div>
 
-      <!-- Loading 状态 -->
-      <div v-if="loading" class="finance-list-loading">
-        <van-loading size="32px" vertical>
-          <template #default>加载中...</template>
-        </van-loading>
-      </div>
-
       <!-- 空状态 -->
-      <div v-else-if="!financeData" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
+      <div v-if="!financeData" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
         <empty />
       </div>
 
@@ -453,14 +442,4 @@ const handleCardClick = (cardName: string) => {
   flex-direction: column;
   gap: 12px;
 }
-
-/* Loading 状态 */
-.finance-list-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
-}
-
 </style>

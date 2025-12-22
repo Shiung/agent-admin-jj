@@ -626,7 +626,9 @@ const fetchReportTotal = async () => {
 
 // 获取财务报表列表数据（实时模式：近7日不含今日；历史模式：根据筛选条件）
 const fetchReportList = async () => {
-  loading.value = true
+  // 下拉刷新时不显示 loading toast（顶部已有刷新动画）
+  const loadingToast = !refreshing.value ? showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 }) : null
+
   error.value = false
   try {
     const response = await apis.admin.getMemberFinanceReport({
@@ -680,7 +682,7 @@ const fetchReportList = async () => {
     console.error('获取财务报表列表失败:', err)
     showToast({ message: '获取列表数据异常', position: 'bottom' })
   } finally {
-    loading.value = false
+    loadingToast?.close()
     refreshing.value = false
   }
 }
@@ -1085,7 +1087,6 @@ const closeDetailSheet = () => {
 
       <!-- 代理列表 -->
       <van-list
-        v-model:loading="loading"
         :finished="finished"
         :error="error"
         error-text="请求失败"

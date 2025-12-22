@@ -64,9 +64,6 @@ const initTimeRange = () => {
 
 const selectTimeRange = ref(initTimeRange())
 
-// Calendar 打开状态（用于禁用下拉刷新）
-const showCalendar = ref(false)
-
 const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
     BeginTime: selectTimeRange.value.startTime,
@@ -174,8 +171,7 @@ const fetchDepositSummary = async () => {
 
 // 获取代存列表数据
 const fetchDepositList = async () => {
-  loading.value = true
-  error.value = false
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
     const { BeginTime, EndTime } = getTimeRange()
     const response = await apis.admin.getAgentApplyGold({
@@ -190,10 +186,7 @@ const fetchDepositList = async () => {
 
     if (response.data.Code === 200) {
       const newRecords = response.data.Data.Items || []
-      // 第一页时替换数据，否则追加
-      if (currentPage.value === 1) {
-        depositRecords.value = newRecords
-      } else {
+      if (newRecords) {
         depositRecords.value = depositRecords.value.concat(newRecords)
       }
       const pagination = response.data?.Data?.Pagination
@@ -201,46 +194,46 @@ const fetchDepositList = async () => {
 
       if (depositRecords.value.length >= totalCount.value) {
         finished.value = true
-      } else {
-        currentPage.value++
       }
     } else {
-      error.value = true
-      showToast({ message: response.data.Msg || '获取列表数据失败', position: 'bottom' })
+      finished.value = true
+      loading.value = false
     }
-  } catch (err) {
-    error.value = true
-    console.error('获取代存列表数据异常:', err)
-    showToast({ message: '获取列表数据异常', position: 'bottom' })
   } finally {
-    loading.value = false
-    refreshing.value = false
+    loadingToast.close()
   }
 }
 
-// 重置分页并重新获取数据 (keepData: 是否保留现有数据)
-const resetAndFetchData = (keepData = false) => {
+// 重置分页并重新获取数据
+const resetAndFetchData = () => {
   currentPage.value = 1
-  if (!keepData) {
-    depositRecords.value = []
-  }
+  depositRecords.value = []
   finished.value = false
   error.value = false
   fetchDepositSummary()
   fetchDepositList()
 }
 
-// 刷新处理 (保留现有数据)
-const onRefresh = async () => {
-  refreshing.value = true
-  resetAndFetchData(true)
+// 刷新处理
+const onRefresh = () => {
+  finished.value = false
+  loading.value = true
+  onLoad()
 }
 
 // 滚动到底部加载更多
-const onLoad = () => {
-  if (!finished.value && !loading.value) {
-    fetchDepositList()
+const onLoad = async () => {
+  if (refreshing.value) {
+    currentPage.value = 1
+    depositRecords.value = []
+    refreshing.value = false
+  } else {
+    if (currentPage.value) {
+      currentPage.value++
+    }
   }
+  await fetchDepositList()
+  loading.value = false
 }
 
 // Watchers
@@ -255,7 +248,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="deposit-record-container" ref="containerRef">
+  <div class="deposit-record-container">
     <!-- 头部导航 -->
     <div class="fixed-header">
       <div class="flex items-center justify-between h-11 px-3 bg-white">
@@ -265,120 +258,109 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- 下拉刷新容器 -->
-    <van-pull-refresh
-      v-model="refreshing"
-      :disabled="disablePullRefresh"
-      @refresh="onRefresh"
-      class="deposit-record-pull-refresh"
-    >
-      <!-- 代存总计卡片 -->
-      <div class="px-3 pb-2 pt-[54px]">
-        <FinanceCard
-          class="shadow-sm"
-          title=""
-          :show-arrow="false"
-          :show-background-color="false"
-          :data="[
-            [
-              { label: '额度代存', value: formatMoneyWithCommas(depositSummary.CreditAmount, 2, true) },
-              { label: '额度代存回馈', value: formatMoneyWithCommas(depositSummary.CreditFeedback, 2, true) }
-            ],
-            [
-              { label: '佣金代存', value: formatMoneyWithCommas(depositSummary.CommissionAmount, 2, true) },
-              { label: '佣金代存回馈', value: formatMoneyWithCommas(depositSummary.CommissionFeedback, 2, true) }
-            ]
-          ]"
+    <!-- 代存总计卡片 -->
+    <div class="px-3 pb-2 pt-[54px]">
+      <FinanceCard
+        class="shadow-sm"
+        title=""
+        :show-arrow="false"
+        :show-background-color="false"
+        :data="[
+          [
+            { label: '额度代存', value: formatMoneyWithCommas(depositSummary.CreditAmount, 2, true) },
+            { label: '额度代存回馈', value: formatMoneyWithCommas(depositSummary.CreditFeedback, 2, true) }
+          ],
+          [
+            { label: '佣金代存', value: formatMoneyWithCommas(depositSummary.CommissionAmount, 2, true) },
+            { label: '佣金代存回馈', value: formatMoneyWithCommas(depositSummary.CommissionFeedback, 2, true) }
+          ]
+        ]"
+      />
+    </div>
+
+    <!-- Tab 切换和搜索筛选器 -->
+    <div class="px-3 py-2 space-y-3">
+      <!-- Tabs 切换 -->
+      <van-tabs
+        v-model:active="activeTab"
+        color="var(--color-primary-normal)"
+        title-active-color="var(--color-white)"
+        title-inactive-color="var(--color-neutral-secondary)"
+        type="card"
+      >
+        <van-tab v-for="(tab, index) in tabs" :key="index" :title="tab" />
+      </van-tabs>
+
+      <!-- 会员账号搜索框 -->
+      <van-search
+        v-model="searchKeyword"
+        placeholder="会员账号"
+        shape="round"
+        background="transparent"
+        clearable
+        left-icon=""
+        @search="handleSearch"
+        @clear="handleSearch"
+        @keyup.enter="handleSearch"
+      >
+        <template #right-icon>
+          <van-icon name="search" size="18" @click="handleSearch" />
+        </template>
+      </van-search>
+
+      <!-- 筛选条件行 -->
+      <div class="flex items-center gap-2 overflow-auto">
+        <!-- 账变时间 -->
+        <TimeFilterDropdown
+          v-model="selectTimeRange"
+          title="账变时间"
+          height="1.5rem"
         />
-      </div>
 
-      <!-- Tab 切换和搜索筛选器（sticky 固定） -->
-      <div>
-        <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
-        <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
-          <!-- Tabs 切换 -->
-          <van-tabs
-            v-model:active="activeTab"
-            color="var(--color-primary-normal)"
-            title-active-color="var(--color-white)"
-            title-inactive-color="var(--color-neutral-secondary)"
-            type="card"
-          >
-            <van-tab v-for="(tab, index) in tabs" :key="index" :title="tab" />
-          </van-tabs>
-
-          <!-- 会员账号搜索框 -->
-          <van-search
-            v-model="searchKeyword"
-            placeholder="会员账号"
-            shape="round"
-            background="transparent"
-            clearable
-            left-icon=""
-            @search="handleSearch"
-            @clear="handleSearch"
-            @keyup.enter="handleSearch"
-          >
-            <template #right-icon>
-              <van-icon name="search" size="18" @click="handleSearch" />
-            </template>
-          </van-search>
-
-          <!-- 筛选条件行 -->
-          <div class="filter-scroll-container">
-            <!-- 账变时间 -->
-            <TimeFilterDropdown
-              v-model="selectTimeRange"
-              v-model:show-calendar="showCalendar"
-              title="账变时间"
-              height="1.5rem"
-            />
-
-            <!-- 排序方式 -->
-            <div class="filter-dropdown">
-              <Filled
-                v-model="sortType"
-                :options="sortOptions"
-                height="1.5rem"
-              />
-            </div>
-          </div>
+        <!-- 排序方式 -->
+        <div class="filter-dropdown">
+          <Filled
+            v-model="sortType"
+            :options="sortOptions"
+            height="1.5rem"
+          />
         </div>
       </div>
+    </div>
 
-      <!-- 代存列表 -->
-      <van-list
-        v-model:loading="loading"
-        :finished="finished"
-        :error="error"
-        error-text="请求失败"
-        @load="onLoad"
-        :class="{ 'hide-list-loading': refreshing }"
-        :style="depositRecords.length === 0 ? { height: 'calc(100vh - 340px)', display: 'flex'} : {}"
+    <!-- 代存列表 -->
+    <div class="listContainer mt-2 px-3 pb-2">
+      <van-pull-refresh
+        v-model="refreshing"
+        :style="[depositRecords.length === 0 && !loading && { height: '100%' }]"
+        @refresh="onRefresh"
       >
-        <div v-if="depositRecords.length > 0" class="record-list-container">
+        <van-list
+          v-if="depositRecords.length > 0"
+          v-model:loading="loading"
+          class="flex flex-col gap-2"
+          :finished="finished"
+          :immediate-check="false"
+          :finished-text="depositRecords.length > 0 ? '没有更多了' : ''"
+          @load="onLoad"
+        >
           <DepositCard
             v-for="record in depositRecords"
             :key="record.OrderId"
             :record="formatDepositRecord(record)"
             @click="handleDepositClick(record)"
           />
-        </div>
-        <div
-          v-else-if="finished || refreshing"
-          class="flex flex-1 w-full items-center justify-center"
-        >
-          <empty />
-        </div>
-      </van-list>
+        </van-list>
 
-    </van-pull-refresh>
+        <empty v-if="depositRecords.length === 0 && !loading && finished" />
+      </van-pull-refresh>
+    </div>
   </div>
 </template>
 <style lang="scss" scoped>
 .deposit-record-container {
   background-color: white;
-  padding-bottom: 2rem;
+  min-height: 100vh;
 }
 
 /* Header 固定在顶部 */
@@ -391,91 +373,35 @@ onMounted(() => {
   background-color: white;
 }
 
-.deposit-record-pull-refresh {
-  :deep(.van-pull-refresh__track) {
-    overflow: visible !important;
-  }
-  :deep(.van-pull-refresh__head) {
-    top: 44px;
-  }
+/* 列表容器 */
+.listContainer {
+  height: calc(100vh - calc(var(--spacing) * 60));
+  overflow: auto;
 }
 
-/* 筛选栏固定 */
-.sticky-filter-bar {
-  position: relative;
-  z-index: 10;
-  background-color: white;
-  transition: all 0.3s;
+/* 自定义 van-tabs 样式 */
+:deep(.van-tabs) {
+  --van-tabs-card-height: 48px;
+  --van-padding-md: 0rem;
+  --van-radius-sm: 6.25rem;
 
-  &.is-fixed {
-    position: fixed;
-    top: 44px; /* Header 高度 h-11 = 44px */
-    left: 0;
-    width: 100%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  .van-tabs__nav.van-tabs__nav--card {
+    padding: 0.1875rem;
+    border-color: var(--color-neutral2-seventh) !important;
   }
 
-  /* 自定义 van-tabs 样式 */
-  :deep(.van-tabs) {
-    --van-tabs-card-height: 48px;
-    --van-padding-md: 0rem;
-    --van-radius-sm: 6.25rem;
-
-    .van-tabs__nav.van-tabs__nav--card {
-      padding: 0.1875rem;
-      border-color: var(--color-neutral2-seventh) !important;
-    }
-
-    .van-tab--card {
-      border-right: none;
-    }
-
-    .van-tab.van-tab--card.van-tab--active {
-      border-radius: var(--van-radius-sm);
-    }
+  .van-tab--card {
+    border-right: none;
   }
 
-  :deep(.van-tab) {
-    font-size: 15px;
-    font-weight: 400;
+  .van-tab.van-tab--card.van-tab--active {
+    border-radius: var(--van-radius-sm);
   }
 }
 
-/* 用於吸頂定位的佔位元素 */
-.filter-bar-placeholder {
-  /* 高度由JS動態設定 */
-}
-
-.record-list-container {
-  flex: 1;
-  margin-top: 8px;
-  padding: 0 0.75rem;
-  padding-bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 2rem);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* van-list loading 居中 */
-:deep(.van-list__loading) {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  width: 100%;
-}
-/* van-list error-text 居中 */
-:deep(.van-list__error-text) {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  width: 100%;
-}
-
-/* 下拉刷新时隐藏 van-list loading */
-.hide-list-loading :deep(.van-list__loading) {
-  display: none;
+:deep(.van-tab) {
+  font-size: 15px;
+  font-weight: 400;
 }
 
 /* 自定义 van-search 样式 */
@@ -516,24 +442,9 @@ onMounted(() => {
   }
 }
 
-/* 筛选器横向滚动容器 */
-.filter-scroll-container {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
 /* 筛选器 Dropdown 样式 */
 .filter-dropdown {
   flex: none;
-  scroll-snap-align: start;
 
   :deep(.dropdown-button) {
     border: none;

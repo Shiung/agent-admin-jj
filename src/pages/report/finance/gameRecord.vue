@@ -62,9 +62,6 @@ const initTimeRange = () => {
 
 const selectTimeRange = ref(initTimeRange())
 
-// Calendar 打开状态（用于禁用下拉刷新）
-const showCalendar = ref(false)
-
 // 获取时间戳范围（用于 API 调用）
 const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
@@ -89,13 +86,11 @@ const sortMap: Record<string, string> = {
 }
 
 // 加载数据
-const loading = ref(true) // 初始为 true，避免进入页面时先显示空状态
-const fetchFinanceDetail = async (isRefreshing = false) => {
+const loading = ref(false)
+const finished = ref(true) // 默认 true，因为这个页面不需要分页加载
+const fetchFinanceDetail = async () => {
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
-    // 下拉刷新时不显示 loading（顶部已有刷新动画）
-    if (!isRefreshing) {
-      loading.value = true
-    }
     const { BeginTime, EndTime } = getTimeRange()
     const response = await apis.report.getReportCenterFinanceDetail({
       BeginTime,
@@ -118,9 +113,7 @@ const fetchFinanceDetail = async (isRefreshing = false) => {
       position: 'bottom',
     })
   } finally {
-    if (!isRefreshing) {
-      loading.value = false
-    }
+    loadingToast.close()
   }
 }
 
@@ -161,7 +154,7 @@ const gameList = computed(() => {
 // 下拉刷新
 const refreshing = ref(false)
 const onRefresh = async () => {
-  await fetchFinanceDetail(true) // 传入 true 表示是下拉刷新
+  await fetchFinanceDetail()
   refreshing.value = false
 }
 
@@ -179,19 +172,6 @@ watch(sortType, () => {
 onMounted(() => {
   fetchFinanceDetail()
 })
-
-import { useSticky } from '@/composables/useSticky'
-
-const containerRef = ref<HTMLElement | null>(null)
-
-const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
-  containerRef,
-  tabQueryIndex: 'none', // 此页面不基于 tab 显示，给一个不会匹配的值
-  stickyTop: 44 // 吸顶时距离顶部的距离
-})
-
-// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
-const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
 
 // 返回
 const handleBack = () => {
@@ -227,7 +207,7 @@ const handleGameClick = (gameData: any) => {
 </script>
 
 <template>
-  <div class="game-record-container" ref="containerRef">
+  <div class="game-record-container">
     <!-- 头部导航 -->
     <div class="fixed-header">
       <div class="flex items-center justify-between h-11 px-3 bg-white">
@@ -251,87 +231,81 @@ const handleGameClick = (gameData: any) => {
       </div>
     </div>
 
-    <!-- 下拉刷新容器 -->
-    <van-pull-refresh
-      v-model="refreshing"
-      :disabled="disablePullRefresh"
-      @refresh="onRefresh"
-      class="game-record-pull-refresh"
-    >
-      <!-- 游戏记录总计卡片 -->
-      <div class="px-3 py-2 pt-[56px]">
-        <FinanceCard
-          class="shadow-sm"
-          title=""
-          :show-arrow="false"
-          :show-background-color="false"
-          :data="[
-            [
-              { label: '总盈利', value: gameRecordData.totalProfit, isMoney: true },
-              { label: '场馆费', value: formatMoneyWithCommas(gameRecordData.venueFee, 2, true) }
-            ],
-            [
-              { label: '投注金额', value: formatMoneyWithCommas(gameRecordData.betAmount, 2, true) },
-              { label: '有效投注', value: formatMoneyWithCommas(gameRecordData.validBet, 2, true) }
-            ]
-          ]"
+    <!-- 游戏记录总计卡片 -->
+    <div class="px-3 py-2 pt-[56px]">
+      <FinanceCard
+        class="shadow-sm"
+        title=""
+        :show-arrow="false"
+        :show-background-color="false"
+        :data="[
+          [
+            { label: '总盈利', value: gameRecordData.totalProfit, isMoney: true },
+            { label: '场馆费', value: formatMoneyWithCommas(gameRecordData.venueFee, 2, true) }
+          ],
+          [
+            { label: '投注金额', value: formatMoneyWithCommas(gameRecordData.betAmount, 2, true) },
+            { label: '有效投注', value: formatMoneyWithCommas(gameRecordData.validBet, 2, true) }
+          ]
+        ]"
+      />
+    </div>
+
+    <!-- 筛选器 -->
+    <div class="px-3 py-2">
+      <div class="flex items-center gap-2 overflow-auto">
+        <!-- 结算时间 -->
+        <TimeFilterDropdown
+          v-model="selectTimeRange"
+          title="结算时间"
+          height="1.5rem"
         />
-      </div>
 
-      <!-- 筛选器（sticky 固定） -->
-      <div>
-        <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
-        <div class="sticky-filter-bar px-3 py-2" :class="{ 'is-fixed': isFilterBarFixed }">
-          <div class="filter-scroll-container">
-            <!-- 结算时间 -->
-            <TimeFilterDropdown
-              v-model="selectTimeRange"
-              v-model:show-calendar="showCalendar"
-              title="结算时间"
-              height="1.5rem"
-            />
-
-            <!-- 排序方式 -->
-            <div class="filter-dropdown">
-              <Filled
-                v-model="sortType"
-                :options="sortOptions"
-                height="1.5rem"
-              />
-            </div>
-          </div>
+        <!-- 排序方式 -->
+        <div class="filter-dropdown">
+          <Filled
+            v-model="sortType"
+            :options="sortOptions"
+            height="1.5rem"
+          />
         </div>
       </div>
+    </div>
 
-      <!-- Loading 状态 -->
-      <div v-if="loading" class="game-list-loading">
-        <van-loading size="32px" vertical>
-          <template #default>加载中...</template>
-        </van-loading>
-      </div>
+    <!-- 游戏列表 -->
+    <div class="listContainer mt-2 px-3 pb-2">
+      <van-pull-refresh
+        v-model="refreshing"
+        :style="[!financeDetailData || gameList.length === 0 && !loading && { height: '100%' }]"
+        @refresh="onRefresh"
+      >
+        <van-list
+          v-if="financeDetailData && gameList.length > 0"
+          v-model:loading="loading"
+          class="flex flex-col gap-3"
+          :finished="finished"
+          :immediate-check="false"
+          :finished-text="gameList.length > 0 ? '没有更多了' : ''"
+          @load="() => {}"
+        >
+          <FinanceCard
+            v-for="game in gameList"
+            :key="game.id"
+            :title="game.name"
+            :data="game.data"
+            @click="handleGameClick(game)"
+          />
+        </van-list>
 
-      <!-- 空状态 -->
-      <div v-else-if="!financeDetailData || gameList.length === 0" :style="{ minHeight: 'calc(100vh - 306px)' }" class="flex-1 flex items-center">
-        <empty />
-      </div>
-
-      <!-- 游戏列表 -->
-      <div v-else class="game-list-container">
-        <FinanceCard
-          v-for="game in gameList"
-          :key="game.id"
-          :title="game.name"
-          :data="game.data"
-          @click="handleGameClick(game)"
-        />
-      </div>
-    </van-pull-refresh>
+        <empty v-if="!financeDetailData || gameList.length === 0 && !loading && finished" />
+      </van-pull-refresh>
+    </div>
   </div>
 </template>
 <style lang="scss" scoped>
 .game-record-container {
   background-color: white;
-  padding-bottom: 2rem; /* 增加底部内边距，避免内容被遮挡 */
+  min-height: 100vh;
 }
 
 /* Header 固定在顶部 */
@@ -344,74 +318,15 @@ const handleGameClick = (gameData: any) => {
   background-color: white;
 }
 
-.game-record-pull-refresh {
-  /* 移除內部滾動容器樣式 */
-  :deep(.van-pull-refresh__track) {
-    overflow: visible !important;
-  }
-  :deep(.van-pull-refresh__head) {
-    top: 44px;
-  }
-}
-
-/* 筛选栏固定 */
-.sticky-filter-bar {
-  position: relative;
-  z-index: 10;
-  background-color: white;
-  transition: all 0.3s;
-
-  &.is-fixed {
-    position: fixed;
-    top: 44px; /* Header 高度 h-11 = 44px */
-    left: 0;
-    width: 100%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-}
-
-/* 用於吸頂定位的佔位元素 */
-.filter-bar-placeholder {
-  /* 高度由JS動態設定 */
-}
-
-.game-list-container {
-  flex: 1;
-  margin-top: 8px;
-  padding: 0 0.75rem;
-  padding-bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 2rem);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Loading 状态 */
-.game-list-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
-}
-
-/* 筛选器横向滚动容器 */
-.filter-scroll-container {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-
-  &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
-  }
+/* 列表容器 */
+.listContainer {
+  height: calc(100vh - calc(var(--spacing) * 50));
+  overflow: auto;
 }
 
 /* 筛选器 Dropdown 样式 */
 .filter-dropdown {
   flex: none;
-  scroll-snap-align: start;
 
   :deep(.dropdown-button) {
     border: none;

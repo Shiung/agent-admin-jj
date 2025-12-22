@@ -120,10 +120,10 @@ const teamPagination = ref({
   total: 0
 })
 
-// 加载状态
-const loadingPersonalData = ref(false) // 个人视图加载状态
-const loadingSubordinateList = ref(false) // 下级视图加载状态
-const loadingTeamList = ref(false) // 团队视图加载状态
+// 加载状态（始终为 false，因为使用 showLoadingToast 代替）
+const loadingPersonalData = ref(false)
+const loadingSubordinateList = ref(false)
+const loadingTeamList = ref(false)
 
 // 记录各视图是否已加载数据（用于避免重复请求）
 const viewDataLoaded = ref({
@@ -134,12 +134,10 @@ const viewDataLoaded = ref({
 
 // 获取佣金数据（完整数据，传递给子组件使用）
 const fetchCommissionData = async (skipLoading = false) => {
-  try {
-    // 如果不是跳过 loading（比如下拉刷新时），则显示 loading
-    if (!skipLoading) {
-      loadingPersonalData.value = true
-    }
+  // 如果不是跳过 loading（比如下拉刷新时），则显示 loading toast
+  const loadingToast = !skipLoading ? showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 }) : null
 
+  try {
     const res = await API.report.getReportCenterCommission({
       ReportMonth: selectedDate.value,
     } as any)
@@ -173,20 +171,16 @@ const fetchCommissionData = async (skipLoading = false) => {
     // 請求異常時也清空，避免殘留舊資料
     commissionData.value = null
   } finally {
-    if (!skipLoading) {
-      loadingPersonalData.value = false
-    }
+    loadingToast?.close()
   }
 }
 
 // 获取下级代理列表数据
 const fetchSubordinateAgentList = async (skipLoading = false) => {
-  try {
-    // 如果不是跳过 loading（比如下拉刷新时），则显示 loading
-    if (!skipLoading) {
-      loadingSubordinateList.value = true
-    }
+  // 如果不是跳过 loading（比如下拉刷新时），则显示 loading toast
+  const loadingToast = !skipLoading ? showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 }) : null
 
+  try {
     // 映射发放状态（-1:未发放, 0:全部, 1:已发放, 2:已拒绝）
     const settlementStatusMap: Record<string, number> = {
       '全部状态': 0,
@@ -244,20 +238,16 @@ const fetchSubordinateAgentList = async (skipLoading = false) => {
   } catch (error) {
     console.error('获取下级代理列表失败:', error)
   } finally {
-    if (!skipLoading) {
-      loadingSubordinateList.value = false
-    }
+    loadingToast?.close()
   }
 }
 
 // 获取团队成员列表数据
 const fetchTeamAgentList = async (skipLoading = false) => {
-  try {
-    // 如果不是跳过 loading（比如下拉刷新时），则显示 loading
-    if (!skipLoading) {
-      loadingTeamList.value = true
-    }
+  // 如果不是跳过 loading（比如下拉刷新时），则显示 loading toast
+  const loadingToast = !skipLoading ? showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 }) : null
 
+  try {
     const res = await API.report.getReportCenterCommissionTeam({
       ReportMonth: selectedDate.value,
       Page: teamPagination.value.currPage,
@@ -286,9 +276,7 @@ const fetchTeamAgentList = async (skipLoading = false) => {
   } catch (error) {
     console.error('获取团队成员列表失败:', error)
   } finally {
-    if (!skipLoading) {
-      loadingTeamList.value = false
-    }
+    loadingToast?.close()
   }
 }
 
