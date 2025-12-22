@@ -8,25 +8,49 @@ import { formatMoneyWithComma } from '@/utils/formatNumber'
 declare const __APP_VERSION__: string
 const APP_VERSION = `v${__APP_VERSION__}`
 
-// 常用功能
-const SHORTCUTS = [
-  {
-    key: 'fundDetail',
-    title: '资金明细',
-  },
-  {
-    key: 'agentDeposit',
-    title: '代理代存',
-  },
-  {
-    key: 'agentTransfer',
-    title: '代理转账',
-  },
-  {
+const router = useRouter()
+const userStore = useUserStore()
+
+const {
+  userInfo,
+  accountInfo,
+  commissionWalletBalance,
+  creditWalletBalance,
+  isSingleAgent,
+  hasTeam,
+  isMainLine,
+} = storeToRefs(userStore)
+
+// 常用功能（动态生成）
+const SHORTCUTS = computed(() => {
+  const items = [
+    {
+      key: 'fundDetail',
+      title: '资金明细',
+    },
+    {
+      key: 'agentDeposit',
+      title: '代理代存',
+    },
+  ]
+
+  // 代理转账：仅团队主线代理与多层代理会显示该功能
+  const showAgentTransfer = (isSingleAgent.value && hasTeam.value && isMainLine.value) || !isSingleAgent.value
+
+  if (showAgentTransfer) {
+    items.push({
+      key: 'agentTransfer',
+      title: '代理转账',
+    })
+  }
+
+  items.push({
     key: 'commissionQuota',
     title: '佣金转额度',
-  },
-]
+  })
+
+  return items
+})
 
 // 設置列表
 const MENUS = [
@@ -56,16 +80,6 @@ const MENUS = [
     isVersion: true,
   },
 ]
-
-const router = useRouter()
-const userStore = useUserStore()
-
-const {
-  userInfo,
-  accountInfo,
-  commissionWalletBalance,
-  creditWalletBalance,
-} = storeToRefs(userStore)
 
 const agentAccount = computed(() => userInfo.value?.Admin?.Username || '')
 

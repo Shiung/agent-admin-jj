@@ -37,9 +37,6 @@ const initTimeRange = () => {
 
 const selectTimeRange = ref(initTimeRange())
 
-// Calendar 打开状态（用于禁用下拉刷新）
-const showCalendar = ref(false)
-
 const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
     BeginTime: selectTimeRange.value.startTime,
@@ -201,11 +198,9 @@ const fetchFeeTotal = async () => {
 }
 
 // 获取充值手续费记录
-const fetchPayRecords = async (isRefreshing = false) => {
+const fetchPayRecords = async () => {
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
-    if (!isRefreshing) {
-      loading.value = true
-    }
     const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getPayRecords({
@@ -232,18 +227,14 @@ const fetchPayRecords = async (isRefreshing = false) => {
       position: 'bottom',
     })
   } finally {
-    if (!isRefreshing) {
-      loading.value = false
-    }
+    loadingToast.close()
   }
 }
 
 // 获取提现手续费记录
-const fetchWithdrawRecords = async (isRefreshing = false) => {
+const fetchWithdrawRecords = async () => {
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
-    if (!isRefreshing) {
-      loading.value = true
-    }
     const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getWithdrawRecords({
@@ -270,41 +261,30 @@ const fetchWithdrawRecords = async (isRefreshing = false) => {
       position: 'bottom',
     })
   } finally {
-    if (!isRefreshing) {
-      loading.value = false
-    }
+    loadingToast.close()
   }
 }
 
 // 获取当前Tab的列表
-const fetchCurrentList = async (isRefreshing = false) => {
+const fetchCurrentList = async () => {
   if (activeTab.value === 0) {
-    await fetchPayRecords(isRefreshing)
+    await fetchPayRecords()
   } else {
-    await fetchWithdrawRecords(isRefreshing)
+    await fetchWithdrawRecords()
   }
 }
 
-// 下拉刷新
+// Pagination and Loading
+const loading = ref(false)
+const finished = ref(true) // 默认 true，因为这个页面不需要分页加载
 const refreshing = ref(false)
+
+// 下拉刷新
 const onRefresh = async () => {
   currentPage.value = 1
-  await Promise.all([fetchFeeTotal(), fetchCurrentList(true)])
+  await Promise.all([fetchFeeTotal(), fetchCurrentList()])
   refreshing.value = false
 }
-
-import { useSticky } from '@/composables/useSticky'
-
-const containerRef = ref<HTMLElement | null>(null)
-
-const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
-  containerRef,
-  tabQueryIndex: 'none', // 此页面不基于 tab 显示
-  stickyTop: 44 // 吸顶时距离顶部的距离
-})
-
-// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
-const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
 
 // 返回
 const handleBack = () => {
@@ -355,7 +335,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="fee-record-container" ref="containerRef">
+  <div class="fee-record-container">
     <!-- 头部导航 -->
     <div class="fixed-header">
        <div class="flex items-center justify-between h-11 px-3 bg-white">
@@ -365,107 +345,102 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- 下拉刷新容器 -->
-    <van-pull-refresh
-      v-model="refreshing"
-      :disabled="disablePullRefresh"
-      @refresh="onRefresh"
-      class="deposit-withdraw-pull-refresh"
-    >
-      <!-- 手续费总计卡片 -->
-      <div class="px-3 py-2 pt-[56px]">
-        <FinanceCard
-          class="shadow-sm"
-          title=""
-          :show-arrow="false"
-          :show-background-color="false"
-          :data="feeSummaryData"
+    <!-- 手续费总计卡片 -->
+    <div class="px-3 py-2 pt-[56px]">
+      <FinanceCard
+        class="shadow-sm"
+        title=""
+        :show-arrow="false"
+        :show-background-color="false"
+        :data="feeSummaryData"
+      />
+    </div>
+
+    <!-- Tabs + 搜索和筛选器 -->
+    <div class="px-3 py-2 space-y-3">
+      <!-- Tabs 切换 -->
+      <van-tabs
+        v-model:active="activeTab"
+        color="var(--color-primary-normal)"
+        title-active-color="var(--color-white)"
+        title-inactive-color="var(--color-neutral-secondary)"
+        type="card"
+      >
+        <van-tab v-for="(tab, index) in tabs" :key="index" :title="tab" />
+      </van-tabs>
+
+      <!-- 会员账号搜索框 -->
+      <van-search
+        v-model="searchKeyword"
+        placeholder="会员账号"
+        shape="round"
+        background="transparent"
+        clearable
+        left-icon=""
+        @search="handleSearch"
+        @keyup.enter="handleSearch"
+      >
+        <template #right-icon>
+          <van-icon name="search" size="18" @click="handleSearch" />
+        </template>
+      </van-search>
+
+      <!-- 筛选条件行 -->
+      <div class="flex items-center gap-2 overflow-auto">
+        <!-- 账变时间 -->
+        <TimeFilterDropdown
+          v-model="selectTimeRange"
+          title="账变时间"
+          height="1.5rem"
         />
-      </div>
-     <!-- Tabs + 搜索和筛选器（sticky 固定） -->
-      <div>
-        <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
-        <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
-          <!-- Tabs 切换 -->
-          <van-tabs
-            v-model:active="activeTab"
-            color="var(--color-primary-normal)"
-            title-active-color="var(--color-white)"
-            title-inactive-color="var(--color-neutral-secondary)"
-            type="card"
-          >
-            <van-tab v-for="(tab, index) in tabs" :key="index" :title="tab" />
-          </van-tabs>
 
-          <!-- 会员账号搜索框 -->
-          <van-search
-            v-model="searchKeyword"
-            placeholder="会员账号"
-            shape="round"
-            background="transparent"
-            clearable
-            left-icon=""
-            @search="handleSearch"
-            @keyup.enter="handleSearch"
-          >
-            <template #right-icon>
-              <van-icon name="search" size="18" @click="handleSearch" />
-            </template>
-          </van-search>
-
-          <!-- 筛选条件行 -->
-          <div class="filter-scroll-container">
-            <!-- 账变时间 -->
-            <TimeFilterDropdown
-              v-model="selectTimeRange"
-              v-model:show-calendar="showCalendar"
-              title="账变时间"
-              height="1.5rem"
-            />
-
-            <!-- 排序方式 -->
-            <div class="filter-dropdown">
-              <Filled
-                v-model="sortType"
-                :options="sortOptions"
-                height="1.5rem"
-              />
-            </div>
-          </div>
+        <!-- 排序方式 -->
+        <div class="filter-dropdown">
+          <Filled
+            v-model="sortType"
+            :options="sortOptions"
+            height="1.5rem"
+          />
         </div>
       </div>
+    </div>
 
-      <!-- Loading 状态 -->
-      <div v-if="loading" class="record-list-loading">
-        <van-loading size="32px" vertical>
-          <template #default>加载中...</template>
-        </van-loading>
-      </div>
+    <!-- 手续费记录列表 -->
+    <div class="listContainer mt-2 px-3 pb-2">
+      <van-pull-refresh
+        v-model="refreshing"
+        :style="[currentList.length === 0 && !loading && { height: '100%' }]"
+        @refresh="onRefresh"
+      >
+        <van-list
+          v-if="currentList.length > 0"
+          v-model:loading="loading"
+          class="flex flex-col gap-2"
+          :finished="finished"
+          :immediate-check="false"
+          :finished-text="currentList.length > 0 ? '没有更多了' : ''"
+          @load="() => {}"
+        >
+          <DepositWithdrawCard
+            v-for="(order, index) in currentList"
+            :is-deposit-withdraw-fee="true"
+            :key="index"
+            :record="order"
+            :type="currentType"
+            @click="handleOrderClick(order)"
+          />
+        </van-list>
 
-      <!-- 空状态 -->
-      <div v-else-if="currentList.length === 0" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
-        <empty />
-      </div>
-
-      <!-- 手续费记录列表 -->
-      <div v-else class="record-list-container">
-        <DepositWithdrawCard
-          v-for="(order, index) in currentList"
-          :is-deposit-withdraw-fee="true"
-          :key="index"
-          :record="order"
-          :type="currentType"
-          @click="handleOrderClick(order)"
-        />
-      </div>
-    </van-pull-refresh>
+        <empty v-if="currentList.length === 0 && !loading && finished" />
+      </van-pull-refresh>
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.deposit-withdraw-container {
+.fee-record-container {
   background-color: white;
-  padding-bottom: 2rem;
+  min-height: 100vh;
 }
 
 /* Header 固定在顶部 */
@@ -478,78 +453,35 @@ onMounted(async () => {
   background-color: white;
 }
 
-.deposit-withdraw-pull-refresh {
-  :deep(.van-pull-refresh__track) {
-    overflow: visible !important;
+/* 列表容器 */
+.listContainer {
+  height: calc(100vh - calc(var(--spacing) * 60));
+  overflow: auto;
+}
+
+/* 自定义 van-tabs 样式 */
+:deep(.van-tabs) {
+  --van-tabs-card-height: 48px;
+  --van-padding-md: 0rem;
+  --van-radius-sm: 6.25rem;
+
+  .van-tabs__nav.van-tabs__nav--card {
+    padding: 0.1875rem;
+    border-color: var(--color-neutral2-seventh) !important;
   }
-  :deep(.van-pull-refresh__head) {
-    top: 44px;
+
+  .van-tab--card {
+    border-right: none;
+  }
+
+  .van-tab.van-tab--card.van-tab--active {
+    border-radius: var(--van-radius-sm);
   }
 }
 
-/* 筛选栏固定 */
-.sticky-filter-bar {
-  position: relative;
-  z-index: 10;
-  background-color: white;
-  transition: all 0.3s;
-
-  &.is-fixed {
-    position: fixed;
-    top: 44px; /* Header 高度 (h-11 + info-tip) */
-    left: 0;
-    width: 100%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  /* 自定义 van-tabs 样式 */
-  :deep(.van-tabs) {
-    --van-tabs-card-height: 48px;
-    --van-padding-md: 0rem;
-    --van-radius-sm: 6.25rem;
-
-    .van-tabs__nav.van-tabs__nav--card {
-      padding: 0.1875rem;
-      border-color: var(--color-neutral2-seventh) !important;
-    }
-
-    .van-tab--card {
-      border-right: none;
-    }
-
-    .van-tab.van-tab--card.van-tab--active {
-      border-radius: var(--van-radius-sm);
-    }
-  }
-
-  :deep(.van-tab) {
-    font-size: 15px;
-    font-weight: 400;
-  }
-}
-
-/* 用於吸頂定位的佔位元素 */
-.filter-bar-placeholder {
-  /* 高度由JS動態設定 */
-}
-
-/* Loading 状态 */
-.record-list-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
-}
-
-.record-list-container {
-  flex: 1;
-  margin-top: 8px;
-  padding: 0 0.75rem;
-  padding-bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 2rem);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+:deep(.van-tab) {
+  font-size: 15px;
+  font-weight: 400;
 }
 
 /* 自定义 van-search 样式 */
@@ -590,49 +522,9 @@ onMounted(async () => {
   }
 }
 
-/* 提示信息 */
-.info-tip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background-color: var(--color-bg-floor-1-2);
-  border-radius: 20px;
-  height: 40px;
-  padding: 8px 12px;
-}
-
-.tip-icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  object-fit: contain;
-}
-
-.tip-text {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--color-primary-normal);
-  line-height: 1.5;
-}
-
-/* 筛选器横向滚动容器 */
-.filter-scroll-container {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
 /* 筛选器 Dropdown 样式 */
 .filter-dropdown {
   flex: none;
-  scroll-snap-align: start;
 
   :deep(.dropdown-button) {
     border: none;

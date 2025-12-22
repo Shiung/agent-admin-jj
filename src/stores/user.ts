@@ -159,6 +159,8 @@ export const useUserStore = defineStore('user', () => {
 
   // 同时获取佣金和额度余额及限额信息（便捷方法）
   const fetchUserBalancesAndLimits = async () => {
+    const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+
     try {
       await Promise.all([
         fetchCommissionBalance(),
@@ -166,6 +168,8 @@ export const useUserStore = defineStore('user', () => {
       ])
     } catch (error) {
       console.error("Failed to fetch user balances and limits:", error)
+    } finally {
+      loadingToast.close()
     }
   }
 

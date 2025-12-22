@@ -27,15 +27,6 @@ const gameType = computed(() => route.query.gameType as string || '-')
 // 游戏注单数据
 const gameDetailData = ref<GameDetailData | null>(null)
 
-// Sticky header logic
-const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
-  containerRef,
-  tabQueryIndex: 'none', // This page is not controlled by a tab query
-  stickyTop: 84 // Height of the fixed header
-})
-
-// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
-const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
 
 // 游戏数据汇总
 const gameData = computed(() => {
@@ -79,9 +70,6 @@ const initTimeRange = () => {
 
 const selectTimeRange = ref(initTimeRange())
 
-// Calendar 打开状态（用于禁用下拉刷新）
-const showCalendar = ref(false)
-
 const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
     BeginTime: selectTimeRange.value.startTime,
@@ -114,13 +102,11 @@ const sortMap: Record<string, string> = {
 }
 
 // 加载数据
-const loading = ref(true) // 初始为 true，避免进入页面时先显示空状态
-const fetchGameDetail = async (isRefreshing = false) => {
+const loading = ref(false)
+const finished = ref(true) // 默认 true，因为这个页面不需要分页加载
+const fetchGameDetail = async () => {
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
-    // 下拉刷新时不显示 loading（顶部已有刷新动画）
-    if (!isRefreshing) {
-      loading.value = true
-    }
     const { BeginTime, EndTime } = getTimeRange()
 
     const response = await apis.admin.getGameDetail({
@@ -150,9 +136,7 @@ const fetchGameDetail = async (isRefreshing = false) => {
       position: 'bottom',
     })
   } finally {
-    if (!isRefreshing) {
-      loading.value = false
-    }
+    loadingToast.close()
   }
 }
 
@@ -197,7 +181,7 @@ const sortOptions = [
 const refreshing = ref(false)
 const onRefresh = async () => {
   currentPage.value = 1 // 重置到第一页
-  await fetchGameDetail(true) // 传入 true 表示是下拉刷新
+  await fetchGameDetail()
   refreshing.value = false
 }
 
@@ -245,7 +229,7 @@ const handleOrderClick = (order: any) => {
 </script>
 
 <template>
-  <div class="game-order-container" ref="containerRef">
+  <div class="game-order-container">
     <!-- 头部导航 -->
     <div class="fixed-header">
       <div class="flex items-center justify-between h-11 px-3 bg-white">
@@ -262,105 +246,100 @@ const handleOrderClick = (order: any) => {
       </div>
     </div>
 
-    <!-- 下拉刷新容器 -->
-    <van-pull-refresh
-      v-model="refreshing"
-      :disabled="disablePullRefresh"
-      @refresh="onRefresh"
-      class="game-order-pull-refresh"
-    >
-      <!-- 总计卡片 -->
-      <div class="px-3 py-2 pt-[94px]">
-        <FinanceCard
-          class="shadow-sm"
-          title=""
-          :show-arrow="false"
-          :show-background-color="false"
-          :data="[
-            [
-              { label: '总盈利', value: gameData.totalProfit, isMoney: true },
-              { label: '场馆费', value: formatMoneyWithCommas(gameData.venueFee, 2, true) }
-            ],
-            [
-              { label: '投注金额', value: formatMoneyWithCommas(gameData.betAmount, 2, true) },
-              { label: '有效投注', value: formatMoneyWithCommas(gameData.validBet, 2, true) }
-            ]
-          ]"
+    <!-- 总计卡片 -->
+    <div class="px-3 py-2 pt-[94px]">
+      <FinanceCard
+        class="shadow-sm"
+        title=""
+        :show-arrow="false"
+        :show-background-color="false"
+        :data="[
+          [
+            { label: '总盈利', value: gameData.totalProfit, isMoney: true },
+            { label: '场馆费', value: formatMoneyWithCommas(gameData.venueFee, 2, true) }
+          ],
+          [
+            { label: '投注金额', value: formatMoneyWithCommas(gameData.betAmount, 2, true) },
+            { label: '有效投注', value: formatMoneyWithCommas(gameData.validBet, 2, true) }
+          ]
+        ]"
+      />
+    </div>
+
+    <!-- 搜索和筛选器 -->
+    <div class="px-3 py-2 space-y-3">
+      <!-- 会员账号搜索框 -->
+      <van-search
+        v-model="searchKeyword"
+        placeholder="会员账号"
+        shape="round"
+        background="transparent"
+        clearable
+        left-icon=""
+        @search="handleSearch"
+        @keyup.enter="handleSearch"
+      >
+        <template #right-icon>
+          <van-icon name="search" size="18" @click="handleSearch" />
+        </template>
+      </van-search>
+
+      <!-- 筛选条件行 -->
+      <div class="flex items-center gap-2 overflow-auto">
+        <!-- 结算时间 -->
+        <TimeFilterDropdown
+          v-model="selectTimeRange"
+          title="结算时间"
+          height="1.5rem"
         />
-      </div>
 
-      <!-- 搜索和筛选器（sticky 固定） -->
-      <div>
-        <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
-        <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
-          <!-- 会员账号搜索框 -->
-          <van-search
-            v-model="searchKeyword"
-            placeholder="会员账号"
-            shape="round"
-            background="transparent"
-            clearable
-            left-icon=""
-            @search="handleSearch"
-            @keyup.enter="handleSearch"
-          >
-            <template #right-icon>
-              <van-icon name="search" size="18" @click="handleSearch" />
-            </template>
-          </van-search>
+        <!-- 状态筛选 -->
+         <div class="filter-dropdown">
+        <Filled
+          v-model="statusFilter"
+          :options="statusOptions"
+          height="1.5rem"
+        />
+        </div>
 
-          <!-- 筛选条件行 -->
-          <div class="filter-scroll-container">
-            <!-- 结算时间 -->
-            <TimeFilterDropdown
-              v-model="selectTimeRange"
-              title="结算时间"
-              height="1.5rem"
-            />
-
-            <!-- 状态筛选 -->
-             <div class="filter-dropdown">
-            <Filled
-              v-model="statusFilter"
-              :options="statusOptions"
-              height="1.5rem"
-            />
-            </div>
-
-            <!-- 排序方式 -->
-            <div class="filter-dropdown">
-            <Filled
-              v-model="sortType"
-              :options="sortOptions"
-              height="1.5rem"
-            />
-            </div>
-          </div>
+        <!-- 排序方式 -->
+        <div class="filter-dropdown">
+        <Filled
+          v-model="sortType"
+          :options="sortOptions"
+          height="1.5rem"
+        />
         </div>
       </div>
+    </div>
 
-      <!-- Loading 状态 -->
-      <div v-if="loading" class="order-list-loading">
-        <van-loading size="32px" vertical>
-          <template #default>加载中...</template>
-        </van-loading>
-      </div>
+    <!-- 订单列表 -->
+    <div class="listContainer mt-2 px-3 pb-2">
+      <van-pull-refresh
+        v-model="refreshing"
+        :style="[!gameDetailData || orderList.length === 0 && !loading && { height: '100%' }]"
+        @refresh="onRefresh"
+      >
+        <van-list
+          v-if="gameDetailData && orderList.length > 0"
+          v-model:loading="loading"
+          class="flex flex-col gap-3"
+          :finished="finished"
+          :immediate-check="false"
+          :finished-text="orderList.length > 0 ? '没有更多了' : ''"
+          @load="() => {}"
+        >
+          <OrderCard
+            v-for="(order, index) in orderList"
+            :key="index"
+            :order="order"
+            @click="handleOrderClick(order)"
+          />
+        </van-list>
 
-      <!-- 空状态 -->
-      <div v-else-if="!gameDetailData || orderList.length === 0" :style="{ minHeight: 'calc(100vh - 346px)' }" class="flex-1 flex items-center">
-        <empty />
-      </div>
-
-      <!-- 订单列表 -->
-      <div v-else class="order-list-container">
-        <OrderCard
-          v-for="(order, index) in orderList"
-          :key="index"
-          :order="order"
-          @click="handleOrderClick(order)"
-        />
-      </div>
-    </van-pull-refresh>
+        <empty v-if="!gameDetailData || orderList.length === 0 && !loading && finished" />
+      </van-pull-refresh>
+    </div>
 
     <!-- 订单详情弹窗 -->
     <OrderDetailSheet
@@ -373,7 +352,7 @@ const handleOrderClick = (order: any) => {
 <style lang="scss" scoped>
 .game-order-container {
   background-color: white;
-  padding-bottom: 2rem;
+  min-height: 100vh;
 }
 
 /* Header 固定在顶部 */
@@ -386,53 +365,10 @@ const handleOrderClick = (order: any) => {
   background-color: white;
 }
 
-.game-order-pull-refresh {
-  :deep(.van-pull-refresh__track) {
-    overflow: visible !important;
-  }
-  :deep(.van-pull-refresh__head) {
-    top: 92px;
-  }
-}
-
-/* 筛选栏固定 */
-.sticky-filter-bar {
-  position: relative;
-  z-index: 10;
-  background-color: white;
-  transition: all 0.3s;
-
-  &.is-fixed {
-    position: fixed;
-    top: 84px; /* Header 高度 (h-11 + info-tip) */
-    left: 0;
-    width: 100%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-}
-
-/* 用於吸頂定位的佔位元素 */
-.filter-bar-placeholder {
-  /* 高度由JS動態設定 */
-}
-
-.order-list-container {
-  flex: 1;
-  margin-top: 8px;
-  padding: 0 0.75rem;
-  padding-bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 2rem);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Loading 状态 */
-.order-list-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 60px 0;
-  min-height: 300px;
+/* 列表容器 */
+.listContainer {
+  height: calc(100vh - calc(var(--spacing) * 70));
+  overflow: auto;
 }
 
 /* 自定义 van-search 样式 */
@@ -502,24 +438,9 @@ const handleOrderClick = (order: any) => {
   line-height: 1.5;
 }
 
-/* 筛选器横向滚动容器 */
-.filter-scroll-container {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; /* Firefox */
-
-  &::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Edge */
-  }
-}
-
 /* 筛选器 Dropdown 样式 */
 .filter-dropdown {
   flex: none;
-  scroll-snap-align: start;
 
   :deep(.dropdown-button) {
     border: none;
@@ -544,5 +465,4 @@ const handleOrderClick = (order: any) => {
     margin-left: 0;
   }
 }
-
 </style>

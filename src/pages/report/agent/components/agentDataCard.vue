@@ -61,7 +61,7 @@ const reportType = defineModel<number>('reportType', { default: 0 })  // 0: 月�
           class="data-item"
         >
           <span class="data-label">{{ item.label }}</span>
-          <span class="data-value" :class="{ 'highlight': item.highlight }">{{ item.value }}</span>
+          <span :class="{'data-value': true, [item.totalProfitTextColor]: true,  'highlight': item.highlight, 'normal': item.normal, 'negative': item.negative }">{{ item.value }}</span>
         </div>
       </div>
     </div>
@@ -139,12 +139,20 @@ const reportType = defineModel<number>('reportType', { default: 0 })  // 0: 月�
 .data-value {
   font-size: 14px;
   font-weight: 600;
-  color: var(--color-neutral-basic);
+  /* color: var(--color-neutral-basic); */
 }
 
 .data-value.highlight {
   color: var(--color-error-normal);
   font-weight: 600;
+}
+
+.data-value.normal {
+  color: var(--color-neutral-basic);
+}
+
+.data-value.negative {
+  color: var(--color-success-normal);
 }
 
 /* 月报/日报 tab */
