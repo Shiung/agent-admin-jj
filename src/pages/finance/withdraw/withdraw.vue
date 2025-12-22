@@ -19,12 +19,18 @@ const router = useRouter()
 const walletTypeInfo = computed(() => {
   const data = selectPayTypeItem.value
   const isQuotaWithdraw = router.currentRoute.value.name === 'quotaWithdraw'
-  const info = {
-    title: isQuotaWithdraw ? '额度' : '佣金',
-    type: isQuotaWithdraw ? 2 : 1,
-    maxDailyAmount: isQuotaWithdraw ? data?.MaxDailyQuotaAmount : data?.MaxDailyAmount
+  if (isQuotaWithdraw) {
+    return {
+      title: '额度',
+      type: 2,
+      maxDailyAmount: data?.MaxDailyQuotaAmount
+    }
   }
-  return info
+  return {
+    title: '佣金',
+    type: 1,
+    maxDailyAmount: data?.MaxDailyAmount
+  }
 })
 /** 選中的提現方式 */
 const selectPayTypeItem = ref<ListItem | null>(null)
