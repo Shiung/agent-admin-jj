@@ -230,10 +230,10 @@ const sortOptions = computed(() => {
 const sortMap: Record<string, string> = {
   '账变时间降序': '-finish_time',
   '账变时间升序': 'finish_time',
-  '充值金额降序': '-real_amount',
-  '充值金额升序': 'real_amount',
-  '提现金额降序': '-real_amount',
-  '提现金额升序': 'real_amount'
+  '充值金额降序': '-amount',
+  '充值金额升序': 'amount',
+  '提现金额降序': '-amount',
+  '提现金额升序': 'amount'
 }
 
 // 订单列表原始数据
