@@ -26,7 +26,7 @@ const loading = ref(false)
 const finished = ref(false)
 const refreshing = ref(false)
 const currentPage = ref(1)
-const pageSize = 10
+const pageSize = 20
 const totalCount = ref(0)
 
 // Error Handling
@@ -56,9 +56,6 @@ const initTimeRange = () => {
 }
 
 const selectTimeRange = ref(initTimeRange())
-
-// Calendar 打开状态（用于禁用下拉刷新）
-const showCalendar = ref(false)
 
 const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
@@ -91,20 +88,6 @@ const currentSortType = computed(() => {
       return '-send_time'
   }
 })
-
-
-import { useSticky } from '@/composables/useSticky'
-
-const containerRef = ref<HTMLElement | null>(null)
-
-const { isFilterBarFixed, filterBarHeight, pullRefreshDisabled } = useSticky({
-  containerRef,
-  tabQueryIndex: 'none', // 此页面不基于 tab 显示，给一个不会匹配的值
-  stickyTop: 44 // 吸顶时距离顶部的距离
-})
-
-// 综合判断是否禁用下拉刷新（sticky 固定时或 calendar 打开时都禁用）
-const disablePullRefresh = computed(() => pullRefreshDisabled.value || showCalendar.value)
 
 // 返回
 const handleBack = () => {
@@ -168,8 +151,7 @@ const fetchBonusSummary = async () => {
 
 // 获取红利列表数据
 const fetchBonusList = async () => {
-  loading.value = true
-  error.value = false
+  const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
     const { BeginTime, EndTime } = getTimeRange()
     const response = await apis.admin.getBonusRecord({
@@ -184,58 +166,55 @@ const fetchBonusList = async () => {
 
     if (response.data.Code === 200) {
       const newRecords = response.data.Data.Items || []
-      // 第一页时替换数据，否则追加
-      if (currentPage.value === 1) {
-        bonusRecords.value = newRecords
-      } else {
+      if (newRecords) {
         bonusRecords.value = bonusRecords.value.concat(newRecords)
       }
       const pagination = response.data?.Data?.Pagination
       totalCount.value = pagination?.MaxCount ?? 0
 
-      currentPage.value++
-
       // 检查是否已加载全部数据
-      if (newRecords.length < pageSize || (totalCount.value > 0 && bonusRecords.value.length >= totalCount.value)) {
+      if (bonusRecords.value.length >= totalCount.value) {
         finished.value = true
       }
     } else {
-      error.value = true
-      showToast({ message: response.data.Msg || '获取列表数据失败', position: 'bottom' })
+      finished.value = true
+      loading.value = false
     }
-  } catch (err) {
-    error.value = true
-    console.error('获取红利列表数据异常:', err)
-    showToast({ message: '获取列表数据异常', position: 'bottom' })
   } finally {
-    loading.value = false
-    refreshing.value = false
+    loadingToast.close()
   }
 }
 
-// 重置分页并重新获取数据 (keepData: 是否保留现有数据)
-const resetAndFetchData = (keepData = false) => {
-  currentPage.value = 1
-  if (!keepData) {
+// 刷新处理
+const onRefresh = () => {
+  finished.value = false
+  loading.value = true
+  onLoad()
+}
+
+// 滚动到底部加载更多
+const onLoad = async () => {
+  if (refreshing.value) {
+    currentPage.value = 1
     bonusRecords.value = []
+    refreshing.value = false
+  } else {
+    if (currentPage.value) {
+      currentPage.value++
+    }
   }
+  await fetchBonusList()
+  loading.value = false
+}
+
+// 重置分页并重新获取数据
+const resetAndFetchData = () => {
+  currentPage.value = 1
+  bonusRecords.value = []
   finished.value = false
   error.value = false
   fetchBonusSummary()
   fetchBonusList()
-}
-
-// 刷新处理 (保留现有数据)
-const onRefresh = async () => {
-  refreshing.value = true
-  resetAndFetchData(true)
-}
-
-// 滚动到底部加载更多
-const onLoad = () => {
-  if (!finished.value && !loading.value) {
-    fetchBonusList()
-  }
 }
 
 // Watchers
@@ -249,7 +228,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="bonus-record-container" ref="containerRef">
+  <div class="bonus-record-container">
     <!-- 头部导航 -->
     <div class="fixed-header">
       <div class="flex items-center justify-between h-11 px-3 bg-white">
@@ -258,104 +237,96 @@ onMounted(() => {
         <div style="width: 24px;"></div>
       </div>
     </div>
-    <!-- 下拉刷新容器 -->
-    <van-pull-refresh
-      v-model="refreshing"
-      :disabled="disablePullRefresh"
-      @refresh="onRefresh"
-      class="bonus-record-pull-refresh"
-    >
-      <!-- 红利总计卡片 -->
-      <div class="px-3 pb-2 pt-[54px]">
-        <FinanceCard
-          class="shadow-sm"
-          title=""
-          :show-arrow="false"
-          :show-background-color="false"
-          :data="[
-            [
-              { label: '实领红利', value: formatMoneyWithCommas(bonusSummary.BonusAmount, 2, true) },
-              { label: '返水金额', value: formatMoneyWithCommas(bonusSummary.BackWaterAmount, 2, true) },
-            ]
-          ]"
+
+    <!-- 红利总计卡片 -->
+    <div class="px-3 pb-2 pt-[54px]">
+      <FinanceCard
+        class="shadow-sm"
+        title=""
+        :show-arrow="false"
+        :show-background-color="false"
+        :data="[
+          [
+            { label: '实领红利', value: formatMoneyWithCommas(bonusSummary.BonusAmount, 2, true) },
+            { label: '返水金额', value: formatMoneyWithCommas(bonusSummary.BackWaterAmount, 2, true) },
+          ]
+        ]"
+      />
+    </div>
+
+    <!-- 搜索和筛选器 -->
+    <div class="flex flex-col px-3 py-2 gap-3">
+      <!-- 会员账号搜索框 -->
+      <van-search
+        v-model="searchKeyword"
+        placeholder="会员账号"
+        shape="round"
+        background="transparent"
+        clearable
+        left-icon=""
+        @search="handleSearch"
+        @clear="handleSearch"
+        @keyup.enter="handleSearch"
+      >
+        <template #right-icon>
+          <van-icon name="search" size="18" @click="handleSearch" />
+        </template>
+      </van-search>
+
+      <!-- 筛选条件行 -->
+      <div class="flex items-center gap-2 overflow-auto">
+        <!-- 领奖时间 -->
+        <TimeFilterDropdown
+          v-model="selectTimeRange"
+          title="领奖时间"
+          height="1.5rem"
         />
-      </div>
 
-      <!-- 搜索和筛选器（sticky 固定） -->
-      <div>
-        <div v-if="isFilterBarFixed" class="filter-bar-placeholder" :style="{ height: `${filterBarHeight}px` }" />
-        <div class="sticky-filter-bar px-3 py-2 space-y-3" :class="{ 'is-fixed': isFilterBarFixed }">
-          <!-- 会员账号搜索框 -->
-          <van-search
-            v-model="searchKeyword"
-            placeholder="会员账号"
-            shape="round"
-            background="transparent"
-            clearable
-            left-icon=""
-            @search="handleSearch"
-            @clear="handleSearch"
-            @keyup.enter="handleSearch"
-          >
-            <template #right-icon>
-              <van-icon name="search" size="18" @click="handleSearch" />
-            </template>
-          </van-search>
-
-          <!-- 筛选条件行 -->
-          <div class="filter-scroll-container">
-            <!-- 领奖时间 -->
-            <TimeFilterDropdown
-              v-model="selectTimeRange"
-              v-model:show-calendar="showCalendar"
-              title="领奖时间"
-              height="1.5rem"
-            />
-
-            <!-- 排序方式 -->
-            <div class="filter-dropdown">
-              <Filled
-                v-model="sortType"
-                :options="sortOptions"
-                height="1.5rem"
-              />
-            </div>
-          </div>
+        <!-- 排序方式 -->
+        <div class="filter-dropdown">
+          <Filled
+            v-model="sortType"
+            :options="sortOptions"
+            height="1.5rem"
+          />
         </div>
       </div>
+    </div>
 
-      <!-- 红利列表 -->
-      <van-list
-        v-model:loading="loading"
-        :finished="finished"
-        :error="error"
-        error-text="请求失败"
-        @load="onLoad"
-        :class="{ 'hide-list-loading': refreshing }"
-        :style="bonusRecords.length === 0 ? { height: 'calc(100vh - 340px)', display: 'flex'} : {}"
+    <!-- 红利列表 -->
+    <div class="listContainer mt-2 px-3 pb-2">
+      <van-pull-refresh
+        v-model="refreshing"
+        :style="[bonusRecords.length === 0 && !loading && { height: '100%' }]"
+        @refresh="onRefresh"
       >
-        <div v-if="bonusRecords.length > 0" class="record-list-container">
+        <van-list
+          v-if="bonusRecords.length > 0"
+          v-model:loading="loading"
+          class="flex flex-col gap-2"
+          :finished="finished"
+          :immediate-check="false"
+          :finished-text="bonusRecords.length > 0 ? '没有更多了' : ''"
+          @load="onLoad"
+        >
           <BonusCard
             v-for="record in bonusRecords"
             :key="record.OrderId"
             :record="formatBonusRecord(record)"
             @click="handleBonusClick(record)"
           />
-        </div>
-        <div
-          v-else-if="finished || refreshing"
-          class="flex flex-1 w-full items-center justify-center"
-        >
-          <empty />
-        </div>
-      </van-list>
-    </van-pull-refresh>
+        </van-list>
+
+        <empty v-if="bonusRecords.length === 0 && !loading && finished" />
+      </van-pull-refresh>
+    </div>
   </div>
 </template>
+
 <style lang="scss" scoped>
 .bonus-record-container {
   background-color: white;
-  padding-bottom: 2rem;
+  min-height: 100vh;
 }
 
 /* Header 固定在顶部 */
@@ -368,66 +339,10 @@ onMounted(() => {
   background-color: white;
 }
 
-.bonus-record-pull-refresh {
-  :deep(.van-pull-refresh__track) {
-    overflow: visible !important;
-  }
-  :deep(.van-pull-refresh__head) {
-    top: 44px;
-  }
-}
-
-/* 筛选栏固定 */
-.sticky-filter-bar {
-  position: relative;
-  z-index: 10;
-  background-color: white;
-  transition: all 0.3s;
-
-  &.is-fixed {
-    position: fixed;
-    top: 44px; /* Header 高度 h-11 = 44px */
-    left: 0;
-    width: 100%;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-}
-
-/* 用於吸頂定位的佔位元素 */
-.filter-bar-placeholder {
-  /* 高度由JS動態設定 */
-}
-
-.record-list-container {
-  flex: 1;
-  margin-top: 8px;
-  padding: 0 0.75rem;
-  padding-bottom: calc(var(--van-tabbar-height, 0px) + env(safe-area-inset-bottom, 0px) + 2rem);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* van-list loading 居中 */
-:deep(.van-list__loading) {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  width: 100%;
-}
-/* van-list error-text 居中 */
-:deep(.van-list__error-text) {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex: 1;
-  width: 100%;
-}
-
-/* 下拉刷新时隐藏 van-list loading */
-.hide-list-loading :deep(.van-list__loading) {
-  display: none !important;
+/* 列表容器 */
+.listContainer {
+  height: calc(100vh - calc(var(--spacing) * 60));
+  overflow: auto;
 }
 
 /* 自定义 van-search 样式 */
@@ -468,24 +383,9 @@ onMounted(() => {
   }
 }
 
-/* 筛选器横向滚动容器 */
-.filter-scroll-container {
-  display: flex;
-  gap: 0.5rem;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
 /* 筛选器 Dropdown 样式 */
 .filter-dropdown {
   flex: none;
-  scroll-snap-align: start;
 
   :deep(.dropdown-button) {
     border: none;
