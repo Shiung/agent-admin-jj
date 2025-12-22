@@ -321,8 +321,8 @@ const personalData = computed<PersonalData>(() => {
         currentMonth: 'CommissionChildTotal' in currentMonth ? (currentMonth.CommissionChildTotal || 0) : 0,
       },
       depositRebate: {
-        lastMonth: lastMonth.RedAdminChargeCommissionGold || 0,
-        currentMonth: currentMonth.RedAdminChargeCommissionGold || 0,
+        lastMonth: lastMonth.AdminChargeMoneyFee || 0,
+        currentMonth: currentMonth.AdminChargeMoneyFee || 0,
       },
     },
     card2: {
@@ -335,8 +335,8 @@ const personalData = computed<PersonalData>(() => {
         currentMonth: currentMonth.ApiFeeTotalFee || 0,
       },
       depositWithdrawalFee: {
-        lastMonth: (lastMonth.AdminChargeMoneyFee || 0) + (lastMonth.WithdrawMoneyFee || 0),
-        currentMonth: (currentMonth.AdminChargeMoneyFee || 0) + (currentMonth.WithdrawMoneyFee || 0),
+        lastMonth: (lastMonth.WithdrawMoneyFee || 0) + (lastMonth.PayMoneyFee || 0),
+        currentMonth: (currentMonth.WithdrawMoneyFee || 0) + (currentMonth.PayMoneyFee || 0),
       },
       rebate: {
         lastMonth: lastMonth.BackWaterGoldFee || 0,
