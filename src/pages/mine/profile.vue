@@ -60,6 +60,16 @@ const isShowParentAgent = computed(() => {
   return true
 })
 
+// 上級代理標題：單層團隊代理-副線顯示"主线代理"，其他顯示"上级代理"
+const parentAgentTitle = computed(() => {
+  // 單層團隊代理-副線：顯示"主线代理"
+  if (userStore.isSingleAgent && userStore.hasTeam && !userStore.isMainLine) {
+    return '主线代理'
+  }
+  // 其他情況顯示"上级代理"
+  return '上级代理'
+})
+
 // 雲平台/代理列表 > 驗證設置 > 是否顯示手機號綁定
 const isShowPhoneBind = computed(() => {
   return globalStore.systemConfig.PhoneBind
@@ -73,11 +83,6 @@ const isShowEmailBind = computed(() => {
 // 雲平台/代理列表 > 驗證設置 > 是否顯示谷歌綁定
 const isShowGoogleBind = computed(() => {
   return globalStore.systemConfig.GoogleBind
-})
-
-// 上級代理帳號
-const parentAgentUsername = computed(() => {
-  return personalCenterInfo.value?.ParentUsername || '-'
 })
 
 // 佣金比例表
@@ -139,11 +144,12 @@ onMounted(() => {
       </van-cell>
       <van-cell
         title="代理昵称"
+        :class="{ 'danger': !personalCenterInfo?.Name }"
         @click="router.push({ name: 'mineNickname' })"
       >
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.Name }}
+            {{ personalCenterInfo?.Name || '尚未设置' }}
           </van-skeleton>
         </template>
         <template #right-icon>
@@ -159,20 +165,20 @@ onMounted(() => {
           </van-button>
         </template>
       </van-cell>
-      <van-cell title="真实姓名">
+      <van-cell title="真实姓名" :class="{ 'danger': !personalCenterInfo?.RealName }">
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.RealName }}
+            {{ personalCenterInfo?.RealName || '尚未设置' }}
           </van-skeleton>
         </template>
         <template #right-icon>
           <van-button v-if="!personalCenterInfo?.RealName" round size="small" type="primary" @click="router.push({ name: 'mineRealName' })">设置</van-button>
         </template>
       </van-cell>
-      <van-cell title="注册日期">
+      <van-cell title="注册时间">
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
-            {{ formatDate(personalCenterInfo?.CreateTime) }}
+            {{ formatDate(personalCenterInfo?.CreateTime, 'YYYY-MM-DD HH:mm:ss') }}
           </van-skeleton>
         </template>
       </van-cell>
@@ -242,10 +248,10 @@ onMounted(() => {
         4. 多层代理-一级：隐藏
         5. 多层代理-非一级：显示上级代理账号
       -->
-      <van-cell v-if="isShowParentAgent" title="上级代理">
+      <van-cell v-if="isShowParentAgent" :title="parentAgentTitle">
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
-            {{ parentAgentUsername }}
+            {{ personalCenterInfo?.ParentUsername || '-' }}
           </van-skeleton>
         </template>
       </van-cell>
