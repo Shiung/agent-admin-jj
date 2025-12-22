@@ -34,17 +34,19 @@ const handleClick = () => {
 // 格式化总盈利显示
 const formattedTotalProfit = computed(() => {
   const value = props.agent.totalProfit
-  const formatted = value >= 0 ? `+${value.toLocaleString()}` : value.toLocaleString()
+  const formatted = value > 0 ? `+${value.toLocaleString()}` : value.toLocaleString()
   return {
     value: formatted,
-    highlight: value >= 0
+    highlight: value > 0,
+    normal: value === 0,
+    negative: value < 0
   }
 })
 
 // 卡片数据
 const cardData = computed(() => [
   [
-    { label: '总盈利', value: formattedTotalProfit.value.value, highlight: formattedTotalProfit.value.highlight },
+    { label: '总盈利', value: formattedTotalProfit.value.value, highlight: formattedTotalProfit.value.highlight, normal: formattedTotalProfit.value.normal, negative: formattedTotalProfit.value.negative },
     { label: '投注金额', value: props.agent.betAmount.toLocaleString() },
     { label: '盈余比例', value: props.agent.profitMargin }
   ],

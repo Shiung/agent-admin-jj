@@ -6,12 +6,11 @@ import Big from 'big.js'
 import AgentDataCard from './components/agentDataCard.vue'
 import AgentCard from './components/agentCard.vue'
 import AgentDetailSheet from './components/agentDetailSheet.vue'
-import Dropdown from '@/components/Dropdown/index.vue'
 import SearchBar from '@/components/SearchBar/index.vue'
 import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import apis from '@/apis'
 import type { HistoryItem, RealTimeItem, DownLineItem, MemberFinanceReportTotalItem } from '@/apis/codegen/data-contracts'
-import { formatMoneyWithCommas } from '@/utils/formatNumber'
+import { formatMoneyWithCommas, formatSignedMoneyWithCommas } from '@/utils/formatNumber'
 
 import { useSticky } from '@/composables/useSticky'
 import { useUserStore } from '@/stores/user'
@@ -192,31 +191,29 @@ const calculateConversionRate = (firstPayNum: number, regNum: number) => {
 // 实时数据
 const realtimeData = computed(() => {
   const data = realtimeReportData.value || reportSummary.value
-  const totalProfit = (data.SumTransBetMoney1 - data.SumTransWinMoney1) / 100
   return {
     date: dayjs().format('YYYY-MM-DD'),
-    totalProfit: formatMoneyWithCommas(data.SumTransBetMoney1 - data.SumTransWinMoney1, 2, true),
+    totalProfit: formatSignedMoneyWithCommas(data.SumTransBetMoney1 - data.SumTransWinMoney1, 2, true).text,
     betAmount: formatMoneyWithCommas(data.SumTransBetMoney1, 2, true),
     profitMargin: calculateProfitMargin(data.SumTransBetMoney1, data.SumTransWinMoney1),
     firstDepositCount: data.SumFirstPayNum.toLocaleString(),
     registerCount: data.SumReg.toLocaleString(),
     conversionRate: calculateConversionRate(data.SumFirstPayNum, data.SumReg),
-    totalProfitSign: totalProfit >= 0 ? '+' : ''
+    totalProfitTextColor: formatSignedMoneyWithCommas(data.SumTransBetMoney1 - data.SumTransWinMoney1, 2, true).color,
   }
 })
 
 // 历史数据
 const historyData = computed(() => {
   const data = reportSummary.value
-  const totalProfit = (data.SumTransBetMoney1 - data.SumTransWinMoney1) / 100
   return {
-    totalProfit: formatMoneyWithCommas(data.SumTransBetMoney1 - data.SumTransWinMoney1, 2, true),
+    totalProfit: formatSignedMoneyWithCommas(data.SumTransBetMoney1 - data.SumTransWinMoney1, 2, true).text,
     betAmount: formatMoneyWithCommas(data.SumTransBetMoney1, 2, true),
     profitMargin: calculateProfitMargin(data.SumTransBetMoney1, data.SumTransWinMoney1),
     firstDepositCount: data.SumFirstPayNum.toLocaleString(),
     registerCount: data.SumReg.toLocaleString(),
     conversionRate: calculateConversionRate(data.SumFirstPayNum, data.SumReg),
-    totalProfitSign: totalProfit >= 0 ? '+' : ''
+    totalProfitTextColor: formatSignedMoneyWithCommas(data.SumTransBetMoney1 - data.SumTransWinMoney1, 2, true).color,
   }
 })
 
@@ -525,7 +522,6 @@ const formatAgentData = (agent: DownLineItem) => {
     // 多层代理：显示层级
     levelLabel = `${numberToChinese(agent.AccountLevel)}级代理`
   }
-
   return {
     username: agent.Username,
     level: levelLabel,
@@ -535,7 +531,6 @@ const formatAgentData = (agent: DownLineItem) => {
     firstDepositCount: agent.SumFirstPayNum || 0,
     registerCount: agent.SumReg || 0,
     conversionRate: calculateConversionRate(agent.SumFirstPayNum, agent.SumReg),
-    totalProfitSign: totalProfit >= 0 ? '+' : '',
     rawData: agent
   }
 }
@@ -981,7 +976,7 @@ const closeDetailSheet = () => {
           :date="realtimeData.date"
           :data="[
             [
-              { label: '总盈利', value: `+${realtimeData.totalProfit.toLocaleString()}`, highlight: true },
+              { label: '总盈利', value: realtimeData.totalProfit.toLocaleString(), totalProfitTextColor: realtimeData.totalProfitTextColor },
               { label: '投注金额', value: realtimeData.betAmount.toLocaleString() },
               { label: '盈余比例', value: realtimeData.profitMargin }
             ],
@@ -1002,7 +997,7 @@ const closeDetailSheet = () => {
           v-model:report-type="reportType"
           :data="[
             [
-              { label: '总盈利', value: `+${historyData.totalProfit.toLocaleString()}`, highlight: true },
+              { label: '总盈利', value: historyData.totalProfit, totalProfitTextColor: historyData.totalProfitTextColor },
               { label: '投注金额', value: historyData.betAmount.toLocaleString() },
               { label: '盈余比例', value: historyData.profitMargin }
             ],

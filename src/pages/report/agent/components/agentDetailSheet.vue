@@ -89,7 +89,7 @@ const closeSheet = () => {
           <!-- 总盈利 -->
           <div class="detail-item">
             <span class="detail-label">总盈利</span>
-            <span class="detail-value highlight">{{ detail.totalProfit >= 0 ? '+' : '' }}{{ detail.totalProfit.toLocaleString() }}</span>
+            <span class="detail-value" :class="{ 'highlight': detail.totalProfit > 0, 'normal': detail.totalProfit === 0, 'negative': detail.totalProfit < 0 }">{{ detail.totalProfit > 0 ? '+' : '' }}{{ detail.totalProfit.toLocaleString() }}</span>
           </div>
 
           <!-- 投注人数 -->
@@ -322,6 +322,13 @@ const closeSheet = () => {
 .detail-value.highlight {
   color: var(--color-error-normal);
 }
+.detail-value.normal {
+  color: var(--color-neutral-basic);
+}
+.detail-value.negative {
+  color: var(--color-success-normal);
+}
+
 
 /* 分隔线 */
 .divider-line {
