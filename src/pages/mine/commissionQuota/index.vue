@@ -120,8 +120,9 @@ onMounted(() => {
       <div class="mx-3 my-2 px-3 py-2 bg-bg-floor-1-2 rounded-lg flex items-center">
         <van-image src="./static/images/common/lightBulb.png" class="mx-2" width="24" />
         <div class="flex flex-col py-2 px-3">
-          <p class="text-primary-normal leading-6 text-sm">1. 将佣金钱包的余额转账至额度钱包</p>
-          <p class="text-primary-normal leading-6 text-sm">2. 转账至额度钱包后不可逆，且无法提现</p>
+          <p class="text-primary-normal leading-6 text-sm">将佣金钱包的余额转账至额度钱包</p>
+          <!-- <p class="text-primary-normal leading-6 text-sm">1. 将佣金钱包的余额转账至额度钱包</p>
+          <p class="text-primary-normal leading-6 text-sm">2. 转账至额度钱包后不可逆，且无法提现</p> -->
         </div>
       </div>
       <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
