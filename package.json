@@ -1,6 +1,6 @@
 {
   "name": "agent-admin",
-  "version": "2.0.11",
+  "version": "2.0.13",
   "private": true,
   "type": "module",
   "engines": {
@@ -33,6 +33,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.19",
+    "dompurify": "^3.3.1",
     "echarts": "^6.0.0",
     "embla-carousel-vue": "^8.6.0",
     "lucide-vue-next": "^0.553.0",

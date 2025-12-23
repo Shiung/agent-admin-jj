@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import dayjs from 'dayjs'
-import Big from 'big.js'
 import apis from '@/apis'
 import type { GetNetcashmultiInfoV2Data, NetcashmultiListQuery, NetcashmultiListItem, NetcashmultiSearchAdminQuery, NetcashmultiSearchAdminItem } from '@/apis/codegen/data-contracts'
 import { useUserStore } from '@/stores/user'
@@ -194,7 +193,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="overflow-auto p-4 pb-11 max-h-screen flex flex-col flex-1">    
+  <div class="overflow-auto p-4 pb-11 max-h-screen flex flex-col flex-1">
     <UnitCard>
       <template #header>
         <div class="flex items-center justify-between">
@@ -263,7 +262,7 @@ onMounted(() => {
         <template #footer>
           <div class="flex items-center justify-between gap-2">
             <div class="remark-container flex-1 min-w-0 flex items-center gap-1">
-              <span 
+              <span
                 :ref="(el) => remarkRefs[idx] = el as HTMLElement"
                 class="remark-text font-semibold text-sm text-neutral2-basic whitespace-nowrap overflow-hidden text-ellipsis"
               >{{ item.Remark }}</span>

@@ -116,11 +116,13 @@ watch(
 /** 充值訂單data */
 const thirdRechargeData = ref<RechargeMoneyData | null>(null)
 
+const submitLoading = ref<boolean>(false)
 const rechargeConfirm = async () => {
   if (!selectPayTypeItem.value || !selectRechargeChannelItem.value) return
   const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+  submitLoading.value = true
   try {
-    let params = {
+    const params = {
       AgentId: adminInfo.value.AgentId,
       PlayerId: adminInfo.value.Id,
       PlayerUserName: adminInfo.value.Username,
@@ -135,7 +137,7 @@ const rechargeConfirm = async () => {
     }
     const res = await API.finance.rechargeMoney(params)
     if (res.data.Code !== 200) return
-    let { Data } = res.data
+    const { Data } = res.data
     Data.payUrl = JSON.parse(Data.payUrl as string) as RechargeMoneyPayUrlData
     Data.amount = new Big(Data.amount).div(100).toNumber()
     if (getRechargeType(selectPayTypeItem.value.PayType) === 'thirdParty') {
@@ -153,6 +155,7 @@ const rechargeConfirm = async () => {
     }
   } finally {
     loading.close()
+    submitLoading.value = false
   }
 }
 
@@ -277,7 +280,15 @@ onUnmounted(() => {
           </van-button>
         </div>
         <div class="mt-4 mx-4 mb-8">
-          <van-button type="primary" round block native-type="submit" :disabled="confirmDisabled" class="!h-12 !text-base font-semibold gray-disabled">
+          <van-button 
+            class="!h-12 !text-base font-semibold gray-disabled"
+            type="primary" 
+            round 
+            block 
+            native-type="submit" 
+            :disabled="confirmDisabled" 
+            :loading="submitLoading"
+          >
             确认
           </van-button>
         </div>

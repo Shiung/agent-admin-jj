@@ -67,7 +67,7 @@ export class NetCashPlayerGame<SecurityDataType = unknown> {
     params: RequestParams = {},
   ) =>
     this.http.request<RedListResponse, any>({
-      path: '/admin/netcashplayergame/redlist',
+      path: '/admin/netcashplayergame/bonuslist',
       method: 'GET',
       query: query,
       secure: true,

@@ -77,12 +77,12 @@ const fetchWithdrawRecordConfig = async () => {
 const fetchWithdrawRecordList = async () => {
   if (!checkTimeRange()) {
     finished.value = true
-    return 
+    return
   }
   const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
     const params = {
-      ...formData.value, 
+      ...formData.value,
       AccountType: formData.value.AccountType === 0 ? '' : formData.value.AccountType?.toString()
     }
     const res = await API.finance.getWithdrawRecordList(params)
@@ -129,7 +129,7 @@ watch(
   { deep: true }
 )
 watch(
-  () => [formData.value.BeginTime, formData.value.EndTime, formData.value.AccountType, formData.value.Status, formData.value.Sort], 
+  () => [formData.value.BeginTime, formData.value.EndTime, formData.value.AccountType, formData.value.Status, formData.value.Sort],
   () => {
     refreshing.value = true
     onRefresh()
@@ -301,7 +301,7 @@ onMounted(async () => {
               </div>
 
               <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
-                <div class="min-w-20">提现帐号</div>
+                <div class="min-w-20">提现账号</div>
                 <div class="text-right font-semibold">
                   <template v-if="item.AccountType === 1001">
                     <div>{{ item.AccountBank }}</div>

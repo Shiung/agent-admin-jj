@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, watch, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import CommissionSummary from './components/commissionSummary.vue'
@@ -19,7 +18,6 @@ type SearchType = {
 
 import { useSticky } from '@/composables/useSticky'
 
-const route = useRoute()
 const commissionContainerRef = ref<HTMLElement | null>(null)
 
 // 用户信息

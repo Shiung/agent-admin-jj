@@ -76,10 +76,11 @@ const copyOrderNo = (orderNo: string) => {
           <span class="detail-label">代存回馈</span>
           <span class="detail-value">{{ record.depositRebate }}</span>
         </li>
-        <li class="detail-item">
+        <!-- slack討論結果為不顯示 -->
+        <!-- <li class="detail-item">
           <span class="detail-label">代存手续费</span>
           <span class="detail-value">{{ record.depositFee.toLocaleString() }}</span>
-        </li>
+        </li> -->
         <li class="detail-item">
           <span class="detail-label">充值类型</span>
           <span class="detail-value">{{ record.topUpType }}</span>

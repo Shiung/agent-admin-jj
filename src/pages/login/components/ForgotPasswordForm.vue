@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useGlobalStore } from '@/stores/global'
+import { countryCodeOptions } from '@/consts/constant'
 import API from '@/apis'
 import DropdownFilled from '@/components/Dropdown/Filled.vue'
 import ImageCaptchaDialog from '@/components/ImageCaptchaDialog/index.vue'
@@ -49,24 +50,6 @@ const emailCountdown = ref(0)
 // 密碼顯示狀態
 const showNewPassword = ref(false)
 const showConfirmPassword = ref(false)
-
-// 國碼選擇
-const countryOptions = [
-{ value: '86', label: '+86' },
-  { value: '1', label: '+1'},
-  { value: '60', label: '+60' },
-  { value: '62', label: '+62' },
-  { value: '63', label: '+63' },
-  { value: '65', label: '+65' },
-  { value: '66', label: '+66' },
-  { value: '81', label: '+81' },
-  { value: '82', label: '+82' },
-  { value: '84', label: '+84' },
-  { value: '853', label: '+853' },
-  { value: '855', label: '+855' },
-  { value: '886', label: '+886' },
-  { value: '852', label: '+852' },
-]
 
 // 圖片驗證碼相關
 const showImageCaptcha = ref(false)
@@ -289,8 +272,8 @@ const handleBack = () => {
     <!-- 步驟指示器 -->
     <div class="step-indicator">
       <template v-for="(step, index) in steps" :key="step.key">
-        <div 
-          class="step-item" 
+        <div
+          class="step-item"
           :class="{ 'step-active': currentStep >= step.key, 'step-current': currentStep === step.key }"
         >
           {{ step.label }}
@@ -304,7 +287,7 @@ const handleBack = () => {
       <div class="form-group">
         <label class="form-label">账号</label>
         <div class="input-wrapper">
-          <input 
+          <input
             v-model="formData.username"
             type="text"
             placeholder="请输入"
@@ -320,7 +303,7 @@ const handleBack = () => {
       <div class="form-group">
         <label class="form-label">选择验证方式</label>
         <div class="verify-type-selector">
-          <van-button 
+          <van-button
             :type="verifyType === 'phone' ? 'primary' : 'default'"
             round
             size="small"
@@ -328,7 +311,7 @@ const handleBack = () => {
           >
             手机验证
           </van-button>
-          <van-button 
+          <van-button
             :type="verifyType === 'email' ? 'primary' : 'default'"
             round
             size="small"
@@ -336,7 +319,7 @@ const handleBack = () => {
           >
             邮箱验证
           </van-button>
-          <van-button 
+          <van-button
             :type="verifyType === 'google' ? 'primary' : 'default'"
             round
             size="small"
@@ -353,9 +336,9 @@ const handleBack = () => {
           <label class="form-label">手机号</label>
           <div class="input-wrapper phone-wrapper">
             <div class="country-code">
-              <DropdownFilled v-model="formData.countryCode" placeholder="请选择" height="2rem" :options="countryOptions" />
+              <DropdownFilled v-model="formData.countryCode" placeholder="请选择" height="2rem" :options="countryCodeOptions" />
             </div>
-            <input 
+            <input
               v-model="formData.phone"
               type="tel"
               placeholder="请输入"
@@ -367,16 +350,16 @@ const handleBack = () => {
         <div class="form-group">
           <label class="form-label">手机号验证码</label>
           <div class="input-wrapper code-wrapper">
-            <input 
+            <input
               v-model="formData.captchaCode"
               type="text"
               placeholder="请输入"
               class="form-input"
               autocomplete="off"
             />
-            <van-button 
-              type="primary" 
-              round 
+            <van-button
+              type="primary"
+              round
               class="code-btn min-w-28"
               :loading="phoneLoading"
               :disabled="phoneCountdown > 0"
@@ -393,7 +376,7 @@ const handleBack = () => {
         <div class="form-group">
           <label class="form-label">邮箱地址</label>
           <div class="input-wrapper">
-            <input 
+            <input
               v-model="formData.email"
               type="email"
               placeholder="请输入"
@@ -405,16 +388,16 @@ const handleBack = () => {
         <div class="form-group">
           <label class="form-label">邮箱验证码</label>
           <div class="input-wrapper code-wrapper">
-            <input 
+            <input
               v-model="formData.captchaCode"
               type="text"
               placeholder="请输入"
               class="form-input"
               autocomplete="off"
             />
-            <van-button 
-              type="primary" 
-              round 
+            <van-button
+              type="primary"
+              round
               class="code-btn min-w-28"
               :loading="emailLoading"
               :disabled="emailCountdown > 0"
@@ -431,7 +414,7 @@ const handleBack = () => {
         <div class="form-group">
           <label class="form-label">谷歌验证码</label>
           <div class="input-wrapper">
-            <input 
+            <input
               v-model="formData.captchaCode"
               type="text"
               placeholder="请输入"
@@ -448,16 +431,16 @@ const handleBack = () => {
       <div class="form-group">
         <label class="form-label">新密码</label>
         <div class="input-wrapper">
-          <input 
+          <input
             v-model="formData.newPassword"
             :type="showNewPassword ? 'text' : 'password'"
             placeholder="请输入"
             class="form-input"
           />
-          <van-icon 
-            :name="showNewPassword ? 'eye-o' : 'closed-eye'" 
+          <van-icon
+            :name="showNewPassword ? 'eye-o' : 'closed-eye'"
             class="input-icon"
-            @click="showNewPassword = !showNewPassword" 
+            @click="showNewPassword = !showNewPassword"
           />
         </div>
       </div>
@@ -465,16 +448,16 @@ const handleBack = () => {
       <div class="form-group">
         <label class="form-label">确认新密码</label>
         <div class="input-wrapper">
-          <input 
+          <input
             v-model="formData.confirmPassword"
             :type="showConfirmPassword ? 'text' : 'password'"
             placeholder="请输入"
             class="form-input"
           />
-          <van-icon 
-            :name="showConfirmPassword ? 'eye-o' : 'closed-eye'" 
+          <van-icon
+            :name="showConfirmPassword ? 'eye-o' : 'closed-eye'"
             class="input-icon"
-            @click="showConfirmPassword = !showConfirmPassword" 
+            @click="showConfirmPassword = !showConfirmPassword"
           />
         </div>
       </div>
@@ -482,10 +465,10 @@ const handleBack = () => {
 
     <!-- 按鈕 -->
     <div class="button-section">
-      <van-button 
-        block 
-        round 
-        type="primary" 
+      <van-button
+        block
+        round
+        type="primary"
         :loading="loading"
         class="submit-btn"
         @click="currentStep === 3 ? handleComplete() : handleNextStep()"

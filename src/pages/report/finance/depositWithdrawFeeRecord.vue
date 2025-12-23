@@ -4,12 +4,12 @@ import { useRouter, useRoute } from 'vue-router'
 import Big from 'big.js'
 import FinanceCard from './components/financeCard.vue'
 import DepositWithdrawCard from './components/depositWithdrawCard.vue'
-import Dropdown from '@/components/Dropdown/index.vue'
 import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
 import apis from '@/apis'
 import dayjs from 'dayjs'
 import type { PayRecordItem, WithdrawRecordItem } from '@/apis/codegen/data-contracts'
+import { getWithdrawName } from '@/utils/finance'
 
 const router = useRouter()
 const route = useRoute()
@@ -119,6 +119,7 @@ const formatPayRecord = (item: PayRecordItem) => {
 
 // 格式化提现手续费记录
 const formatWithdrawRecord = (item: WithdrawRecordItem) => {
+  const withdrawTypeName = getWithdrawName(item.WithdrawType || '')
   return {
     orderNo: item.OrderId || '-',
     status: 'completed' as const, // 手续费记录都是已完成的
@@ -126,7 +127,7 @@ const formatWithdrawRecord = (item: WithdrawRecordItem) => {
     vipLevel: 'VIP0', // API 未返回 VIP 等级
     applyAmount: item.Amount || 0,
     actualAmount: (item.Amount || 0) - (item.Fee || 0), // 实际金额 = 提现金额 - 手续费
-    depositType: item.WithdrawType ? `提现类型${item.WithdrawType}` : '-',
+    depositType: withdrawTypeName,
     depositRate: item.FeeRate ? `${(item.FeeRate / 100)}%` : '0%', // 千分比转百分比
     depositFee: item.Fee || 0,
     time: item.TransactionTime ? dayjs.unix(item.TransactionTime).format('YYYY-MM-DD HH:mm:ss') : '-',
@@ -158,6 +159,19 @@ const fetchRechargeTypeList = async () => {
       const mapping: Record<number, string> = {}
       response.data.Data.forEach(item => {
         mapping[item.Key] = item.Name
+      })
+         // 其他Key copy from 1.0（與 useProvider 中的 rechargeTypeMapping 保持一致）
+      const otherKey = [
+        { Key: 111, Name: '充值调整' },
+        { Key: 137, Name: '佣金代存' },
+        { Key: 138, Name: '额度代存' },
+        { Key: 22, Name: '代客充值' },
+        { Key: -2, Name: '代客充值' },
+        { Key: -10, Name: '充值调整' }
+      ]
+      otherKey.forEach(o => {
+        if (mapping[o.Key] !== undefined) return
+        mapping[o.Key] = o.Name
       })
       payTypeMap.value = mapping
     }

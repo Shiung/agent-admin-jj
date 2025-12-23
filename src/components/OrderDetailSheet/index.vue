@@ -226,13 +226,6 @@ const parseOrderDetail = (rawData: GameDetailItem): OrderDetail | null => {
   }
 }
 
-// 获取订单详情的游戏名称（根据游戏类型）
-const orderGameName = computed(() => {
-  if (!props.rawData) return '-'
-  const rawData = props.rawData
-  return gameStore.allGameTypeMapping[rawData.GameType] ?? rawData.GameType
-})
-
 // 获取订单摘要字段（根据游戏类型动态显示）
 const orderSummaryFields = computed(() => {
   if (!props.rawData) {
@@ -282,7 +275,9 @@ const orderInfo = computed(() => {
   return {
     orderNo: props.rawData.TransactionId,
     status: formatStatus(props.rawData.Status),
-    time: dayjs.unix(props.rawData.SettlementTime).format('YYYY-MM-DD HH:mm:ss')
+    time: dayjs.unix(props.rawData.SettlementTime).format('YYYY-MM-DD HH:mm:ss'),
+    username: props.rawData.LoginAccount,
+    vipLevel: `VIP${props.rawData.VipLevel}`
   }
 })
 
@@ -361,12 +356,15 @@ const copyOrderNo = (orderNo: string) => {
             </span>
           </div>
         </div>
-
-        <div class="game-info">
-          <span class="game-name">{{ orderGameName }}</span>
-          <span class="game-time">{{ orderInfo.time }}</span>
+      <!-- 底部信息 -->
+      <div class="order-footer">
+        <div class="user-info">
+          <span class="username">{{ orderInfo.username }}</span>
+          <span class="vip-badge">{{ orderInfo.vipLevel }}</span>
         </div>
+        <span class="order-time">{{ orderInfo.time }}</span>
       </div>
+    </div>
 
       <!-- 投注详情 -->
       <!-- 空状态 -->
@@ -575,21 +573,34 @@ const copyOrderNo = (orderNo: string) => {
   color: var(--color-neutral-basic);
 }
 
-.game-info {
+  /* 底部信息 */
+.order-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-right: -12px;
 }
 
-.game-name {
-  font-size: 12px;
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.username {
+  font-size: 14px;
   color: var(--color-neutral-basic);
-  font-weight: 400;
+  font-weight: 500;
 }
 
-.game-time {
+.vip-badge {
   font-size: 12px;
-  color: var(--color-neutral-basic);
+  color: var(--color-neutral-secondary);
+}
+
+.order-time {
+  font-size: 12px;
+  color: var(--color-neutral-secondary);
+  margin-right: 12px;
 }
 
 /* 投注详情 */

@@ -33,6 +33,7 @@ declare module 'vue' {
     Radio: typeof import('./src/components/AdvancedBottomSheet/Radio.vue')['default']
     ReadMore: typeof import('./src/components/InfinityScroll/ReadMore.vue')['default']
     RecordCard: typeof import('./src/components/RecordCard/index.vue')['default']
+    RichText: typeof import('./src/components/RichText/index.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SearchBar: typeof import('./src/components/SearchBar/index.vue')['default']

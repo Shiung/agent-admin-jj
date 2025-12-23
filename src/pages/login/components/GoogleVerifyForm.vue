@@ -38,7 +38,7 @@ const handleSubmit = async () => {
     const res = await API.system.vLogin(payload)
 
     if (res.data.Code !== 200) {
-      showToast(res.data.Msg || '登录失败，请检查帐号密码')
+      showToast(res.data.Msg || '登录失败，请检查账号密码')
       return
     }
 
@@ -49,7 +49,7 @@ const handleSubmit = async () => {
     showToast('登录成功！')
   } catch (error) {
     console.error('登录失败：', error)
-    showToast('登录失败，请检查帐号密码')
+    showToast('登录失败，请检查账号密码')
   } finally {
     loading.value = false
   }
@@ -73,9 +73,9 @@ const handleBack = () => {
       <div class="form-group">
         <label class="form-label">谷歌验证码</label>
         <div class="input-wrapper">
-          <input 
-            v-model="googleCode" 
-            type="text" 
+          <input
+            v-model="googleCode"
+            type="text"
             placeholder="请输入"
             class="form-input"
             autocomplete="off"
@@ -85,12 +85,12 @@ const handleBack = () => {
 
       <!-- 提交按鈕 -->
       <div class="button-section">
-        <van-button 
-          block 
-          round 
-          type="primary" 
-          native-type="submit" 
-          :loading="loading" 
+        <van-button
+          block
+          round
+          type="primary"
+          native-type="submit"
+          :loading="loading"
           loading-text="提交中..."
           class="submit-btn"
         >

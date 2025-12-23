@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useGlobalStore } from '@/stores/global'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
@@ -85,14 +85,15 @@ const getBankName = (bankCode: string) => {
   return globalStore.bankMapping?.[bankCode]?.BankName ?? ''
 }
 
+const submitLoading = ref<boolean>(false)
 const handleWithdrawCancel = () => {
   emit('update:show', false)
 }
-
 const handleWithdrawConfirm = async () => {
   const loading = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
+  submitLoading.value = true
   try {
-    let params: WithdrawMoneyFormData = {
+    const params: WithdrawMoneyFormData = {
       AccountType: props.selectPayTypeItem.PayType,
       BankCardId: props.selectAccountItem.Id,
       DigitalAddressId: props.selectAccountItem.Id,
@@ -110,6 +111,7 @@ const handleWithdrawConfirm = async () => {
     emit('withdrawSuccess')
   } finally {
     loading.close()
+    submitLoading.value = false
   }
 }
 </script>
@@ -119,6 +121,7 @@ const handleWithdrawConfirm = async () => {
     :show="show" 
     :title="`提现至${selectPayTypeItem.Name ?? ''}`"
     height="fit-content"
+    :submitLoading="submitLoading"
     @close="handleWithdrawCancel"
     @confirm="handleWithdrawConfirm"
   >

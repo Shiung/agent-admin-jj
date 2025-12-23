@@ -9,7 +9,7 @@ import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 
 const userStore = useUserStore()
-const { isSingleAgent } = storeToRefs(userStore)
+const { isSingleAgent, userInfo } = storeToRefs(userStore)
 interface Props {
   viewType: number
   selectedDate: string // 格式: 'YYYY-MM'
@@ -143,6 +143,10 @@ interface AgentData {
   isReleased?: boolean // 是否已发放（下级视图使用）
   SettlementTime?: number // 结算时间，用于判断是否可操作
 }
+
+const sendCommissionType = computed(() => {
+  return Number(userInfo.value?.NetCashAccount?.SendCommissionType ?? 0)
+})
 
 // 将代理层级数字映射为标签
 const getAgentLevelLabel = (level: number): string => {
@@ -930,7 +934,7 @@ const handleReleaseConfirm = async () => {
                   <template v-if="agent.isReleased">
                     <span class="released-tag">已发放</span>
                   </template>
-                  <template v-else-if="!agent.isReleased && agent.SendType === 2">
+                  <template v-else-if="!agent.isReleased && agent.SendType === 2 && sendCommissionType === 1">
                     <button
                       class="action-btn adjust-btn"
                       @click="handleAdjust(agent, $event)"
@@ -940,6 +944,9 @@ const handleReleaseConfirm = async () => {
                       :disabled="props.commissionData?.currentMonth?.IsSettlement === -1 && props.commissionData?.currentMonth?.SettlementTime === 0"
                       @click="handleReleaseCommission(agent, $event)"
                     >发放</button>
+                  </template>
+                  <template v-else>
+                    <span class="not-released-tag">未发放</span>
                   </template>
                 </div>
               </div>
@@ -1572,6 +1579,16 @@ const handleReleaseConfirm = async () => {
   border: 1px solid var(--color-success-50);
   background-color: var(--color-success-10);
   color: var(--color-success-normal);
+}
+/* 未已发放标签 */
+.not-released-tag {
+  padding: 1px 6px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 400;
+  border: 1px solid var(--color-primary-50);
+  background-color: var(--color-primary-10);
+  color: var(--color-primary-normal);
 }
 
 /* 操作按钮基础样式 */

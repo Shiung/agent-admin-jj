@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, inject, defineComponent, h, computed } from 'vue'
+import { ref, inject, defineComponent, h, computed, watch } from 'vue'
 import { cn } from '@/utils/className'
 import dayjs from 'dayjs'
 import Big from 'big.js'
@@ -73,6 +73,10 @@ const onRefresh = async () => {
   await fetchPlayerDetail(selectTime.value.startTime, selectTime.value.endTime)
   refreshing.value = false
 }
+
+watch([selectTime], () => {
+  onRefresh()
+})
 
 </script>
 

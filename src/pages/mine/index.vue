@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
-import API from '@/apis'
 
 declare const __APP_VERSION__: string
 const APP_VERSION = `v${__APP_VERSION__}`
@@ -21,7 +20,7 @@ const SHORTCUTS = [
   },
   {
     key: 'agentTransfer',
-    title: '代理转帐',
+    title: '代理转账',
   },
   {
     key: 'commissionQuota',
@@ -33,7 +32,7 @@ const SHORTCUTS = [
 const MENUS = [
   {
     key: 'withdrawAccount',
-    title: '提现帐号',
+    title: '提现账号',
   },
   {
     key: 'betRecord',
@@ -66,7 +65,6 @@ const {
   accountInfo,
   commissionWalletBalance,
   creditWalletBalance,
-  depositLimitInfo,
   withdrawSourceSwitch
 } = storeToRefs(userStore)
 

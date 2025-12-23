@@ -11,13 +11,13 @@ const selectVal = ref<string>(defaultVal)
 
 defineExpose<{
   getValue: () => any
-  reset: () => void
+  reset: (v?: any) => void
 }>({
   getValue: () => {
     return selectVal.value ?? null
   },
-  reset: () => {
-    selectVal.value = defaultVal
+  reset: (v) => {
+    selectVal.value = v ? v : defaultVal
   }
 })
 

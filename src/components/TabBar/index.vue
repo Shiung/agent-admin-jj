@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useVibrate } from '@vueuse/core'
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router'
 
 interface TabItem {

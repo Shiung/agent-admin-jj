@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import Big from 'big.js'
 import FinanceCard from './components/financeCard.vue'
-import Dropdown from '@/components/Dropdown/index.vue'
 import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
 import dayjs from 'dayjs'
 import apis from '@/apis'

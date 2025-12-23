@@ -71,7 +71,7 @@ const handleSubmit = async () => {
 
     if (props.type === 'phone' && !props.phone) return showToast('请输入手机号码')
     if (props.type === 'email' && !props.email) return showToast('请输入邮箱地址')
-    if (!props.username) return showToast('请输入帐号')
+    if (!props.username) return showToast('请输入账号')
 
     const query = {
       DeviceId: deviceId,

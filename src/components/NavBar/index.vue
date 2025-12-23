@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { useSlots } from 'vue'
 import { useRouter } from 'vue-router'
-
-const slots = useSlots()
 
 interface Props {
   title: string

@@ -30,8 +30,8 @@ const isRootNode = computed(() => props.isRoot || props.level === 1)
 <template>
   <div class="org-node" :class="{ 'is-root': isRootNode }">
     <!-- 節點卡片 -->
-    <div 
-      class="node-card" 
+    <div
+      class="node-card"
       :class="{ 'root-card': isRootNode, 'child-card': !isRootNode }"
       :data-level="level"
     >
@@ -43,7 +43,7 @@ const isRootNode = computed(() => props.isRoot || props.level === 1)
         <div class="value">{{ displayValue }}</div>
       </div>
     </div>
-    
+
     <!-- 子節點區域 -->
     <div v-if="node.Children?.length" class="children-wrapper">
       <!-- 從父節點到垂直線的水平連接線 -->
@@ -53,8 +53,8 @@ const isRootNode = computed(() => props.isRoot || props.level === 1)
         <div class="vertical-line"></div>
       </div>
       <div class="children">
-        <div 
-          v-for="(child, index) in node.Children" 
+        <div
+          v-for="(child, index) in node.Children"
           :key="child.AdminId"
           class="child-row"
           :class="{
@@ -63,8 +63,8 @@ const isRootNode = computed(() => props.isRoot || props.level === 1)
             'is-only': node.Children.length === 1
           }"
         >
-          <OrgNode 
-            :node="child" 
+          <OrgNode
+            :node="child"
             :level="level + 1"
             :display-mode="displayMode"
             :is-root="false"

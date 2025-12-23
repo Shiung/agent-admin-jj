@@ -55,7 +55,7 @@ onMounted(() => {
 
 const handleLogin = async () => {
   if (!formData.value.Username || !formData.value.Password) {
-    showToast('请输入帐号和密码')
+    showToast('请输入账号和密码')
     return
   }
 
@@ -70,7 +70,7 @@ const handleLogin = async () => {
     const res = await API.system.login(formData.value)
     console.log('###', res.data.Code)
     if (res.data.Code !== 200) {
-      showToast(res.data.Msg || '登录失败，请检查帐号密码')
+      showToast(res.data.Msg || '登录失败，请检查账号密码')
       fetchCaptcha()
       return
     }
@@ -97,7 +97,7 @@ const handleLogin = async () => {
     router.replace({ name: 'index' })
   } catch (error) {
     console.error('登录失败：', error)
-    showToast('登录失败，请检查帐号密码')
+    showToast('登录失败，请检查账号密码')
     fetchCaptcha()
   } finally {
     loading.value = false
@@ -118,9 +118,9 @@ const handleForgotPassword = () => {
       <div class="form-group">
         <label class="form-label">账号</label>
         <div class="input-wrapper">
-          <input 
-            v-model="formData.Username" 
-            type="text" 
+          <input
+            v-model="formData.Username"
+            type="text"
             placeholder="请输入"
             class="form-input"
           />
@@ -131,16 +131,16 @@ const handleForgotPassword = () => {
       <div class="form-group">
         <label class="form-label">密码</label>
         <div class="input-wrapper">
-          <input 
-            v-model="formData.Password" 
-            :type="showPassword ? 'text' : 'password'" 
+          <input
+            v-model="formData.Password"
+            :type="showPassword ? 'text' : 'password'"
             placeholder="请输入"
             class="form-input"
           />
-          <van-icon 
-            :name="showPassword ? 'eye-o' : 'closed-eye'" 
+          <van-icon
+            :name="showPassword ? 'eye-o' : 'closed-eye'"
             class="input-icon"
-            @click="togglePassword" 
+            @click="togglePassword"
           />
         </div>
       </div>
@@ -149,9 +149,9 @@ const handleForgotPassword = () => {
       <div class="form-group">
         <label class="form-label">验证码</label>
         <div class="input-wrapper captcha-wrapper">
-          <input 
-            v-model="formData.ValidCode" 
-            type="text" 
+          <input
+            v-model="formData.ValidCode"
+            type="text"
             placeholder="请输入"
             class="form-input"
             autocomplete="off"
@@ -164,12 +164,12 @@ const handleForgotPassword = () => {
 
       <!-- 登录按鈕 -->
       <div class="button-section">
-        <van-button 
-          block 
-          round 
-          type="primary" 
-          native-type="submit" 
-          :loading="loading" 
+        <van-button
+          block
+          round
+          type="primary"
+          native-type="submit"
+          :loading="loading"
           loading-text="登录中..."
           class="submit-btn"
         >

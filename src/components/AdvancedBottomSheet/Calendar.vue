@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { cn } from '@/utils/className'
 import dayjs from 'dayjs'
 
@@ -27,6 +27,8 @@ const showDatePicker = ref<boolean>(false)
 const selectedTime = ref<string>(defaultVal)
 const customTimeRange = ref<{ startTime: number; endTime: number } | null>(null)
 
+const selectAction = ref<boolean>(false)
+
 const formatTime = (ts: number) => dayjs.unix(ts).format('YYYY-MM-DD')
 
 const timeRangeList = computed<Array<{ key: string; label: string }>>(() => {
@@ -42,36 +44,58 @@ const timeRangeList = computed<Array<{ key: string; label: string }>>(() => {
   return ls
 })
 
+const handleSelectTimeType = (s: string) => {
+  selectedTime.value = s
+  selectAction.value = true
+}
+
 const handleDatePickerConfirm = (value: [number, number]) => {
   const data = { startTime: dayjs(value[0] || 0).startOf('day').unix(), endTime: dayjs(value[1] || 0).endOf('day').unix() }
   customTimeRange.value = data
   showDatePicker.value = false
 }
 
-watchEffect(() => {
-  if (selectedTime.value === 'customer') {
-    showDatePicker.value = true
+watch([selectedTime], ([selected]) => {
+  if (selected === 'customer') {
+    if (selectAction.value) {
+      showDatePicker.value = true
+      customTimeRange.value = null
+    }
+  } else {
+    customTimeRange.value = null
   }
-  customTimeRange.value = null
+  selectAction.value = false
 })
 
 defineExpose<{
   getValue: () => { startTime: number; endTime: number } | null
-  reset: () => void
+  reset: (v?: { key: string; startTime: number; endTime: number }) => void
 }>({
   getValue: () => {
-    if (customTimeRange.value) return customTimeRange.value
+    if (customTimeRange.value) return {
+      startTime: customTimeRange.value.startTime,
+      endTime: customTimeRange.value.endTime,
+      key: selectedTime.value
+    }
     const selected = defaultOption[selectedTime.value]
     if (selected) {
       return {
         startTime: selected.startTime,
         endTime: selected.endTime,
-        label: selected.label
+        label: selected.label,
+        key: selectedTime.value
       }
     }
     return null
   },
-  reset: () => {
+  reset: (v) => {
+    if (v) {
+      selectedTime.value = v.key
+      if (v.key === 'customer') {
+        customTimeRange.value = { startTime: v.startTime, endTime: v.endTime }
+      }
+      return
+    }
     selectedTime.value = defaultVal
     customTimeRange.value = null
   }
@@ -90,7 +114,7 @@ defineExpose<{
         })"
         v-for="item in timeRangeList"
         :key="item.label"
-        @click="selectedTime = item.key"
+        @click="handleSelectTimeType(item.key)"
       >
         {{ item.label }}
       </div>

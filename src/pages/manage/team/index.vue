@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import dayjs from 'dayjs'
-import Big from 'big.js'
 import apis from '@/apis'
 import type { GetNetcashteamInfoData, NetcashteamListV2Query, NetcashteamListV2Item, NetcashteamSearchQuery, NetcashteamSearchItem  } from '@/apis/codegen/data-contracts'
 import UnitCard from '../components/UnitCard.vue'
@@ -111,7 +110,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="overflow-auto p-4 pb-11 max-h-screen flex flex-col flex-1">    
+  <div class="overflow-auto p-4 pb-11 max-h-screen flex flex-col flex-1">
     <UnitCard>
       <template #header>
         <div class="flex items-center justify-start">

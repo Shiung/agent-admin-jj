@@ -12,7 +12,7 @@ const props = defineProps<Props>()
   <SummaryCard
     label="总盈利"
     :value="props.total"
-    icon="/static/images/common/creditWalletIcon.png"
+    icon="./static/images/common/creditWalletIcon.png"
     color-type="signed"
   />
 </template>
