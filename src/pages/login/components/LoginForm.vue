@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import getDeviceId from '@/utils/getDeviceId'
+import { rulesRequired, rulesPassword, rulesUsername, rulesValidCode } from '@/utils/formRules'
 import API from '@/apis'
 
 const userStore = useUserStore()
@@ -116,50 +117,63 @@ const handleForgotPassword = () => {
     <van-form @submit="handleLogin" class="login-form">
       <!-- 账号 -->
       <div class="form-group">
-        <label class="form-label">账号</label>
-        <div class="input-wrapper">
-          <input
-            v-model="formData.Username"
-            type="text"
-            placeholder="请输入"
-            class="form-input"
-          />
-        </div>
+        <AppField
+          v-model="formData.Username"
+          name="Username"
+          type="text"
+          placeholder="请输入"
+          class="form-input"
+          :rules="[rulesRequired(), rulesUsername()]"
+        >
+          <template #label>
+            <span class="form-label">账号</span>
+          </template>
+        </AppField>
       </div>
 
       <!-- 密码 -->
       <div class="form-group">
-        <label class="form-label">密码</label>
-        <div class="input-wrapper">
-          <input
-            v-model="formData.Password"
-            :type="showPassword ? 'text' : 'password'"
-            placeholder="请输入"
-            class="form-input"
-          />
-          <van-icon
-            :name="showPassword ? 'eye-o' : 'closed-eye'"
-            class="input-icon"
-            @click="togglePassword"
-          />
-        </div>
+        <AppField
+          v-model="formData.Password"
+          name="Password"
+          placeholder="请输入"
+          class="form-input"
+          :type="showPassword ? 'text' : 'password'"
+          :rules="[rulesRequired(), rulesPassword()]"
+        >
+          <template #label>
+            <span class="form-label">密码</span>
+          </template>
+          <template #right-icon>
+            <van-icon
+              :name="showPassword ? 'eye-o' : 'closed-eye'"
+              class="input-icon"
+              @click.stop="togglePassword"
+            />
+          </template>
+        </AppField>
       </div>
 
       <!-- 验证码 -->
       <div class="form-group">
-        <label class="form-label">验证码</label>
-        <div class="input-wrapper captcha-wrapper">
-          <input
-            v-model="formData.ValidCode"
-            type="text"
-            placeholder="请输入"
-            class="form-input"
-            autocomplete="off"
-          />
-          <div class="captcha-image" @click="fetchCaptcha">
-            <img v-if="captchaCode" :src="`data:image/png;base64,${captchaCode}`" alt="验证码" />
-          </div>
-        </div>
+        <AppField
+          v-model="formData.ValidCode"
+          name="ValidCode"
+          placeholder="请输入"
+          class="form-input"
+          :rules="[rulesRequired(), rulesValidCode()]"
+          maxlength="4"
+          type="number"
+        >
+          <template #label>
+            <span class="form-label">验证码</span>
+          </template>
+          <template #right-icon>
+            <div class="captcha-image" @click="fetchCaptcha">
+              <img v-if="captchaCode" :src="`data:image/png;base64,${captchaCode}`" alt="验证码" />
+            </div>
+          </template>
+        </AppField>
       </div>
 
       <!-- 登录按鈕 -->
@@ -185,7 +199,7 @@ const handleForgotPassword = () => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .login-form-container {
   display: flex;
   flex-direction: column;
@@ -232,6 +246,11 @@ const handleForgotPassword = () => {
   font-size: 0.875rem;
   color: var(--color-neutral2-basic);
   background: transparent;
+  padding: 0;
+  :deep(.van-field__body) {
+    height: 2.875rem;
+    padding: 0 .75rem !important;
+  }
 }
 
 .form-input::placeholder {
