@@ -976,8 +976,8 @@ const closeDetailSheet = () => {
           :date="realtimeData.date"
           :data="[
             [
-              { label: '总盈利', value: realtimeData.totalProfit.toLocaleString(), totalProfitTextColor: realtimeData.totalProfitTextColor },
-              { label: '投注金额', value: realtimeData.betAmount.toLocaleString() },
+              { label: '总盈利', value: realtimeData.totalProfit, totalProfitTextColor: realtimeData.totalProfitTextColor },
+              { label: '投注金额', value: realtimeData.betAmount },
               { label: '盈余比例', value: realtimeData.profitMargin }
             ],
             [
@@ -998,7 +998,7 @@ const closeDetailSheet = () => {
           :data="[
             [
               { label: '总盈利', value: historyData.totalProfit, totalProfitTextColor: historyData.totalProfitTextColor },
-              { label: '投注金额', value: historyData.betAmount.toLocaleString() },
+              { label: '投注金额', value: historyData.betAmount },
               { label: '盈余比例', value: historyData.profitMargin }
             ],
             [

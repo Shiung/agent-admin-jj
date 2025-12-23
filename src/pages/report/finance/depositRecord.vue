@@ -62,6 +62,7 @@ const initTimeRange = () => {
 }
 
 const selectTimeRange = ref(initTimeRange())
+const showCalendar = ref(false)
 
 const getTimeRange = (): { BeginTime: number; EndTime: number } => {
   return {
@@ -312,6 +313,7 @@ onMounted(() => {
         <!-- 账变时间 -->
         <TimeFilterDropdown
           v-model="selectTimeRange"
+          v-model:show-calendar="showCalendar"
           title="账变时间"
           height="1.5rem"
         />

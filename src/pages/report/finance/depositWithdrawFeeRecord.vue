@@ -275,7 +275,6 @@ const fetchCurrentList = async () => {
 }
 
 // Pagination and Loading
-const loading = ref(false)
 const finished = ref(true) // 默认 true，因为这个页面不需要分页加载
 const refreshing = ref(false)
 

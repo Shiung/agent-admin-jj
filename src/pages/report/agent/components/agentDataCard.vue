@@ -4,6 +4,9 @@ interface DataItem {
   label: string
   value: string | number
   highlight?: boolean
+  totalProfitTextColor?: string
+  normal?: boolean
+  negative?: boolean
 }
 
 interface Props {
@@ -61,7 +64,7 @@ const reportType = defineModel<number>('reportType', { default: 0 })  // 0: æœˆæ
           class="data-item"
         >
           <span class="data-label">{{ item.label }}</span>
-          <span :class="{'data-value': true, [item.totalProfitTextColor]: true,  'highlight': item.highlight, 'normal': item.normal, 'negative': item.negative }">{{ item.value }}</span>
+          <span :class="{'data-value': true, [item.totalProfitTextColor || '']: !!item.totalProfitTextColor,  'highlight': item.highlight, 'normal': item.normal, 'negative': item.negative }">{{ item.value }}</span>
         </div>
       </div>
     </div>

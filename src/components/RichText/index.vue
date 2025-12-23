@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+// @ts-ignore - dompurify 缺少类型声明
 import DOMPurify from 'dompurify'
 
 type Props = {
