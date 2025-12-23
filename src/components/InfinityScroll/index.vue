@@ -83,7 +83,7 @@ defineExpose<InfinityExposeType>({
 const domEl = ref<HTMLDivElement>()
 const touchEventCB = (e: TouchEvent) => {
   const scrollY = window.scrollY || document.documentElement.scrollTop
-  if (scrollY !== 0) {
+  if (scrollY > 0) {
     e.stopPropagation()
   }
 }
