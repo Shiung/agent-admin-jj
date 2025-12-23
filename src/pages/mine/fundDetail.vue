@@ -33,7 +33,7 @@ const transferTypeMap = [
   { label: '佣金发放', value: 7, wallet: ['all', 'commission'] },
   { label: '佣金提现', value: 6, wallet: ['all', 'commission'] },
   { label: '佣金提现返还', value: 16, wallet: ['all', 'commission'] },
-  { label: '佣金还款', value: 9, wallet: ['all', 'commission'] },
+  // { label: '佣金还款', value: 9, wallet: ['all', 'commission'] }, GOR-5632 隐藏代理的佣金还款功能
   { label: '佣金调整', value: 12, wallet: ['all', 'commission'] },
   { label: '佣金转额度', value: 14, wallet: ['all', 'commission', 'quota'] },
   { label: '代理代存-代存', value: 2, wallet: ['all', 'commission', 'quota'] },
@@ -43,6 +43,8 @@ const transferTypeMap = [
   { label: '代理充值', value: 11, wallet: ['all', 'quota'] },
   { label: '额度还款', value: 8, wallet: ['all', 'quota'] },
   { label: '额度调整', value: 3, wallet: ['all', 'quota'] },
+  { label: '额度提现', value: 17, wallet: ['all', 'quota'] },
+  { label: '额度提现返还', value: 18, wallet: ['all', 'quota'] },
 ]
 
 const transferTypeList = computed(() => {

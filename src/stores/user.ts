@@ -77,6 +77,9 @@ export const useUserStore = defineStore('user', () => {
     return Math.max(...subAgentList.value.map(a => a.AccountLevel))
   })
 
+  /** 額度提款功能開關 **/
+  const withdrawSourceSwitch = ref(false)
+
   watch(userInfo, (newVal) => {
     if (!newVal) return
 
@@ -90,6 +93,7 @@ export const useUserStore = defineStore('user', () => {
     globalStore.fetchConfigInfo()
     gameStore.fetchSolidConfig()
     fetchAccountInfo()
+    fnGetWithdrawaSourceSwitchConfig()
   })
 
   const setToken = (t: string | null) => {
@@ -239,6 +243,14 @@ export const useUserStore = defineStore('user', () => {
     return null
   }
 
+  //
+  const fnGetWithdrawaSourceSwitchConfig = async () => {
+    const res = await API.finance.getWithdrawaSourceSwitchConfig({ WithdrawSource: 2 })
+    if (res.data.Code !== 200) return
+    withdrawSourceSwitch.value = res.data.Data.IsOpen === 1
+    return res.data.Data
+  }
+
   return {
     token,
     userInfo,
@@ -268,5 +280,7 @@ export const useUserStore = defineStore('user', () => {
     fetchCommissionBalance,
     fetchCreditBalanceAndLimits,
     fetchUserBalancesAndLimits,
+    withdrawSourceSwitch
   }
 })
+

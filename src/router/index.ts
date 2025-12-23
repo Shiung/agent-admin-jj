@@ -315,6 +315,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/finance/withdraw/withdraw.vue'),
       },
       {
+        path: 'quotaWithdraw',
+        name: 'quotaWithdraw',
+        component: () => import('@/pages/finance/withdraw/withdraw.vue'),
+      },
+      {
         path: 'withdrawRecord',
         name: 'withdrawRecord',
         component: () => import('@/pages/finance/withdraw/withdrawRecord.vue'),

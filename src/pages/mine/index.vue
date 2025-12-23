@@ -19,6 +19,7 @@ const {
   isSingleAgent,
   hasTeam,
   isMainLine,
+  withdrawSourceSwitch
 } = storeToRefs(userStore)
 
 // 常用功能（动态生成）
@@ -91,6 +92,10 @@ const goWithdraw = () => {
   router.push({ name: 'withdrawPage' })
 }
 
+const goQuotaWithdraw = () => {
+  router.push({ name: 'quotaWithdraw' })
+}
+
 const goRecharge = () => {
   router.push({ name: 'rechargePage' })
 }
@@ -136,8 +141,12 @@ onMounted(async () => {
         <div class="text-xs leading-5 text-neutral-basic">额度钱包</div>
         <div class="text-xl leading-7 truncate font-semibold text-primary-normal">{{
           formatMoneyWithComma(creditWalletBalance) }}</div>
-        <van-button type="primary" size="small" plain round class="w-full !font-semibold !bg-bg-floor-1-2"
+        <div class="flex flex-1 items-center gap-1">
+          <van-button type="primary" size="small" plain round class="flex-1 !font-semibold !bg-bg-floor-1-2 !leading-none"
           @click="goRecharge">充值</van-button>
+          <van-button v-if="withdrawSourceSwitch" type="primary" size="small" plain round class="flex-1 !font-semibold !bg-bg-floor-1-2 !leading-none"
+          @click="goQuotaWithdraw">提现</van-button>
+        </div>
       </div>
     </div>
 

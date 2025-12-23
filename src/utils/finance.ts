@@ -121,6 +121,16 @@ export const getWithdrawName = (type: number | string) => {
   }
 }
 
+const withdrawSourceName: Record<number, string> = {
+  1: '佣金钱包',
+  2: '额度钱包'
+}
+
+export const getWithdrawSourceName = (source: number) => {
+  return withdrawSourceName[source] || ''
+}
+
+
 /** 取得充值Icon */
 export const getRechargeTypeImage = (type: number | string) => {
   switch (parseInt(String(type))) {
