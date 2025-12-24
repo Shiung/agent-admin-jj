@@ -500,8 +500,7 @@ const handleSubmit = async () => {
           memberAccount.value = ''
           break
 
-        case 10196:
-        case 10002:
+        case 10140:
           showToast({ message: '会员不存在，请再次确认', position: 'bottom' })
           break
 
@@ -517,7 +516,9 @@ const handleSubmit = async () => {
         case 21015:
           showToast({ message: '此为测试账号，无法操作', position: 'bottom' })
           break
-
+        case 10131:
+          showToast({ message: '钱包余额不足，请再次确认', position: 'bottom' })
+          break
         case 21018:
           showToast({
             message: `${memberAccount.value} 1分钟内不可再次转账，请稍后再试！`,
@@ -525,7 +526,7 @@ const handleSubmit = async () => {
           })
           break
 
-        case 10529:
+        case 10103:
           showToast({ message: '私人密码错误，请再次确认', position: 'bottom' })
           privatePassword.value = ''
           break
