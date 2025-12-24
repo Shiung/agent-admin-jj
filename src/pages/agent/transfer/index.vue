@@ -144,13 +144,13 @@ const handleSubmit = async () => {
     return
   }
 
-  try {
-    showLoadingToast({
-      message: '提交中...',
-      forbidClick: true,
-      duration: 0
-    })
+  const loadingToast = showLoadingToast({
+    message: '提交中...',
+    forbidClick: true,
+    duration: 0
+  })
 
+  try {
     // 检查钱包余额是否足够
     const amountNum = Number(transferAmount.value)
     if (currentWalletBalance.value < amountNum) {
@@ -175,6 +175,9 @@ const handleSubmit = async () => {
 
     const response = await API.admin.postAgentCreditLimitTransactionInsert(params)
 
+    // 关闭 loading toast
+    loadingToast.close()
+
     if (response.data.Code === 200) {
       showToast({
         message: '操作成功',
@@ -184,18 +187,19 @@ const handleSubmit = async () => {
       // 处理错误代码
       let errorMessage = response.data.Msg || '转账失败'
 
-      if (response.data.Code === 10002) {
-        errorMessage = '代理不存在'
-      } else if (response.data.Code === 10196) {
-        errorMessage = response.data.Msg || '代理不在此团队下，请重新输入'
+      if (response.data.Code === 10196 || response.data.Code === 10002) {
+        errorMessage = '代理不存在，请再次确认'
       } else if (response.data.Code === 10155) {
         errorMessage = '此代理已停用'
       } else if (response.data.Code === 10217) {
         errorMessage = '转账金额错误'
       } else if (response.data.Code === 21003) {
         errorMessage = '转账金额已超过当日限额'
+      } else if (response.data.Code === 10103) {
+        errorMessage = '私人密码错误，请再次确认'
+      } else if (response.data.Code === 10131) {
+        errorMessage = '钱包余额不足，请再次确认'
       }
-
       showToast({
         message: errorMessage,
         position: 'bottom'
@@ -203,6 +207,7 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     console.error('转账失败:', error)
+    loadingToast.close()
     showToast({
       message: '转账失败，请稍后重试',
       position: 'bottom'
