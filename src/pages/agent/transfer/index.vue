@@ -144,13 +144,13 @@ const handleSubmit = async () => {
     return
   }
 
-  try {
-    showLoadingToast({
-      message: '提交中...',
-      forbidClick: true,
-      duration: 0
-    })
+  const loadingToast = showLoadingToast({
+    message: '提交中...',
+    forbidClick: true,
+    duration: 0
+  })
 
+  try {
     // 检查钱包余额是否足够
     const amountNum = Number(transferAmount.value)
     if (currentWalletBalance.value < amountNum) {
@@ -174,6 +174,9 @@ const handleSubmit = async () => {
     }
 
     const response = await API.admin.postAgentCreditLimitTransactionInsert(params)
+
+    // 关闭 loading toast
+    loadingToast.close()
 
     if (response.data.Code === 200) {
       showToast({
@@ -203,6 +206,7 @@ const handleSubmit = async () => {
     }
   } catch (error) {
     console.error('转账失败:', error)
+    loadingToast.close()
     showToast({
       message: '转账失败，请稍后重试',
       position: 'bottom'
@@ -265,7 +269,7 @@ onMounted(() => {
             placeholder="请输入"
             :rules="agentAccountRules"
             :maxlength="20"
-            autocomplete="new-password"
+            autocomplete="off"
           />
         </div>
 
@@ -280,7 +284,7 @@ onMounted(() => {
             placeholder="请输入"
             maxlength="12"
             :rules="amountRules"
-            autocomplete="new-password"
+            autocomplete="off"
           />
           <div v-if="transferLimitInfo.isActive === 1" class="field-hint">
             单次转账金额 {{ transferLimitInfo.minAmount }}-{{ transferLimitInfo.maxAmount }} / 当日限额 {{ transferLimitInfo.dailyAmount }}
@@ -299,7 +303,7 @@ onMounted(() => {
             :rules="privatePasswordRules"
             :maxlength="20"
             label-align="top"
-            autocomplete="new-password"
+            autocomplete="off"
           >
             <template #right-icon>
               <van-icon
@@ -321,7 +325,7 @@ onMounted(() => {
             :maxlength="100"
             show-word-limit
             :rows="4"
-            autocomplete="new-password"
+            autocomplete="off"
           />
           <div v-if="false" class="remark-tags">
             <button

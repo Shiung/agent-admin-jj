@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useUserStore } from '@/stores/user'
 import TimeFilterDropdown from '@/components/TimeFilter/TimeFilterDropdown.vue'
+import SearchBar from '@/components/SearchBar/index.vue'
 import RecordCard from '@/components/RecordCard/index.vue'
 import SummaryCard from '@/components/SummaryCard/index.vue'
 import dayjs from 'dayjs'
@@ -11,6 +12,11 @@ import Big from 'big.js'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
 import API from '@/apis'
 import type { AgentCreditLimitTransactionItem } from '@/apis/codegen/data-contracts'
+
+type SearchType = {
+  id: number | string
+  text: string
+}
 
 const router = useRouter()
 const route = useRoute()
@@ -115,7 +121,9 @@ const selectTimeRange = ref(getDefaultTimeRange())
 const totalAmount = ref(0)
 
 // 会员/代理账号搜索
-const searchKeyword = ref('')
+const searchLsLoading = ref(false)
+const searchSelected = ref<SearchType | null>(null)
+const searchLs = ref<Array<{ id: number | string, text: string }>>([])
 
 // 类型筛选
 const typeFilter = ref<string | number>('all')
@@ -131,7 +139,7 @@ const loading = ref(false)
 const finished = ref(false)
 const refreshing = ref(false)
 const currentPage = ref(1)
-const pageSize = 2
+const pageSize = 20
 const totalCount = ref(0)
 const error = ref(false)
 
@@ -140,18 +148,32 @@ const handleBack = () => {
   router.back()
 }
 
-// 搜索处理
-const handleSearch = () => {
-  if (searchKeyword.value.length >= 1) {
-    resetList()
+// 获取搜索列表（会员或代理）
+const fetchSearchList = async () => {
+  try {
+    searchLsLoading.value = true
+    if (recordType.value === 'deposit') {
+      // 代存模式：搜索会员
+      const res = await API.playerManage.getPlayerSearch({})
+      searchLs.value = (res.data.Data.Items ?? []).map((i) => ({ id: i.PlayerId, text: i.LoginAccount }))
+    } else {
+      // 转账模式：搜索代理
+      const res = await API.netcashmulti.getNetcashmultiSearchAdmin({
+        Username: '',
+        AccountLevel: 0
+      })
+      searchLs.value = (res.data.Data.Items ?? []).map((i) => ({ id: i.AdminId, text: i.Username }))
+    }
+  } catch (e) {
+    console.warn('[fetchSearchList error]:', e)
+  } finally {
+    searchLsLoading.value = false
   }
 }
 
-// 会员/代理账号输入监听（当输入字元>=1自动加载清单）
-watch(searchKeyword, (newVal) => {
-  if (newVal.length === 0) {
-    resetList()
-  }
+// 会员/代理选择监听
+watch(searchSelected, () => {
+  resetList()
 })
 
 // 监听时间范围变化
@@ -231,8 +253,8 @@ const loadMore = async () => {
     }
 
     // 会员/代理账号搜索
-    if (searchKeyword.value) {
-      query.AccountName = searchKeyword.value
+    if (searchSelected.value) {
+      query.AccountName = searchSelected.value.text
     }
 
     // 类型筛选（WalletType: 1=佣金钱包, 2=额度钱包）
@@ -354,6 +376,7 @@ const getCardTimes = (record: AgentCreditLimitTransactionItem) => {
 
 // 页面挂载时加载数据
 onMounted(() => {
+  fetchSearchList()
   loadMore()
 })
 </script>
@@ -381,21 +404,12 @@ onMounted(() => {
     <!-- 搜索和筛选器 -->
     <div class="flex flex-col px-3 py-2 gap-3">
       <!-- 会员/代理账号搜索框 -->
-      <van-search
-        v-model="searchKeyword"
+      <SearchBar
         :placeholder="pageConfig.searchPlaceholder"
-        shape="round"
-        background="transparent"
-        clearable
-        left-icon=""
-        @search="handleSearch"
-        @clear="handleSearch"
-        @keyup.enter="handleSearch"
-      >
-        <template #right-icon>
-          <van-icon name="search" size="18" @click="handleSearch" />
-        </template>
-      </van-search>
+        class="flex-1"
+        v-model:selected="searchSelected"
+        :search-ls="searchLs"
+      />
 
       <!-- 筛选条件行 -->
       <div class="flex items-center gap-2 overflow-auto">
@@ -481,44 +495,6 @@ onMounted(() => {
 .listContainer {
   height: calc(100vh - calc(var(--spacing) * 60));
   overflow: auto;
-}
-
-/* 自定义 van-search 样式 */
-:deep(.van-search) {
-  padding: 0;
-
-  .van-search__content {
-    background-color: white;
-    border: 1px solid var(--color-neutral2-seventh);
-    border-radius: 20px;
-    height: 40px;
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .van-field__control {
-    font-size: 14px;
-    color: var(--color-neutral-basic);
-  }
-
-  .van-field__control::placeholder {
-    color: var(--color-neutral-secondary);
-  }
-
-  .van-field__right-icon {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: var(--color-neutral-secondary);
-  }
-
-  .van-field__clear {
-    color: var(--color-neutral-secondary);
-  }
-
-  .van-field__right-icon .van-icon {
-    cursor: pointer;
-  }
 }
 
 /* 筛选器 Dropdown 样式 */

@@ -436,108 +436,117 @@ const handleSubmit = async () => {
       return
     }
 
-    showLoadingToast({
+    const loadingToast = showLoadingToast({
       message: '提交中...',
       forbidClick: true,
+      duration: 0
     })
 
-    // 计算 WalletType：额度代存(0) -> 2, 佣金代存(1) -> 1
-    const walletType = activeTab.value === SUB_TAB_TYPE.CREDIT ? 2 : 1
+    try {
+      // 计算 WalletType：额度代存(0) -> 2, 佣金代存(1) -> 1
+      const walletType = activeTab.value === SUB_TAB_TYPE.CREDIT ? 2 : 1
 
-    // 计算 IsMultiLevel：单层代理=1，多层代理=2
-    const isMultiLevel = isSingleAgent.value ? 1 : 2
+      // 计算 IsMultiLevel：单层代理=1，多层代理=2
+      const isMultiLevel = isSingleAgent.value ? 1 : 2
 
-    // 准备API参数
-    const params = {
-      TransferType: depositType.value,
-      ReferenceAccount: memberAccount.value,
-      PackageId: selectedProduct.value,
-      Amount: new Big(depositAmount.value).times(100).toNumber(), // 转换为分
-      DisplayAmount: Number(depositAmount.value),
-      WithdrawWaterMultiply: Number(withdrawMultiple.value),
-      PayPassword: privatePassword.value,
-      Remarks: remark.value || '',
-      WalletType: walletType,
-      IsSendNotification: 0,
-      IsMultiLevel: isMultiLevel,
-      IsBatch: depositMethod.value
-    }
+      // 准备API参数
+      const params = {
+        TransferType: depositType.value,
+        ReferenceAccount: memberAccount.value,
+        PackageId: selectedProduct.value,
+        Amount: new Big(depositAmount.value).times(100).toNumber(), // 转换为分
+        DisplayAmount: Number(depositAmount.value),
+        WithdrawWaterMultiply: Number(withdrawMultiple.value),
+        PayPassword: privatePassword.value,
+        Remarks: remark.value || '',
+        WalletType: walletType,
+        IsSendNotification: 0,
+        IsMultiLevel: isMultiLevel,
+        IsBatch: depositMethod.value
+      }
 
-    // 调用 API
-    const response = await API.admin.postAgentCreditLimitTransactionInsert(params)
+      // 调用 API
+      const response = await API.admin.postAgentCreditLimitTransactionInsert(params)
 
-    // 处理响应
-    switch (response.data.Code) {
-      case 200:
-        if (response.data.Data?.FailAccounts && response.data.Data.FailAccounts.length > 0) {
-          // 有失败的账号
-          const failCount = response.data.Data.FailCount || 0
-          const successCount = response.data.Data.SuccessCount || 0
+      // 关闭 loading toast
+      loadingToast.close()
+
+      // 处理响应
+      switch (response.data.Code) {
+        case 200:
+          if (response.data.Data?.FailAccounts && response.data.Data.FailAccounts.length > 0) {
+            // 有失败的账号
+            const failCount = response.data.Data.FailCount || 0
+            const successCount = response.data.Data.SuccessCount || 0
+            showToast({
+              message: `成功: ${successCount}, 失败: ${failCount}`,
+              position: 'bottom',
+              duration: 3000
+            })
+          } else {
+            // 全部成功
+            showToast({
+              message: '操作成功',
+              position: 'bottom',
+            })
+          }
+
+          // 重置表单
+          formRef.value?.resetValidation()
+          depositAmount.value = ''
+          withdrawMultiple.value = ''
+          privatePassword.value = ''
+          remark.value = ''
+          memberAccount.value = ''
+          break
+
+        case 10196:
+        case 10002:
+          showToast({ message: '会员不存在，请再次确认', position: 'bottom' })
+          break
+
+        case 21007:
+        case 21003:
+          showToast({ message: '代存金额已超过当日限额', position: 'bottom' })
+          break
+
+        case 10217:
+          showToast({ message: '代存金额错误', position: 'bottom' })
+          break
+
+        case 21015:
+          showToast({ message: '此为测试账号，无法操作', position: 'bottom' })
+          break
+
+        case 21018:
           showToast({
-            message: `成功: ${successCount}, 失败: ${failCount}`,
+            message: `${memberAccount.value} 1分钟内不可再次转账，请稍后再试！`,
             position: 'bottom',
-            duration: 3000
           })
-        } else {
-          // 全部成功
+          break
+
+        case 10529:
+          showToast({ message: '私人密码错误，请再次确认', position: 'bottom' })
+          privatePassword.value = ''
+          break
+
+        default:
           showToast({
-            message: '操作成功',
+            message: response.data.Msg || '操作失败',
             position: 'bottom',
           })
-        }
-
-        // 重置表单
-        formRef.value?.resetValidation()
-        depositAmount.value = ''
-        withdrawMultiple.value = ''
-        privatePassword.value = ''
-        remark.value = ''
-        memberAccount.value = ''
-        break
-
-      case 10196:
-      case 10002:
-        showToast({ message: '会员不存在，请再次确认', position: 'bottom' })
-        break
-
-      case 21007:
-      case 21003:
-        showToast({ message: '代存金额已超过当日限额', position: 'bottom' })
-        break
-
-      case 10217:
-        showToast({ message: '代存金额错误', position: 'bottom' })
-        break
-
-      case 21015:
-        showToast({ message: '此为测试账号，无法操作', position: 'bottom' })
-        break
-
-      case 21018:
-        showToast({
-          message: `${memberAccount.value} 1分钟内不可再次转账，请稍后再试！`,
-          position: 'bottom',
-        })
-        break
-
-      case 10529:
-        showToast({ message: '私人密码错误，请再次确认', position: 'bottom' })
-        privatePassword.value = ''
-        break
-
-      default:
-        showToast({
-          message: response.data.Msg || '操作失败',
-          position: 'bottom',
-        })
-        break
+          break
+      }
+    } catch (error) {
+      console.error('提交失败:', error)
+      loadingToast.close()
+      showToast({
+        message: '提交失败，请稍后重试',
+        position: 'bottom',
+      })
     }
   } catch (error) {
-    console.error('提交失败:', error)
-    showToast({
-      message: '提交失败，请稍后重试',
-      position: 'bottom',
-    })
+    console.error('表单验证失败:', error)
   }
 }
 </script>
@@ -619,7 +628,7 @@ const handleSubmit = async () => {
             placeholder="请输入"
             :rules="memberAccountRules"
             :maxlength="20"
-            autocomplete="new-password"
+            autocomplete="off"
           />
         </div>
 
@@ -636,7 +645,7 @@ const handleSubmit = async () => {
             show-word-limit
             :rows="4"
             :autosize="{ minHeight: 100 }"
-            autocomplete="new-password"
+            autocomplete="off"
           />
           <div class="batch-input-hint">
             注：多账号用逗号或分号分隔，最多1600个字符
@@ -667,7 +676,7 @@ const handleSubmit = async () => {
             placeholder="请输入"
             maxlength="12"
             :rules="amountRules"
-            autocomplete="new-password"
+            autocomplete="off"
           />
           <div v-if="depositLimitInfo.isActive === 1" class="field-hint">
             单次转账金额 {{ depositLimitInfo.minAmount }}~{{ depositLimitInfo.maxAmount }} / 当日限额 {{ depositLimitInfo.dailyAmount }}
@@ -685,7 +694,7 @@ const handleSubmit = async () => {
             :placeholder="'请输入1~' + depositLimitInfo.maxWithdrawMultiple"
             :rules="multipleRules"
             :maxlength="12"
-            autocomplete="new-password"
+            autocomplete="off"
           />
           <div v-if="false" class="field-hint">
             1≤流水倍数≤{{ depositLimitInfo.maxWithdrawMultiple }}
@@ -715,7 +724,7 @@ const handleSubmit = async () => {
             :rules="passwordRules"
             :maxlength="20"
             label-align="top"
-            autocomplete="new-password"
+            autocomplete="off"
           >
             <template #right-icon>
               <van-icon
@@ -737,7 +746,7 @@ const handleSubmit = async () => {
             :maxlength="100"
             show-word-limit
             :rows="4"
-            autocomplete="new-password"
+            autocomplete="off"
           />
           <div class="remark-tags">
             <button
