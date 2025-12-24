@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { useUserStore } from '@/stores/user'
-import AppField from '@/components/AppField/index.vue'
-import API from '@/apis'
-import getDeviceId from '@/utils/getDeviceId'
 import { opTypeConf } from '@/consts/constant'
 import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
+import { useVerificationCountdown } from '../../useVerificationCountdown.ts'
+import API from '@/apis'
+import AppField from '@/components/AppField/index.vue'
+import getDeviceId from '@/utils/getDeviceId'
+import ImageCaptchaDialog from '@/components/ImageCaptchaDialog/index.vue'
 
 interface Props {
   ValidType: number
@@ -18,35 +20,47 @@ const props = withDefaults(defineProps<Props>(), {
   VerifyCode: '',
   verifiable: false
 })
+const {
+  countdown,
+  loading: codeLoading,
+  hasRequested: hasRequestedCode,
+  start: startCountdown
+} = useVerificationCountdown(60)
+
+const userStore = useUserStore()
+const validType = ref<number>(props.ValidType)
+const verificationCode = ref<string>(props.VerifyCode)
+const showImageCaptcha = ref<boolean>(false)
+const adminInfo = computed(() => userStore.userInfo?.Admin || {})
+
 const emit = defineEmits<{
   (e: 'update:ValidType', value: number): void
   (e: 'update:VerifyCode', value: string): void
 }>()
-
-const userStore = useUserStore()
-const adminInfo = computed(() => userStore.userInfo?.Admin || {})
-const validType = ref(props.ValidType)
-const verificationCode = ref(props.VerifyCode)
-const codeLoading = ref(false)
-const countdown = ref(0)
 
 const validTypeOptions = [
   { label: '手机验证', value: 0 },
   { label: '邮箱验证', value: 1 },
   { label: '谷歌验证', value: 2 }
 ]
-
-watch(() => props.ValidType, (newVal) => {
-  validType.value = newVal
-})
-watch(() => props.VerifyCode, (newVal) => {
-  verificationCode.value = newVal
+const captchaType = computed<'phone' | 'email'>(() => {
+  return validType.value === 0 ? 'phone' : 'email'
 })
 
 const getVerificationCode = async () => {
   if (countdown.value > 0) {
     return
   }
+
+  if (validType.value === 0 || validType.value === 1) {
+    showImageCaptcha.value = true
+    return
+  }
+}
+
+const handleCaptchaVerifySuccess = async () => {
+  showImageCaptcha.value = false
+  showToast('验证码已发送，请注意查收!')
 
   const baseParams = {
     DeviceId: getDeviceId() ?? '',
@@ -61,42 +75,28 @@ const getVerificationCode = async () => {
       api: () => API.system.phoneVerify({
         Number: adminInfo.value.Mobile || '',
         ...baseParams
-      })
+      }, { customErrorHandling: true })
     },
     1: {
       api: () => API.system.emailVerify({
         Email: adminInfo.value.Email || '',
         ...baseParams
-      })
+      }, { customErrorHandling: true })
     }
   }
 
-  const config = verificationConfig[validType.value as VerificationType]
-  if (!config) return
+   await startCountdown(async () => {
+     const config = verificationConfig[validType.value as VerificationType]
+     if (!config) return false
 
-  codeLoading.value = true
-  try {
-    const res = await config.api()
-    if (res.data.Code !== 200) {
-      showFailToast(res.data.Msg)
-      return
-    }
-
-    showToast('验证码已发送，请注意查收')
-
-    countdown.value = 60
-    const timer = setInterval(() => {
-      countdown.value--
-      if (countdown.value <= 0) {
-        clearInterval(timer)
-      }
-    }, 1000)
-  } catch (error: any) {
-    console.error('获取验证码失败：', error)
-    showFailToast(error?.response?.data?.Msg)
-  } finally {
-    codeLoading.value = false
-  }
+     const res = await config.api()
+     if (res.data.Code !== 200) {
+       const errorMsg = validType.value === 0 ? '尚未绑定手机号' : '尚未绑定邮箱地址'
+       showFailToast(errorMsg)
+       return false
+     }
+     return true
+   })
 }
 
 </script>
@@ -146,10 +146,17 @@ const getVerificationCode = async () => {
           class="verificationBtn"
           @click.stop="getVerificationCode"
         >
-          {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
+          {{ countdown > 0 ? `${countdown}秒` : (hasRequestedCode ? '重新获取' : '获取验证码') }}
         </van-button>
       </template>
     </AppField>
+    <!-- 圖片驗證碼 -->
+    <ImageCaptchaDialog
+      v-model:show="showImageCaptcha"
+      :type="captchaType"
+      :skipSendCode="true"
+      @verifySuccess="handleCaptchaVerifySuccess"
+    />
   </div>
 </template>
 

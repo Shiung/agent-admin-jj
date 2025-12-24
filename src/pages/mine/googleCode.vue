@@ -112,7 +112,7 @@ const submit = async () => {
     <div class="py-3">
       <div class="mx-3 my-2 px-3 py-2 bg-bg-floor-1-2 rounded-lg flex items-center">
         <van-image src="./static/images/common/lightBulb.png" width="32" class="mr-2" />
-        <p class="text-primary-normal text-sm">可以在苹果商店搜索"Google Authenticator"，或安卓商店搜索"Google身份验证器" 下载安装</p>
+        <p class="text-primary-normal text-sm">您可以在苹果商店搜索"Google Authenticator",或安卓应用商店搜索"Google身份验证器"下载安装</p>
       </div>
       <van-form ref="formRef" :trigger="['onBlur', 'onChange']" @submit="submit">
         <AppField v-model="googleCode" name="googleCode" label-align="top" label="谷歌验证器密钥">
