@@ -291,6 +291,7 @@ const handleBack = () => {
             v-model="formData.username"
             type="text"
             placeholder="请输入"
+            maxlength="12"
             class="form-input"
           />
         </div>
