@@ -99,14 +99,42 @@ const BetStatus = [
   { label: '未结算', value: -1 }
 ]
 
-const sortOptions = ref([
-  { value: '-SettlementTime', label: '结算时间降序' },
-  { value: 'SettlementTime', label: '结算时间升序' },
-  { value: '-CompanyWinLose', label: '盈利降序' },
-  { value: 'CompanyWinLose', label: '盈利升序' },
-])
+const sortOptions = computed(() => {
+  const returnLs = [
+    { value: '-CompanyWinLose', label: '盈利降序' },
+    { value: 'CompanyWinLose', label: '盈利升序' },
+  ]
+  switch (selectTimeType.value) {
+    /** 1:下注时间 */
+    case 1: {
+      returnLs.unshift(...[
+        { value: '-TransactionTime', label: '下注时间降序' },
+        { value: 'TransactionTime', label: '下注时间升序' }
+      ])
+      break
+    }
+    /** 2:结算时间  */
+    case 2: {
+      returnLs.unshift(...[
+        { value: '-SettlementTime', label: '结算时间降序' },
+        { value: 'SettlementTime', label: '结算时间升序' },
+      ])
+      break
+    }
+    /** 3:开赛时间 (依照体育、直播、真人取不同的资料) */
+    case 3: {
+      returnLs.unshift(...[
+        { value: '-GameStartTime', label: '开赛时间降序' },
+        { value: 'GameStartTime', label: '开赛时间升序' },
+      ])
+      break
+    }
+  }
 
-const selectedSort = ref(sortOptions.value[0]?.value ?? '-SettlementTime')
+  return returnLs
+})
+
+const selectedSort = ref('-SettlementTime')
 
 const sum = computed(() => ([
   { id: 'sumBet', title: '投注金额', amount: moreItems.value?.SumBetGold ?? 0 },
@@ -329,6 +357,10 @@ const emit = defineEmits<{
 
 watchEffect(() => {
   emit('sumInfo', moreItems.value)
+})
+
+watch(sortOptions, (opt) => {
+  selectedSort.value = opt[0]?.value ?? ''
 })
 
 watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus, playerId, selectedSort], () => {
