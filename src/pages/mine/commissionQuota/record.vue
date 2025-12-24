@@ -56,9 +56,9 @@ onMounted(() => {
   fetchCommissionToQuotaTotal()
 })
 
-// watch([quotaTime, selectedSort], () => {
-//   fetchCommissionToQuotaTotal()
-// })
+watch([quotaTime], () => {
+  fetchCommissionToQuotaTotal()
+})
 
 </script>
 <template>
