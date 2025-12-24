@@ -265,7 +265,7 @@ onMounted(() => {
             placeholder="请输入"
             :rules="agentAccountRules"
             :maxlength="20"
-            autocomplete="off"
+            autocomplete="new-password"
           />
         </div>
 
@@ -280,7 +280,7 @@ onMounted(() => {
             placeholder="请输入"
             maxlength="12"
             :rules="amountRules"
-            autocomplete="off"
+            autocomplete="new-password"
           />
           <div v-if="transferLimitInfo.isActive === 1" class="field-hint">
             单次转账金额 {{ transferLimitInfo.minAmount }}-{{ transferLimitInfo.maxAmount }} / 当日限额 {{ transferLimitInfo.dailyAmount }}
@@ -299,7 +299,7 @@ onMounted(() => {
             :rules="privatePasswordRules"
             :maxlength="20"
             label-align="top"
-            autocomplete="off"
+            autocomplete="new-password"
           >
             <template #right-icon>
               <van-icon
@@ -321,7 +321,7 @@ onMounted(() => {
             :maxlength="100"
             show-word-limit
             :rows="4"
-            autocomplete="off"
+            autocomplete="new-password"
           />
           <div v-if="false" class="remark-tags">
             <button

@@ -619,7 +619,7 @@ const handleSubmit = async () => {
             placeholder="请输入"
             :rules="memberAccountRules"
             :maxlength="20"
-            autocomplete="off"
+            autocomplete="new-password"
           />
         </div>
 
@@ -636,7 +636,7 @@ const handleSubmit = async () => {
             show-word-limit
             :rows="4"
             :autosize="{ minHeight: 100 }"
-            autocomplete="off"
+            autocomplete="new-password"
           />
           <div class="batch-input-hint">
             注：多账号用逗号或分号分隔，最多1600个字符
@@ -667,7 +667,7 @@ const handleSubmit = async () => {
             placeholder="请输入"
             maxlength="12"
             :rules="amountRules"
-            autocomplete="off"
+            autocomplete="new-password"
           />
           <div v-if="depositLimitInfo.isActive === 1" class="field-hint">
             单次转账金额 {{ depositLimitInfo.minAmount }}~{{ depositLimitInfo.maxAmount }} / 当日限额 {{ depositLimitInfo.dailyAmount }}
@@ -684,7 +684,7 @@ const handleSubmit = async () => {
             type="number"
             :placeholder="'请输入1~' + depositLimitInfo.maxWithdrawMultiple"
             :rules="multipleRules"
-            autocomplete="off"
+            autocomplete="new-password"
           />
           <div v-if="false" class="field-hint">
             1≤流水倍数≤{{ depositLimitInfo.maxWithdrawMultiple }}
@@ -714,7 +714,7 @@ const handleSubmit = async () => {
             :rules="passwordRules"
             :maxlength="20"
             label-align="top"
-            autocomplete="off"
+            autocomplete="new-password"
           >
             <template #right-icon>
               <van-icon
@@ -736,7 +736,7 @@ const handleSubmit = async () => {
             :maxlength="100"
             show-word-limit
             :rows="4"
-            autocomplete="off"
+            autocomplete="new-password"
           />
           <div class="remark-tags">
             <button
