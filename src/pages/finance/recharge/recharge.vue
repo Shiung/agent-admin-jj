@@ -109,6 +109,9 @@ watch(
       checkOrderInterval.value = setInterval(() => {
         fetchRechargeOrder(true)
       }, 15000)
+    } else if (newValue !== oldValue && newValue === 0 && oldValue !== null) {
+      /** 刷新餘額 */
+      userStore.fetchCreditBalanceAndLimits()
     }
   }
 )

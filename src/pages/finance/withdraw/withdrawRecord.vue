@@ -2,12 +2,11 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useClipboard } from '@vueuse/core'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
-import { getWithdrawName } from '@/utils/finance'
+import { getWithdrawName, getWithdrawSourceName } from '@/utils/finance'
 import { type WithdrawRecordListQuery } from '@/apis/codegen/data-contracts'
 import { type ListItem } from '../components/payTypeList.vue'
 import dayjs from 'dayjs'
 import API from '@/apis'
-import { getWithdrawSourceName } from '@/utils/finance'
 
 const { copy } = useClipboard()
 
