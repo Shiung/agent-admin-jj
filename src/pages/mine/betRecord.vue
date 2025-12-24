@@ -10,9 +10,9 @@ import type SearchBar from '@/components/SearchBar/index.vue'
 const sumInfo = ref<Parameters<NonNullable<InstanceType<typeof GameRecord>['$props']['onSumInfo']>>[0]>(null)
 
 const sumShow = computed(() => {
-  const { SumWinGold, SumTotalBetGold, SumTotalBetNum, SumValidWater } = sumInfo.value || {}
+  const { SumProfitGold, SumTotalBetGold, SumTotalBetNum, SumValidWater } = sumInfo.value || {}
   return {
-    winGold: formatSignedMoney(SumWinGold ?? 0, 2, false),
+    winGold: formatSignedMoney(SumProfitGold ?? 0, 2, false),
     totalBetNum: { text: SumTotalBetNum ?? 0, color: '' },
     totalBetGold: { text: formatMoney(SumTotalBetGold ?? 0, 2, true), color: '' },
     validWater: { text: formatMoney(SumValidWater ?? 0, 2, true), color: '' }
