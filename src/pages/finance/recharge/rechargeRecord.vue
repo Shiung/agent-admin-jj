@@ -194,7 +194,7 @@ onMounted(() => {
 
               <div class="flex justify-between py-2 leading-5 gap-3 text-xs text-neutral2-basic border-t border-t-neutral2-sixth">
                 <div class="min-w-20">充值金额</div>
-                <div class="text-right font-semibold">{{ formatMoneyWithComma(item.Amount) }}</div>
+                <div class="text-right font-semibold">{{ formatMoneyWithComma(item.RealAmount) }}</div>
               </div>
             </div>
           </div>

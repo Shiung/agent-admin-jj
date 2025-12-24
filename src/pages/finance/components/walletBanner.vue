@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useUserStore } from '@/stores/user'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
-import API from '@/apis'
+
+const userStore = useUserStore()
 
 interface Props {
   /** commission佣金錢包 / credit額度錢包 */
@@ -26,20 +28,24 @@ const iconImagePath = computed(() => {
   }[props.walletType]
 })
 
-const balance = ref<number>(0)
+const balance = computed(() => {
+  if (props.walletType === 'commission') {
+    return userStore.commissionWalletBalance
+  } else if (props.walletType === 'credit') {
+    return userStore.creditWalletBalance
+  } else {
+    return 0
+  }
+})
 const loading = ref<boolean>(false)
 
 const fetchWalletBalance = async() => {
   loading.value = true
   try {
     if (props.walletType === 'commission') {
-      const res = await API.finance.getCommissionOverview()
-      if (res.data.Code !== 200) return
-      balance.value = res.data.Data.Available
+      await userStore.fetchCommissionBalance()
     } else if (props.walletType === 'credit') {
-      const res = await API.finance.getAccountBalance()
-      if (res.data.Code !== 200) return
-      balance.value = res.data.Data.Items.Credit
+      await userStore.fetchCreditBalanceAndLimits()
     }
   } finally {
     loading.value = false

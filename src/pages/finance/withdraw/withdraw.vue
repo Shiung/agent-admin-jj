@@ -204,6 +204,8 @@ const handleWithdrawSuccess = () => {
   showWithdrawConfirmPopup.value = false
   fetchWithdrawList()
   formData.value = initFormData()
+  if (walletTypeInfo.value.type === 1) userStore.fetchCommissionBalance()
+  if (walletTypeInfo.value.type === 2) userStore.fetchCreditBalanceAndLimits()
 }
 
 onMounted(() => {
