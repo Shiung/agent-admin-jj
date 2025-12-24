@@ -83,6 +83,11 @@ const advancedTimeLs = computed<InstanceType<typeof AdvancedBottomSheet>['$props
   ]
 })
 
+const checkTempCalendarLimit = (v: any) => {
+  /** 开赛时间 日期選擇自定義未來區間可以選擇 */
+  return v === 3
+}
+
 const advancedGameType = computed<InstanceType<typeof AdvancedBottomSheet>['$props']['ls']>(() => {
   return gameListConf.value.map((g, idx) => {
     return { key: `${advanceKeyMap.gameType}-${idx}`, title: g.PlatformName, type: 'checkbox', list: g.Games.map((i) => ({
@@ -99,14 +104,42 @@ const BetStatus = [
   { label: '未结算', value: -1 }
 ]
 
-const sortOptions = ref([
-  { value: '-SettlementTime', label: '结算时间降序' },
-  { value: 'SettlementTime', label: '结算时间升序' },
-  { value: '-CompanyWinLose', label: '盈利降序' },
-  { value: 'CompanyWinLose', label: '盈利升序' },
-])
+const sortOptions = computed(() => {
+  const returnLs = [
+    { value: '-CompanyWinLose', label: '盈利降序' },
+    { value: 'CompanyWinLose', label: '盈利升序' },
+  ]
+  switch (selectTimeType.value) {
+    /** 1:下注时间 */
+    case 1: {
+      returnLs.unshift(...[
+        { value: '-TransactionTime', label: '下注时间降序' },
+        { value: 'TransactionTime', label: '下注时间升序' }
+      ])
+      break
+    }
+    /** 2:结算时间  */
+    case 2: {
+      returnLs.unshift(...[
+        { value: '-SettlementTime', label: '结算时间降序' },
+        { value: 'SettlementTime', label: '结算时间升序' },
+      ])
+      break
+    }
+    /** 3:开赛时间 (依照体育、直播、真人取不同的资料) */
+    case 3: {
+      returnLs.unshift(...[
+        { value: '-GameStartTime', label: '开赛时间降序' },
+        { value: 'GameStartTime', label: '开赛时间升序' },
+      ])
+      break
+    }
+  }
 
-const selectedSort = ref(sortOptions.value[0]?.value ?? '-SettlementTime')
+  return returnLs
+})
+
+const selectedSort = ref('-SettlementTime')
 
 const sum = computed(() => ([
   { id: 'sumBet', title: '投注金额', amount: moreItems.value?.SumBetGold ?? 0 },
@@ -331,6 +364,10 @@ watchEffect(() => {
   emit('sumInfo', moreItems.value)
 })
 
+watch(sortOptions, (opt) => {
+  selectedSort.value = opt[0]?.value ?? ''
+})
+
 watch([selectTimeType, timeRange, gameTypeLs, selectBetStatus, playerId, selectedSort], () => {
   infinityRef.value?.fetchData()
 })
@@ -344,7 +381,7 @@ onMounted(() => {
 <template>
   <div class="flex-1 flex flex-col">
     <FilterBox>
-      <AdvancedBottomSheet v-model:show="showTimeAdvanced" :title="showTimeRangeTitle" sheet-title="时间筛选" :ls="advancedTimeLs" @change="timeFilterHandler" />
+      <AdvancedBottomSheet v-model:show="showTimeAdvanced" :title="showTimeRangeTitle" sheet-title="时间筛选" :ls="advancedTimeLs" :radio-temp-change-handler="checkTempCalendarLimit" @change="timeFilterHandler" />
       <AdvancedBottomSheet v-model:show="showGameTypeAdvanced" :title="showProductFilterTitle" :ls="advancedGameType" is-all-check-box @change="gameTypeHandler" />
       <Filled v-model:model-value="selectBetStatus" :options="BetStatus" />
       <Filled v-model:model-value="selectedSort" :options="sortOptions" />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { cn } from '@/utils/className'
 const { timeTitle = '标题', defaultVal = '', ls = [] } = defineProps<{
   timeTitle: string,
@@ -7,7 +7,15 @@ const { timeTitle = '标题', defaultVal = '', ls = [] } = defineProps<{
   defaultVal?: any
 }>()
 
-const selectVal = ref<string>(defaultVal)
+const selectVal = ref<any>(defaultVal)
+
+const emit = defineEmits<{
+  (e: 'change', value: any): void
+}>()
+
+watch(selectVal, (v) => {
+  emit('change', v)
+})
 
 defineExpose<{
   getValue: () => any

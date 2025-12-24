@@ -12,16 +12,20 @@ const defaultOption: { [key in string]: { label: string; startTime: number; endT
   lastMonth: { label: '上月', startTime: dayjs().subtract(1, 'month').startOf('month').unix(), endTime: dayjs().subtract(1, 'month').endOf('month').unix() },
 }
 
-const { timeTitle = '时间区间', timeDisableAll = false, defaultVal = '', timeDiasbleRangeLimit = false } = defineProps<{
+const { timeTitle = '时间区间', timeDisableAll = false, defaultVal = '', timeDiasbleRangeLimit = false, timeDiasbleTimeRangeForFuture = false } = defineProps<{
   timeTitle: string,
   defaultVal?: any,
   timeDisableAll?: boolean
   timeDiasbleRangeLimit?: boolean
+  timeDiasbleTimeRangeForFuture?: boolean
 }>()
 
 // 日期區間180天
 const minDate = ref(timeDiasbleRangeLimit ? dayjs('2000-01-01').toDate() : dayjs().subtract(180, 'day').toDate())
-const maxDate = ref(dayjs().toDate())
+// const maxDate = ref(dayjs().toDate())
+const maxDate = computed(() => {
+  return timeDiasbleTimeRangeForFuture ? dayjs('2100-01-01').toDate() : dayjs().toDate()
+})
 
 const showDatePicker = ref<boolean>(false)
 const selectedTime = ref<string>(defaultVal)
