@@ -5,7 +5,7 @@ import Radio from './Radio.vue'
 import CheckBox from './CheckBox.vue'
 
 const show = defineModel<boolean>('show', { required: true })
-const { title = '标题', sheetTitle = '进阶筛选', isAllCheckBox = false, ls: dataLs } = defineProps<{
+const { title = '标题', sheetTitle = '进阶筛选', isAllCheckBox = false, ls: dataLs, radioTempChangeHandler } = defineProps<{
   title?: string
   sheetTitle?: string
   ls: Array<{
@@ -27,6 +27,8 @@ const { title = '标题', sheetTitle = '进阶筛选', isAllCheckBox = false, ls
     timeDisableTimeRange?: boolean
   }>
   isAllCheckBox?: boolean
+  /** radio check for change Calendar limit */
+  radioTempChangeHandler?: (v: any) => boolean
 }>()
 
 const emit = defineEmits<{
@@ -54,6 +56,14 @@ const handleCheckBoxChange = () => {
     }
   })
   tempCheckLs.value = [...ls.values()].flat()
+}
+
+const hasCalendarUseFutureUnlimit = ref<boolean>(false)
+
+const handleRadioChange = (value: any) => {
+  if (typeof radioTempChangeHandler === 'function') {
+    hasCalendarUseFutureUnlimit.value = radioTempChangeHandler(value) ?? false
+  }
 }
 
 const onConfirm = () => {
@@ -149,9 +159,10 @@ watch(show, (s) => {
           v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}"
           :time-disable-all="!!l.timeDisableAll"
           :time-diasble-range-limit="!!l.timeDisableTimeRange"
+          :time-diasble-time-range-for-future="hasCalendarUseFutureUnlimit"
         />
         <CheckBox v-else-if="l.type === 'checkbox'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" @change="handleCheckBoxChange" />
-        <Radio v-else-if="l.type === 'radio'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" />
+        <Radio v-else-if="l.type === 'radio'" :time-title="l.title" :ls="l.list" v-bind="l.defaultSelected ? { defaultVal: l.defaultSelected }: {}" :ref="el => setUnitFieldDom(el, l.key)" @change="handleRadioChange" />
       </template>
 
     </div>
