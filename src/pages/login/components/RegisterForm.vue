@@ -3,6 +3,7 @@ import { ref, computed, reactive } from 'vue'
 import { useGlobalStore } from '@/stores/global'
 import API from '@/apis'
 import getDeviceId from '@/utils/getDeviceId'
+import { rulesRequired, rulesPassword, rulesUsername, rulesVerifyCode, rulesMail, rulesTelephone } from '@/utils/formRules'
 import ImageCaptchaDialog from '@/components/ImageCaptchaDialog/index.vue'
 import DropdownFilled from '@/components/Dropdown/Filled.vue'
 import { countryCodeOptions } from '@/consts/constant'
@@ -271,154 +272,182 @@ const fullPhoneNumber = computed(() => {
     <van-form @submit="handleRegister" class="register-form">
       <!-- 账号 -->
       <div class="form-group">
-        <label class="form-label">账号</label>
-        <div class="input-wrapper" :class="{ 'input-error': errors.username }">
-          <input
-            v-model="formData.username"
-            type="text"
-            placeholder="请输入"
-            class="form-input"
-            @input="clearError('username')"
-          />
-        </div>
-        <span v-if="errors.username" class="error-message">{{ errors.username }}</span>
+        <AppField
+          v-model="formData.username"
+          name="username"
+          type="text"
+          placeholder="请输入"
+          class="form-input"
+          :rules="[rulesRequired(), rulesUsername()]"
+        >
+          <template #label>
+            <span class="form-label">账号</span>
+          </template>
+        </AppField>
       </div>
 
       <!-- 密码 -->
       <div class="form-group">
-        <label class="form-label">密码</label>
-        <div class="input-wrapper" :class="{ 'input-error': errors.password }">
-          <input
-            v-model="formData.password"
-            :type="showPassword ? 'text' : 'password'"
-            placeholder="请输入"
-            class="form-input"
-            @input="clearError('password')"
-          />
-          <van-icon
-            :name="showPassword ? 'eye-o' : 'closed-eye'"
-            class="input-icon"
-            @click="togglePassword"
-          />
-        </div>
-        <span v-if="errors.password" class="error-message">{{ errors.password }}</span>
+        <AppField
+          v-model="formData.password"
+          name="password"
+          type="password"
+          placeholder="请输入"
+          class="form-input"
+          :rules="[rulesRequired(), rulesPassword()]"
+        >
+          <template #label>
+            <span class="form-label">密码</span>
+          </template>
+          <template #right-icon>
+            <van-icon
+              :name="showPassword ? 'eye-o' : 'closed-eye'"
+              class="input-icon"
+              @click="togglePassword"
+            />
+          </template>
+        </AppField>
       </div>
 
       <!-- 确认密码 -->
       <div class="form-group">
-        <label class="form-label">确认密码</label>
-        <div class="input-wrapper" :class="{ 'input-error': errors.confirmPassword }">
-          <input
-            v-model="formData.confirmPassword"
-            type="password"
-            placeholder="请输入"
-            class="form-input"
-            @input="clearError('confirmPassword')"
-          />
-        </div>
-        <span v-if="errors.confirmPassword" class="error-message">{{ errors.confirmPassword }}</span>
+        <AppField
+          v-model="formData.confirmPassword"
+          name="confirmPassword"
+          type="password"
+          placeholder="请输入"
+          class="form-input"
+          :rules="[rulesRequired(), rulesPassword(), { validator: validateConfirmPassword, message: '密码不一致' }]"
+        >
+          <template #label>
+            <span class="form-label">确认密码</span>
+          </template>
+          <template #right-icon>
+            <van-icon
+              :name="showPassword ? 'eye-o' : 'closed-eye'"
+              class="input-icon"
+              @click="togglePassword"
+            />
+          </template>
+        </AppField>
       </div>
 
       <template v-if="needBindEmail">
         <!-- 邮箱地址 -->
         <div class="form-group">
-          <label class="form-label">邮箱地址</label>
-          <div class="input-wrapper" :class="{ 'input-error': errors.email }">
-            <input
-              v-model="formData.email"
-              type="email"
-              placeholder="请输入"
-              class="form-input"
-              @input="clearError('email')"
-            />
-          </div>
-          <span v-if="errors.email" class="error-message">{{ errors.email }}</span>
+          <AppField
+            v-model="formData.email"
+            name="email"
+            type="email"
+            placeholder="请输入"
+            class="form-input"
+            :rules="[rulesRequired(), rulesMail()]"
+          >
+            <template #label>
+              <span class="form-label">邮箱地址</span>
+            </template>
+          </AppField>
         </div>
 
         <!-- 邮箱验证码 -->
         <div class="form-group">
-          <label class="form-label">邮箱验证码</label>
-          <div class="input-wrapper code-wrapper" :class="{ 'input-error': errors.emailCode }">
-            <input
-              v-model="formData.emailCode"
-              type="text"
-              placeholder="请输入"
-              class="form-input"
-              autocomplete="off"
-              @input="clearError('emailCode')"
-            />
-            <van-button
-              type="primary"
-              round
-              class="code-btn"
-              :loading="emailLoading"
-              :disabled="emailCountdown > 0"
-              @click.prevent="handleGetEmailCode"
-            >
-              {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
-            </van-button>
-          </div>
-          <span v-if="errors.emailCode" class="error-message">{{ errors.emailCode }}</span>
+          <AppField
+            v-model="formData.emailCode"
+            name="emailCode"
+            type="text"
+            placeholder="请输入"
+            class="form-input"
+            :rules="[rulesRequired(), rulesVerifyCode()]"
+          >
+            <template #label>
+              <span class="form-label">邮箱验证码</span>
+            </template>
+            <template #right-icon>
+              <van-button
+                type="primary"
+                round
+                class="code-btn"
+                :loading="emailLoading"
+                :disabled="emailCountdown > 0"
+                @click.prevent="handleGetEmailCode"
+              >
+                {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
+              </van-button>
+            </template>
+          </AppField>
         </div>
       </template>
 
       <template v-if="needBindPhone">
         <!-- 手机号 -->
         <div class="form-group">
-          <label class="form-label">手机号</label>
-          <div class="input-wrapper phone-wrapper" :class="{ 'input-error': errors.phone }">
-            <div class="country-code">
-              <DropdownFilled v-model="formData.countryCode" placeholder="请选择" height="2rem" :options="countryCodeOptions" />
-            </div>
-            <input
-              v-model="formData.phone"
-              type="tel"
-              placeholder="请输入"
-              class="form-input"
-              @input="clearError('phone')"
-            />
-          </div>
-          <span v-if="errors.phone" class="error-message">{{ errors.phone }}</span>
+          <AppField
+            v-model="formData.phone"
+            name="phone"
+            type="tel"
+            placeholder="请输入"
+            class="form-input"
+            :rules="[rulesRequired(), rulesTelephone()]"
+          >
+            <template #label>
+              <span class="form-label">手机号</span>
+            </template>
+            <template #input>
+              <div class="flex items-center w-full">
+                <DropdownFilled v-model="formData.countryCode" placeholder="请选择" height="2rem" :options="countryCodeOptions" />
+                <input
+                  v-model="formData.phone"
+                  type="tel"
+                  placeholder="请输入"
+                  class="form-input ml-2"
+                />
+              </div>
+            </template>
+          </AppField>
         </div>
 
         <!-- 手机号验证码 -->
         <div class="form-group">
-          <label class="form-label">手机号验证码</label>
-          <div class="input-wrapper code-wrapper" :class="{ 'input-error': errors.phoneCode }">
-            <input
-              v-model="formData.phoneCode"
-              type="text"
-              placeholder="请输入"
-              class="form-input"
-              autocomplete="off"
-              @input="clearError('phoneCode')"
-            />
-            <van-button
-              type="primary"
-              round
-              class="code-btn"
-              :loading="phoneLoading"
-              :disabled="phoneCountdown > 0"
-              @click.prevent="handleGetPhoneCode"
-            >
-              {{ phoneCountdown > 0 ? `${phoneCountdown}s` : '获取验证码' }}
-            </van-button>
-          </div>
-          <span v-if="errors.phoneCode" class="error-message">{{ errors.phoneCode }}</span>
+          <AppField
+            v-model="formData.phoneCode"
+            name="phoneCode"
+            type="text"
+            placeholder="请输入"
+            class="form-input"
+            :rules="[rulesRequired(), rulesVerifyCode()]"
+          >
+            <template #label>
+              <span class="form-label">手机号验证码</span>
+            </template>
+            <template #right-icon>
+              <van-button
+                type="primary"
+                round
+                class="code-btn"
+                :loading="phoneLoading"
+                :disabled="phoneCountdown > 0"
+                @click.prevent="handleGetPhoneCode"
+              >
+                {{ phoneCountdown > 0 ? `${phoneCountdown}s` : '获取验证码' }}
+              </van-button>
+            </template>
+          </AppField>
         </div>
       </template>
 
       <!-- 邀请码 -->
       <div class="form-group">
-        <label class="form-label">邀请码</label>
-        <div class="input-wrapper">
-          <input
-            v-model="formData.inviteCode"
-            type="text"
-            placeholder="请输入"
-            class="form-input"
-          />
-        </div>
+          <AppField
+          v-model="formData.inviteCode"
+          name="inviteCode"
+          type="text"
+          placeholder="请输入"
+          class="form-input"
+        >
+          <template #label>
+            <span class="form-label">邀请码</span>
+          </template>
+        </AppField>
       </div>
 
       <!-- 注册按鈕 -->
@@ -447,7 +476,7 @@ const fullPhoneNumber = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .register-form-container {
   display: flex;
   flex-direction: column;
@@ -494,6 +523,11 @@ const fullPhoneNumber = computed(() => {
   font-size: 0.875rem;
   color: var(--color-neutral2-basic);
   background: transparent;
+  padding: 0;
+  :deep(.van-field__body) {
+    height: 2.875rem;
+    padding: 0 .75rem !important;
+  }
 }
 
 .form-input::placeholder {
@@ -516,6 +550,7 @@ const fullPhoneNumber = computed(() => {
   flex-shrink: 0;
   padding: 0 1rem;
   font-size: 0.75rem;
+  margin-right: -.75rem;
 }
 
 /* 手機號國碼 */

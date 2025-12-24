@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import API from '@/apis'
+import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
 
 interface Props {
   username: string
@@ -71,16 +72,16 @@ const handleBack = () => {
     <van-form @submit="handleSubmit" class="google-form">
       <!-- Google 验证码 -->
       <div class="form-group">
-        <label class="form-label">谷歌验证码</label>
-        <div class="input-wrapper">
-          <input
-            v-model="googleCode"
-            type="text"
-            placeholder="请输入"
-            class="form-input"
-            autocomplete="off"
-          />
-        </div>
+        <AppField
+          v-model="googleCode"
+          name="googleCode"
+          type="number"
+          placeholder="请输入"
+          class="form-input"
+          autocomplete="off"
+          maxlength="6"
+          :rules="[rulesRequired(), rulesVerifyCode()]"
+        />
       </div>
 
       <!-- 提交按鈕 -->
@@ -93,6 +94,7 @@ const handleBack = () => {
           :loading="loading"
           loading-text="提交中..."
           class="submit-btn"
+          :disabled="String(googleCode).length !== 6"
         >
           提交
         </van-button>

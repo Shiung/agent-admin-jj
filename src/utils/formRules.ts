@@ -87,3 +87,21 @@ export const rulesPassword = (params: any = {}) => {
     ...(params)
   }
 }
+
+/** 帳號 */
+export const rulesUsername = (params: any = {}) => {
+  return {
+    pattern: /^[a-zA-Z][a-zA-Z0-9]{7,11}$/,
+    message: '请输入以字母开头的8-12位字母与数字组合',
+    ...(params)
+  }
+}
+
+/** 驗證碼 (4位數) */
+export const rulesValidCode = (params: any = {}) => {
+  return {
+    pattern: /\b\d{4}\b/,
+    message: '请输入4位数验证码',
+    ...(params)
+  }
+}
