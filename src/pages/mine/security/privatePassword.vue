@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { rulesRequired, rulesPassword } from '@/utils/formRules'
+import { rulesRequired } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
@@ -19,7 +19,7 @@ const verificationCode = ref<string>('')
 const showPassword = ref<{ current: boolean, confirm: boolean }>({ current: false, confirm: false })
 
 const enableEdit = computed(() => {
-  return !!privatePassword.value.trim() && !!confirmPrivatePassword.value.trim()
+  return !!privatePassword.value.trim() && !!confirmPrivatePassword.value.trim() && verificationCode.value.length === 6
 })
 
 const togglePassword = (type: 'current' | 'confirm') => {
@@ -62,11 +62,15 @@ const submit = async () => {
     })
 
     if (res.data.Code !== 200) {
-      showFailToast(res.data.Msg)
+      if (res.data.Code === 10152 || res.data.Code === 10034) {
+        showToast('验证码错误')
+      } else {
+        showFailToast(res.data.Msg)
+      }
       return
     }
 
-    showSuccessToast('修改成功')
+    showToast('编辑成功')
     router.replace({ name: 'security' })
   } catch (error: any) {
     console.error('更新失败：', error)
@@ -89,7 +93,8 @@ const submit = async () => {
         label="私人密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired(), rulesPassword()]"
+        maxlength="20"
+        :rules="[rulesRequired()]"
         :type="showPassword.current ? 'text' : 'password'"
         @input="handlePrivatePasswordInput"
       >
@@ -108,7 +113,8 @@ const submit = async () => {
         label="确认私人密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired(), rulesPassword(), { validator: validateConfirmPassword, message: '密码不一致' }]"
+        maxlength="20"
+        :rules="[rulesRequired(), { validator: validateConfirmPassword, message: '密码不一致' }]"
         :type="showPassword.confirm ? 'text' : 'password'"
         @input="handleConfirmPasswordInput"
       >
@@ -123,7 +129,7 @@ const submit = async () => {
       <VerificationMethods
         :ValidType="validType"
         :VerifyCode="verificationCode"
-        :verifiable="enableEdit"
+        :verifiable="!!privatePassword.trim() && !!confirmPrivatePassword.trim()"
         @update:ValidType="validType = $event"
         @update:VerifyCode="verificationCode = $event"
       />

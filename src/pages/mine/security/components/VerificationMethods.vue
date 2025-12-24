@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useUserStore } from '@/stores/user'
+import { useGlobalStore } from '@/stores/global'
 import { opTypeConf } from '@/consts/constant'
 import { rulesRequired, rulesVerifyCode } from '@/utils/formRules'
 import { useVerificationCountdown } from '../../useVerificationCountdown.ts'
@@ -27,25 +28,69 @@ const {
   start: startCountdown
 } = useVerificationCountdown(60)
 
-const userStore = useUserStore()
-const validType = ref<number>(props.ValidType)
-const verificationCode = ref<string>(props.VerifyCode)
-const showImageCaptcha = ref<boolean>(false)
-const adminInfo = computed(() => userStore.userInfo?.Admin || {})
-
 const emit = defineEmits<{
   (e: 'update:ValidType', value: number): void
   (e: 'update:VerifyCode', value: string): void
 }>()
 
-const validTypeOptions = [
-  { label: '手机验证', value: 0 },
-  { label: '邮箱验证', value: 1 },
-  { label: '谷歌验证', value: 2 }
-]
+const userStore = useUserStore()
+const globalStore = useGlobalStore()
+const validType = ref<number>(props.ValidType)
+const verificationCode = ref<string>(props.VerifyCode)
+const showImageCaptcha = ref<boolean>(false)
+const adminInfo = computed(() => userStore.userInfo?.Admin || {})
+
+// 雲平台/代理列表 > 驗證設置 > 是否顯示手機號驗證
+const isShowPhoneVerification = computed(() => {
+  return globalStore.systemConfig.PhoneVerify === 1
+})
+
+// 雲平台/代理列表 > 驗證設置 > 是否顯示郵箱驗證
+const isShowEmailVerification = computed(() => {
+  return globalStore.systemConfig.EmailVerify === 1
+})
+
+// 雲平台/代理列表 > 驗證設置 > 是否顯示谷歌驗證
+const isShowGoogleVerification = computed(() => {
+  return globalStore.systemConfig.GoogleVerify === 1
+})
+
+const validTypeOptions = computed(() => {
+  return [
+    { label: '手机验证', value: 0 },
+    { label: '邮箱验证', value: 1 },
+    { label: '谷歌验证', value: 2 }
+  ].filter(option => {
+    if (isShowPhoneVerification.value && option.value === 0) return true
+    if (isShowEmailVerification.value && option.value === 1) return true
+    if (isShowGoogleVerification.value && option.value === 2) return true
+    return false
+  })
+})
+
+const hasVerificationOption = computed(() => {
+  return validTypeOptions.value.length > 0
+})
+
 const captchaType = computed<'phone' | 'email'>(() => {
   return validType.value === 0 ? 'phone' : 'email'
 })
+
+const formatVerificationLabel = computed(() => {
+  const option = validTypeOptions.value.find(option => option.value === validType.value)
+  return option?.label || '验证'
+})
+
+// 選中可用的第一個選項
+watch(validTypeOptions, (newOptions) => {
+  if (newOptions.length === 0) return
+
+  const currentValueExists = newOptions.some(option => option.value === validType.value)
+  if (!currentValueExists) {
+    validType.value = newOptions[0]?.value ?? 0
+    emit('update:ValidType', validType.value ?? 0)
+  }
+}, { immediate: true })
 
 const getVerificationCode = async () => {
   if (countdown.value > 0) {
@@ -60,7 +105,16 @@ const getVerificationCode = async () => {
 
 const handleCaptchaVerifySuccess = async () => {
   showImageCaptcha.value = false
-  showToast('验证码已发送，请注意查收!')
+
+  // 先檢查有無綁定, 再繼續倒數
+  if (validType.value === 0 && !adminInfo.value.Mobile) {
+    showToast('尚未绑定手机号')
+    return
+  }
+  if (validType.value === 1 && !adminInfo.value.Email) {
+    showToast('尚未绑定邮箱地址')
+    return
+  }
 
   const baseParams = {
     DeviceId: getDeviceId() ?? '',
@@ -85,24 +139,26 @@ const handleCaptchaVerifySuccess = async () => {
     }
   }
 
-   await startCountdown(async () => {
-     const config = verificationConfig[validType.value as VerificationType]
-     if (!config) return false
+  const config = verificationConfig[validType.value as VerificationType]
+  if (!config) return
 
-     const res = await config.api()
-     if (res.data.Code !== 200) {
-       const errorMsg = validType.value === 0 ? '尚未绑定手机号' : '尚未绑定邮箱地址'
-       showFailToast(errorMsg)
-       return false
-     }
-     return true
-   })
+  const res = await config.api()
+
+  if (res.data.Code === 200) {
+    showToast('验证码已发送，请注意查收!')
+    await startCountdown(async () => {
+      return true
+    })
+  } else {
+    const errorMsg = validType.value === 0 ? '尚未绑定手机号' : '尚未绑定邮箱地址'
+    showToast(errorMsg)
+  }
 }
 
 </script>
 
 <template>
-  <div>
+  <div v-if="hasVerificationOption">
     <AppField required name="validType" label-align="top" label="选择验证方式" class="radio-field">
       <template #input>
         <div class="radio-group">
@@ -123,7 +179,7 @@ const handleCaptchaVerifySuccess = async () => {
     <AppField
       required
       name="verificationCode"
-      :label="`${validTypeOptions.find(option => option.value === validType)?.label}码`"
+      :label="`${formatVerificationLabel}码`"
       v-model="verificationCode"
       :rules="[rulesRequired(), rulesVerifyCode()]"
       maxlength="6"
@@ -146,7 +202,7 @@ const handleCaptchaVerifySuccess = async () => {
           class="verificationBtn"
           @click.stop="getVerificationCode"
         >
-          {{ countdown > 0 ? `${countdown}秒` : (hasRequestedCode ? '重新获取' : '获取验证码') }}
+          {{ countdown > 0 ? `${countdown}s 后获取` : (hasRequestedCode ? '重新获取' : '获取验证码') }}
         </van-button>
       </template>
     </AppField>

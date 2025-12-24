@@ -2209,7 +2209,7 @@ export interface CommissionToQuotaTotalQuery {
   EndTime: number
   BillType: number
   TransferType: number
-  Sort: string
+  Sort?: string
 }
 
 export interface CommissionToQuotaTotalItem {

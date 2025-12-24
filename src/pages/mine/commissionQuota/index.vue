@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { rulesRequired, rulesPassword } from '@/utils/formRules'
+import { rulesRequired } from '@/utils/formRules'
 import { formatMoneyWithComma } from '@/utils/formatNumber'
 import type { AccountBalanceData } from '@/apis/codegen/Finance/type'
 import type { FormInstance } from 'vant'
@@ -83,9 +83,9 @@ const submit = async () => {
 
     if (res.data.Code !== 200) {
       if (res.data.Code === 10103) {
-        showFailToast('私人密码错误，请再次确认')
+        showToast('私人密码错误，请再次确认')
       } else if (res.data.Code === 10131) {
-        showFailToast('钱包余额不足，请再次确认')
+        showToast('钱包余额不足，请再次确认')
       } else {
         showFailToast(res.data.Msg)
       }
@@ -155,7 +155,8 @@ onMounted(() => {
           label="私人密码"
           placeholder="请输入"
           required
-          :rules="[rulesRequired(), rulesPassword()]"
+          maxlength="20"
+          :rules="[rulesRequired()]"
           :type="showPassword ? 'text' : 'password'"
         >
           <template #right-icon>

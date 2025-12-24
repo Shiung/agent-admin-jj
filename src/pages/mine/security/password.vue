@@ -59,11 +59,15 @@ const submit = async () => {
       ConfirmPassword: confirmPassword.value?.trim(),
     })
     if (res.data.Code !== 200) {
-      showFailToast(res.data.Msg)
+      if (res.data.Code === 10109) {
+        showToast('原密码错误，请再次确认')
+      } else {
+        showFailToast(res.data.Msg)
+      }
       return
     }
 
-    showSuccessToast('修改成功，请重新登录')
+    showSuccessToast('编辑成功')
     userStore.logout()
     router.replace({ name: 'login' })
   } catch (error: any) {

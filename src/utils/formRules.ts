@@ -79,7 +79,7 @@ export const rulesVerifyCode = (params: any = {}) => {
   }
 }
 
-/** 密码/私人密碼 */
+/** 密码 */
 export const rulesPassword = (params: any = {}) => {
   return {
     pattern: /^[A-Za-z0-9]{6,20}$/,
