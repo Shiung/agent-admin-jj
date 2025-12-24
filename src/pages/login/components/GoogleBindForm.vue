@@ -101,6 +101,13 @@ const handleBack = () => {
   googleCode.value = ''
   emit('close')
 }
+
+// 只允許輸入數字
+const handleGoogleCodeInput = (e: Event) => {
+  const input = e.target as HTMLInputElement
+  input.value = input.value.replace(/\D/g, '')
+  googleCode.value = input.value
+}
 </script>
 
 <template>
@@ -114,7 +121,7 @@ const handleBack = () => {
     <div class="tips-section">
       <van-image src="./static/images/common/lightBulb.png" class="mx-2" width="24" />
       <span class="tips-text">
-        可以在苹果商店搜索"Google Authenticator"，或安卓商店搜索"Google身份验证器"下载安装
+        可以在苹果商店搜索"Google Authenticator"，或安卓应用商店搜索"Google身份验证器"下载安装
       </span>
     </div>
 
@@ -139,11 +146,15 @@ const handleBack = () => {
         <label class="form-label">谷歌验证码</label>
         <div class="input-wrapper">
           <input 
-            v-model="googleCode" 
-            type="text" 
+            :value="googleCode"
+            type="text"
+            inputmode="numeric"
+            name="googleCode"
+            maxlength="6"
             placeholder="请输入"
             class="form-input"
             autocomplete="off"
+            @input="handleGoogleCodeInput"
           />
         </div>
       </div>
@@ -158,9 +169,13 @@ const handleBack = () => {
           :loading="loading" 
           loading-text="提交中..."
           class="submit-btn"
+          :disabled="String(googleCode).length !== 6"
         >
           提交
         </van-button>
+      </div>
+      <div class="mt-2">
+        <span class="text-xs text-neutral2-fourth">打开谷歌身份验证器，点选右下角的"+"，选择手动输入密钥，填入任意账户和上述密钥绑定</span>
       </div>
     </van-form>
   </div>
