@@ -3,6 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useGlobalStore } from '@/stores/global'
 import { countryCodeOptions } from '@/consts/constant'
 import API from '@/apis'
+import { rulesRequired, rulesPassword, rulesUsername, rulesVerifyCode, rulesMail, rulesTelephone } from '@/utils/formRules'
 import DropdownFilled from '@/components/Dropdown/Filled.vue'
 import ImageCaptchaDialog from '@/components/ImageCaptchaDialog/index.vue'
 
@@ -297,204 +298,232 @@ const handleBack = () => {
       </template>
     </div>
 
-    <!-- 步驟 1: 填寫用戶名 -->
-    <div v-if="currentStep === 1" class="step-content">
-      <div class="form-group">
-        <label class="form-label">账号</label>
-        <div class="input-wrapper">
-          <input
-            v-model="formData.username"
-            type="text"
-            placeholder="请输入"
-            maxlength="12"
-            class="form-input"
-          />
-        </div>
-      </div>
-    </div>
-
-    <!-- 步驟 2: 身份驗證 -->
-    <div v-if="currentStep === 2" class="step-content">
-      <!-- 驗證方式選擇 -->
-      <div class="form-group">
-        <label class="form-label">选择验证方式</label>
-        <div class="verify-type-selector">
-          <van-button
-            v-if="isShowPhoneVerification"
-            :type="verifyType === 'phone' ? 'primary' : 'default'"
-            round
-            size="small"
-            @click="verifyType = 'phone'"
-          >
-            手机验证
-          </van-button>
-          <van-button
-            v-if="isShowEmailVerification"
-            :type="verifyType === 'email' ? 'primary' : 'default'"
-            round
-            size="small"
-            @click="verifyType = 'email'"
-          >
-            邮箱验证
-          </van-button>
-          <van-button
-            v-if="isShowGoogleVerification"
-            :type="verifyType === 'google' ? 'primary' : 'default'"
-            round
-            size="small"
-            @click="verifyType = 'google'"
-          >
-            谷歌验证
-          </van-button>
-        </div>
-      </div>
-
-      <!-- 手機驗證 -->
-      <template v-if="verifyType === 'phone'">
+    <van-form @submit="currentStep === 3 ? handleComplete() : handleNextStep()" class="forgot-password-form">
+      <!-- 步驟 1: 填寫用戶名 -->
+      <div v-if="currentStep === 1" class="step-content">
         <div class="form-group">
-          <label class="form-label">手机号</label>
-          <div class="input-wrapper phone-wrapper">
-            <div class="country-code">
-              <DropdownFilled v-model="formData.countryCode" placeholder="请选择" height="2rem" :options="countryCodeOptions" />
-            </div>
+          <label class="form-label">账号</label>
+          <div class="input-wrapper">
             <input
+              v-model="formData.username"
+              type="text"
+              placeholder="请输入"
+              maxlength="12"
+              class="form-input"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- 步驟 2: 身份驗證 -->
+      <div v-if="currentStep === 2" class="step-content">
+        <!-- 驗證方式選擇 -->
+        <div class="form-group">
+          <label class="form-label">选择验证方式</label>
+          <div class="verify-type-selector">
+            <van-button
+              v-if="isShowPhoneVerification"
+              :type="verifyType === 'phone' ? 'primary' : 'default'"
+              round
+              size="small"
+              @click="verifyType = 'phone'"
+            >
+              手机验证
+            </van-button>
+            <van-button
+              v-if="isShowEmailVerification"
+              :type="verifyType === 'email' ? 'primary' : 'default'"
+              round
+              size="small"
+              @click="verifyType = 'email'"
+            >
+              邮箱验证
+            </van-button>
+            <van-button
+              v-if="isShowGoogleVerification"
+              :type="verifyType === 'google' ? 'primary' : 'default'"
+              round
+              size="small"
+              @click="verifyType = 'google'"
+            >
+              谷歌验证
+            </van-button>
+          </div>
+        </div>
+
+        <!-- 手機驗證 -->
+        <template v-if="verifyType === 'phone'">
+          <div class="form-group">
+            <AppField
               v-model="formData.phone"
-              type="tel"
+              name="phone"
               placeholder="请输入"
               class="form-input"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">手机号验证码</label>
-          <div class="input-wrapper code-wrapper">
-            <input
-              v-model="formData.captchaCode"
-              type="text"
-              placeholder="请输入"
-              class="form-input"
-              autocomplete="off"
-            />
-            <van-button
-              type="primary"
-              round
-              class="code-btn min-w-28"
-              :loading="phoneLoading"
-              :disabled="phoneCountdown > 0"
-              @click="handleGetPhoneCode"
+              :rules="[rulesRequired(), rulesTelephone()]"
             >
-              {{ phoneCountdown > 0 ? `${phoneCountdown}s` : '获取验证码' }}
-            </van-button>
+              <template #label>
+                <span class="form-label">手机号</span>
+              </template>
+              <template #input>
+                <div class="flex items-center w-full">
+                  <DropdownFilled v-model="formData.countryCode" placeholder="请选择" height="2rem" :options="countryCodeOptions" />
+                  <input
+                    v-model="formData.phone"
+                    type="tel"
+                    placeholder="请输入"
+                    class="form-input ml-2"
+                  />
+                </div>
+              </template>
+            </AppField>
           </div>
-        </div>
-      </template>
 
-      <!-- 郵箱驗證 -->
-      <template v-if="verifyType === 'email'">
-        <div class="form-group">
-          <label class="form-label">邮箱地址</label>
-          <div class="input-wrapper">
-            <input
+          <div class="form-group">
+            <AppField
+              v-model="formData.captchaCode"
+              name="captchaCode"
+              type="text"
+              maxlength="6"
+              placeholder="请输入"
+              class="form-input"
+              :rules="[rulesRequired(), rulesVerifyCode()]"
+            >
+              <template #label>
+                <span class="form-label">手机号验证码</span>
+              </template>
+              <template #right-icon>
+                <van-button
+                  type="primary"
+                  round
+                  class="code-btn min-w-28"
+                  :loading="phoneLoading"
+                  :disabled="phoneCountdown > 0"
+                  @click="handleGetPhoneCode"
+                >
+                  {{ phoneCountdown > 0 ? `${phoneCountdown}s` : '获取验证码' }}
+                </van-button>
+              </template>
+            </AppField>
+          </div>
+        </template>
+
+        <!-- 郵箱驗證 -->
+        <template v-if="verifyType === 'email'">
+          <div class="form-group">
+            <AppField
               v-model="formData.email"
-              type="email"
+              name="email"
               placeholder="请输入"
               class="form-input"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">邮箱验证码</label>
-          <div class="input-wrapper code-wrapper">
-            <input
-              v-model="formData.captchaCode"
-              type="text"
-              placeholder="请输入"
-              class="form-input"
-              autocomplete="off"
-            />
-            <van-button
-              type="primary"
-              round
-              class="code-btn min-w-28"
-              :loading="emailLoading"
-              :disabled="emailCountdown > 0"
-              @click="handleGetEmailCode"
+              :rules="[rulesRequired(), rulesMail()]"
             >
-              {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
-            </van-button>
+              <template #label>
+                <span class="form-label">邮箱地址</span>
+              </template>
+            </AppField>
           </div>
-        </div>
-      </template>
 
-      <!-- 谷歌驗證 -->
-      <template v-if="verifyType === 'google'">
+          <div class="form-group">
+            <AppField
+              v-model="formData.captchaCode"
+              name="captchaCode"
+              type="text"
+              maxlength="6"
+              placeholder="请输入"
+              class="form-input"
+              :rules="[rulesRequired(), rulesVerifyCode()]"
+            >
+              <template #label>
+                <span class="form-label">邮箱验证码</span>
+              </template>
+              <template #right-icon>
+                <van-button
+                  type="primary"
+                  round
+                  class="code-btn min-w-28"
+                  :loading="emailLoading"
+                  :disabled="emailCountdown > 0"
+                  @click="handleGetEmailCode"
+                >
+                  {{ emailCountdown > 0 ? `${emailCountdown}s` : '获取验证码' }}
+                </van-button>
+              </template>
+            </AppField>
+          </div>
+        </template>
+
+        <!-- 谷歌驗證 -->
+        <template v-if="verifyType === 'google'">
+          <div class="form-group">
+            <AppField
+              v-model="formData.captchaCode"
+              name="captchaCode"
+              type="text"
+              maxlength="6"
+              placeholder="请输入"
+              class="form-input"
+              :rules="[rulesRequired(), rulesVerifyCode()]"
+            >
+              <template #label>
+                <span class="form-label">谷歌验证码</span>
+              </template>
+            </AppField>
+          </div>
+        </template>
+      </div>
+
+      <!-- 步驟 3: 設置密碼 -->
+      <div v-if="currentStep === 3" class="step-content">
         <div class="form-group">
-          <label class="form-label">谷歌验证码</label>
+          <label class="form-label">新密码</label>
           <div class="input-wrapper">
             <input
-              v-model="formData.captchaCode"
-              type="text"
+              v-model="formData.newPassword"
+              :type="showNewPassword ? 'text' : 'password'"
               placeholder="请输入"
               class="form-input"
-              autocomplete="off"
+            />
+            <van-icon
+              :name="showNewPassword ? 'eye-o' : 'closed-eye'"
+              class="input-icon"
+              @click="showNewPassword = !showNewPassword"
             />
           </div>
         </div>
-      </template>
-    </div>
 
-    <!-- 步驟 3: 設置密碼 -->
-    <div v-if="currentStep === 3" class="step-content">
-      <div class="form-group">
-        <label class="form-label">新密码</label>
-        <div class="input-wrapper">
-          <input
-            v-model="formData.newPassword"
-            :type="showNewPassword ? 'text' : 'password'"
-            placeholder="请输入"
-            class="form-input"
-          />
-          <van-icon
-            :name="showNewPassword ? 'eye-o' : 'closed-eye'"
-            class="input-icon"
-            @click="showNewPassword = !showNewPassword"
-          />
+        <div class="form-group">
+          <label class="form-label">确认新密码</label>
+          <div class="input-wrapper">
+            <input
+              v-model="formData.confirmPassword"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              placeholder="请输入"
+              class="form-input"
+            />
+            <van-icon
+              :name="showConfirmPassword ? 'eye-o' : 'closed-eye'"
+              class="input-icon"
+              @click="showConfirmPassword = !showConfirmPassword"
+            />
+          </div>
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">确认新密码</label>
-        <div class="input-wrapper">
-          <input
-            v-model="formData.confirmPassword"
-            :type="showConfirmPassword ? 'text' : 'password'"
-            placeholder="请输入"
-            class="form-input"
-          />
-          <van-icon
-            :name="showConfirmPassword ? 'eye-o' : 'closed-eye'"
-            class="input-icon"
-            @click="showConfirmPassword = !showConfirmPassword"
-          />
-        </div>
+      <!-- 按鈕 -->
+      <div class="button-section">
+        <van-button
+          block
+          round
+          type="primary"
+          :loading="loading"
+          :disabled="currentStep === 2 && formData.captchaCode.length !== 6"
+          class="submit-btn"
+          native-type="submit"
+        >
+          {{ currentStep === 3 ? '完成' : '下一步' }}
+        </van-button>
       </div>
-    </div>
-
-    <!-- 按鈕 -->
-    <div class="button-section">
-      <van-button
-        block
-        round
-        type="primary"
-        :loading="loading"
-        class="submit-btn"
-        @click="currentStep === 3 ? handleComplete() : handleNextStep()"
-      >
-        {{ currentStep === 3 ? '完成' : '下一步' }}
-      </van-button>
-    </div>
+    </van-form>
 
     <!-- 圖片驗證碼彈窗 -->
     <ImageCaptchaDialog
@@ -508,7 +537,7 @@ const handleBack = () => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .forgot-password-container {
   display: flex;
   flex-direction: column;
@@ -618,6 +647,11 @@ const handleBack = () => {
   font-size: 0.875rem;
   color: var(--color-neutral2-basic);
   background: transparent;
+  padding: 0;
+  :deep(.van-field__body) {
+    height: 2.875rem;
+    padding: 0 .75rem !important;
+  }
 }
 
 .form-input::placeholder {
@@ -650,6 +684,7 @@ const handleBack = () => {
   flex-shrink: 0;
   padding: 0 1rem;
   font-size: 0.75rem;
+  margin-right: -.75rem;
 }
 
 /* 手機號國碼 */
