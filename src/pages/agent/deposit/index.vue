@@ -7,6 +7,7 @@ import { useUserStore } from '@/stores/user'
 import type { FormInstance } from 'vant'
 import AppField from '@/components/AppField/index.vue'
 import Dropdown from '@/components/Dropdown/index.vue'
+import BatchResultDialog from './components/batchResultDialog.vue'
 import { formatMoneyWithCommas } from '@/utils/formatNumber'
 import API from '@/apis'
 import Big from 'big.js'
@@ -99,6 +100,10 @@ const remarkTags = ['代存', '福利', '首存福利', '其他']
 
 // Form ref
 const formRef = ref<FormInstance>()
+
+// 批量结果弹窗
+const showBatchResult = ref(false)
+const batchResultData = ref<any>({})
 
 onMounted(() => {
   if (route.query.memberAccount) {
@@ -475,14 +480,13 @@ const handleSubmit = async () => {
       switch (response.data.Code) {
         case 200:
           if (response.data.Data?.FailAccounts && response.data.Data.FailAccounts.length > 0) {
-            // 有失败的账号
-            const failCount = response.data.Data.FailCount || 0
-            const successCount = response.data.Data.SuccessCount || 0
-            showToast({
-              message: `成功: ${successCount}, 失败: ${failCount}`,
-              position: 'bottom',
-              duration: 3000
-            })
+            // 有失败的账号 - 显示批量结果弹窗
+            const selectedPackageName = productPackages.value.find(p => p.PackageId === selectedProduct.value)?.PackageName || ''
+            batchResultData.value = {
+              ...response.data.Data,
+              PackageName: selectedPackageName
+            }
+            showBatchResult.value = true
           } else {
             // 全部成功
             showToast({
@@ -498,6 +502,9 @@ const handleSubmit = async () => {
           privatePassword.value = ''
           remark.value = ''
           memberAccount.value = ''
+
+          // 刷新余额
+          userStore.fetchUserBalancesAndLimits()
           break
 
         case 10140:
@@ -776,6 +783,13 @@ const handleSubmit = async () => {
         </button>
       </div>
     </div>
+
+    <!-- 批量结果弹窗 -->
+    <BatchResultDialog
+      v-model:show="showBatchResult"
+      :result-data="batchResultData"
+      @close="showBatchResult = false"
+    />
   </div>
 </template>
 
