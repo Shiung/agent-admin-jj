@@ -294,7 +294,7 @@ export interface AgentCreditLimitTransactionItem {
   ApplyAmount: number // 转账金额（分）
   AbsApplyAmount: number // 代存金额绝对值（分）
   WithdrawWaterMultiply: number // 流水倍数
-  DepositRebate: number // 代存回馈（分）
+  CreditBonus: number // 代存回馈（分）
   Status: number // 状态：2=已到账, 其他=已拒绝
   Remarks: string // 备注
   CreateTime: number // 操作时间（秒）

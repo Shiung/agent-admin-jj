@@ -354,7 +354,7 @@ const getCardDetails = (record: AgentCreditLimitTransactionItem) => {
       { label: '代存类型', value: formatRecordType(record.WalletType) },
       { label: '代存金额', value: formatMoneyWithCommas(record.AbsApplyAmount), highlight: false },
       { label: '流水倍数', value: record.WithdrawWaterMultiply || 0 },
-      { label: '代存回馈', value: formatMoneyWithCommas(record.DepositRebate || 0, 2, true) },
+      { label: '代存回馈', value: formatMoneyWithCommas(record.CreditBonus || 0, 2, true) },
       { label: '充值类型', value: formatTransferType(record.TransferType) },
       { label: '备注', value: record.Remarks || '-', multiline: true }
     ]
