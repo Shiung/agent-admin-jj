@@ -255,14 +255,14 @@ const generateTabOptions = () => {
 
   const { CommissionGold, CreditGold, CreditRed } = agentCreditLimitPermission.value
 
-  // 如果有佣金代存权限，显示"佣金代存"
-  if (CommissionGold) {
-    tabs.push({ id: SUB_TAB_TYPE.COMMISSION, title: '佣金代存' })
-  }
-
    // 如果有额度代存或额度红利权限，显示"额度代存"
   if (CreditGold || CreditRed) {
     tabs.push({ id: SUB_TAB_TYPE.CREDIT, title: '额度代存' })
+  }
+
+  // 如果有佣金代存权限，显示"佣金代存"
+  if (CommissionGold) {
+    tabs.push({ id: SUB_TAB_TYPE.COMMISSION, title: '佣金代存' })
   }
 
   return tabs
