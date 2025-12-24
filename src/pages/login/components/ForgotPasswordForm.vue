@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useGlobalStore } from '@/stores/global'
 import { countryCodeOptions } from '@/consts/constant'
 import API from '@/apis'
-import { rulesRequired, rulesPassword, rulesUsername, rulesVerifyCode, rulesMail, rulesTelephone } from '@/utils/formRules'
+import { rulesRequired, rulesPassword, rulesVerifyCode, rulesMail, rulesTelephone } from '@/utils/formRules'
 import DropdownFilled from '@/components/Dropdown/Filled.vue'
 import ImageCaptchaDialog from '@/components/ImageCaptchaDialog/index.vue'
 
@@ -132,6 +132,13 @@ const validateVerification = () => {
       return false
     }
   }
+  return true
+}
+
+const validateConfirmPassword = () => {
+  const value = formData.value.confirmPassword
+  if (!value) return false
+  if (value !== formData.value.newPassword) return false
   return true
 }
 
@@ -475,37 +482,47 @@ const handleBack = () => {
       <!-- 步驟 3: 設置密碼 -->
       <div v-if="currentStep === 3" class="step-content">
         <div class="form-group">
-          <label class="form-label">新密码</label>
-          <div class="input-wrapper">
-            <input
-              v-model="formData.newPassword"
-              :type="showNewPassword ? 'text' : 'password'"
-              placeholder="请输入"
-              class="form-input"
-            />
-            <van-icon
-              :name="showNewPassword ? 'eye-o' : 'closed-eye'"
-              class="input-icon"
-              @click="showNewPassword = !showNewPassword"
-            />
-          </div>
+          <AppField
+            v-model="formData.newPassword"
+            name="newPassword"
+            :type="showNewPassword ? 'text' : 'password'"
+            placeholder="请输入"
+            class="form-input"
+            :rules="[rulesRequired(), rulesPassword()]"
+          >
+            <template #label>
+              <span class="form-label">新密码</span>
+            </template>
+            <template #right-icon>
+              <van-icon
+                :name="showNewPassword ? 'eye-o' : 'closed-eye'"
+                class="input-icon"
+                @click="showNewPassword = !showNewPassword"
+              />
+            </template>
+          </AppField>
         </div>
 
         <div class="form-group">
-          <label class="form-label">确认新密码</label>
-          <div class="input-wrapper">
-            <input
-              v-model="formData.confirmPassword"
-              :type="showConfirmPassword ? 'text' : 'password'"
-              placeholder="请输入"
-              class="form-input"
-            />
-            <van-icon
-              :name="showConfirmPassword ? 'eye-o' : 'closed-eye'"
-              class="input-icon"
-              @click="showConfirmPassword = !showConfirmPassword"
-            />
-          </div>
+          <AppField
+            v-model="formData.confirmPassword"
+            name="confirmPassword"
+            :type="showConfirmPassword ? 'text' : 'password'"
+            placeholder="请输入"
+            class="form-input"
+            :rules="[rulesRequired(), rulesPassword(), { validator: validateConfirmPassword, message: '密码不一致' }]"
+          >
+            <template #label>
+              <span class="form-label">确认新密码</span>
+            </template>
+            <template #right-icon>
+              <van-icon
+                :name="showConfirmPassword ? 'eye-o' : 'closed-eye'"
+                class="input-icon"
+                @click="showConfirmPassword = !showConfirmPassword"
+              />
+            </template>
+          </AppField>
         </div>
       </div>
 
