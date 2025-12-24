@@ -233,13 +233,16 @@ const loadMore = async () => {
   // 因为 van-list 会在调用 @load 之前自动设置 loading=true
   if (finished.value) return
 
+  // 保存请求时的页码，避免异步响应时判断错误
+  const requestPage = currentPage.value
+
   const loadingToast = showLoadingToast({ message: '加载中...', forbidClick: true, duration: 0 })
   try {
     error.value = false
 
     // 构建查询参数
     const query: any = {
-      Page: currentPage.value,
+      Page: requestPage,
       PageSize: pageSize,
       BeginTime: selectTimeRange.value.startTime,
       EndTime: selectTimeRange.value.endTime,
@@ -282,17 +285,18 @@ const loadMore = async () => {
           return {
             ...item,
             PackageName: selectedPackage ? selectedPackage.PackageName : '',
-            index: (currentPage.value - 1) * pageSize + index + 1
+            index: (requestPage - 1) * pageSize + index + 1
           }
         })
       } else {
         items = items.map((item, index) => ({
           ...item,
-          index: (currentPage.value - 1) * pageSize + index + 1
+          index: (requestPage - 1) * pageSize + index + 1
         }))
       }
 
-      if (currentPage.value === 1) {
+      // 使用请求时的页码判断，而不是当前的 currentPage.value
+      if (requestPage === 1) {
         records.value = items
       } else {
         records.value = [...records.value, ...items]
