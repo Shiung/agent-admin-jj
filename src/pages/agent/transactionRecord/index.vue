@@ -24,7 +24,7 @@ const pageConfig = computed(() => {
     return {
       title: '代存记录',
       summaryLabel: '代存金额总计',
-      summaryIcon: '/static/images/common/depositRecordIcon.png',
+      summaryIcon: './static/images/common/depositRecordIcon.png',
       summaryColorType: '',
       searchPlaceholder: '会员账号',
       amountLabel: '代存金额',
@@ -56,7 +56,7 @@ const pageConfig = computed(() => {
     return {
       title: '转账记录',
       summaryLabel: '转账金额总计',
-      summaryIcon: '/static/images/common/transferRecordIcon.png',
+      summaryIcon: './static/images/common/transferRecordIcon.png',
       summaryColorType: '',
       searchPlaceholder: '代理账号',
       amountLabel: '转账金额',
