@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
-import { rulesRequired, rulesPassword } from '@/utils/formRules'
+import { rulesRequired } from '@/utils/formRules'
 import type { FormInstance } from 'vant'
 import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
@@ -39,16 +39,20 @@ const submit = async () => {
       PrivatePassword: privatePassword.value.trim(),
       IsAllowOtherDeviceLogin: isAllowOtherDeviceLogin.value,
       TimeFreeVerification: 0,
-    })
+    }, { customErrorHandling: true })
     if (res.data.Code !== 200) {
-      showFailToast(res.data.Msg)
+      if (res.data.Code === 10103) {
+        showToast('私人密码错误，请再次确认')
+      } else {
+        showFailToast(res.data.Msg)
+      }
       return
     }
-    showSuccessToast('修改成功')
+    showSuccessToast('编辑成功')
     router.push({ name: 'security' })
   } catch (error: any) {
     console.error('更新失败：', error)
-    showFailToast(error?.response?.data?.Msg)
+    showFailToast(error?.Msg)
   } finally {
     loading.value = false
   }
@@ -85,7 +89,8 @@ const submit = async () => {
         label="私人密码"
         placeholder="请输入"
         required
-        :rules="[rulesRequired(), rulesPassword()]"
+        maxlength="20"
+        :rules="[rulesRequired()]"
         :type="showPassword ? 'text' : 'password'"
       >
         <template #right-icon>
