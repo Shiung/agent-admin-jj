@@ -16,15 +16,19 @@ export interface ImageCaptchaDialogProps {
   username?: string
   /** 操作类型 */
   opType?: number
+  /** 跳過發送驗證碼，只驗證圖片驗證碼 */
+  skipSendCode?: boolean
 }
 
 const props = withDefaults(defineProps<ImageCaptchaDialogProps>(), {
   opType: opTypeConf.REGISTER,
+  skipSendCode: false,
 })
 
 const emit = defineEmits<{
   (e: 'success'): void
   (e: 'close'): void
+  (e: 'verifySuccess'): void
 }>()
 
 const show = defineModel<boolean>('show', { default: false })
@@ -66,6 +70,12 @@ const handleSubmit = async () => {
 
   loading.value = true
   try {
+    if (props.skipSendCode) {
+      emit('verifySuccess')
+      handleClose()
+      return
+    }
+
     const deviceId = getDeviceId() ?? ''
     const agentId = globalStore.systemConfig.AgentId
 

@@ -79,10 +79,16 @@ const submit = async () => {
     const res = await API.admin.postCommissionToQuota({
       Amount: Number(amount.value) * 100,
       PayPassword: privatePassword.value.trim()
-    })
+    }, { customErrorHandling: true })
 
     if (res.data.Code !== 200) {
-      showFailToast(res.data.Msg)
+      if (res.data.Code === 10103) {
+        showFailToast('私人密码错误，请再次确认')
+      } else if (res.data.Code === 10131) {
+        showFailToast('钱包余额不足，请再次确认')
+      } else {
+        showFailToast(res.data.Msg)
+      }
       return
     }
 

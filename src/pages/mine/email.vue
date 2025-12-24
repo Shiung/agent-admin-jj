@@ -8,6 +8,7 @@ import type { FormInstance } from 'vant'
 import API from '@/apis'
 import NavBar from '@/components/NavBar/index.vue'
 import AppField from '@/components/AppField/index.vue'
+import ImageCaptchaDialog from '@/components/ImageCaptchaDialog/index.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -15,10 +16,12 @@ const formRef = ref<FormInstance | null>(null)
 const email = ref<string>(userStore.accountInfo?.Email || '')
 const verificationCode = ref<string>('')
 const loading = ref<boolean>(false)
+const showImageCaptcha = ref<boolean>(false)
 
 const {
   countdown,
   loading: codeLoading,
+  hasRequested: hasRequestedCode,
   start: startCountdown
 } = useVerificationCountdown(60)
 
@@ -34,13 +37,19 @@ const getVerificationCode = async () => {
     return
   }
 
+  showImageCaptcha.value = true
+}
+
+const handleCaptchaVerifySuccess = async () => {
+  showImageCaptcha.value = false
+  showToast('验证码已发送，请注意查收!')
+
   await startCountdown(async () => {
-    const res = await API.system.emailVerify({ Email: emailValue })
+    const res = await API.system.emailVerify({ Email: email.value.trim() })
     if (res.data.Code !== 200) {
       showFailToast(res.data.Msg)
       return false
     }
-
     return true
   })
 }
@@ -62,7 +71,7 @@ const submit = async () => {
       return
     }
 
-    showSuccessToast('修改成功')
+    showSuccessToast('编辑成功')
     router.replace({ name: 'mineProfile' })
   } catch (error: any) {
     console.error('更新失败：', error)
@@ -111,7 +120,7 @@ const submit = async () => {
             class="verificationBtn"
             @click.stop="getVerificationCode"
           >
-            {{ countdown > 0 ? `${countdown}秒` : '获取验证码' }}
+            {{ countdown > 0 ? `${countdown}s 后获取` : (hasRequestedCode ? '重新获取' : '获取验证码') }}
           </van-button>
         </template>
       </AppField>
@@ -130,6 +139,14 @@ const submit = async () => {
       </div>
     </van-form>
 
+    <!-- 圖片驗證碼彈窗 -->
+    <ImageCaptchaDialog
+      v-model:show="showImageCaptcha"
+      type="email"
+      :email="email.trim()"
+      :skipSendCode="true"
+      @verifySuccess="handleCaptchaVerifySuccess"
+    />
   </div>
 </template>
 
