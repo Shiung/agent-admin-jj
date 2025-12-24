@@ -31,8 +31,23 @@ const formData = ref({
 
 const valideCodeV2Token = ref('')
 
+// 雲平台/代理列表 > 驗證設置 > 是否顯示手機號驗證
+const isShowPhoneVerification = computed(() => {
+  return globalStore.systemConfig.PhoneVerify === 1
+})
+
+// 雲平台/代理列表 > 驗證設置 > 是否顯示郵箱驗證
+const isShowEmailVerification = computed(() => {
+  return globalStore.systemConfig.EmailVerify === 1
+})
+
+// 雲平台/代理列表 > 驗證設置 > 是否顯示谷歌驗證
+const isShowGoogleVerification = computed(() => {
+  return globalStore.systemConfig.GoogleVerify === 1
+})
+
 // 驗證方式: 'phone' | 'email' | 'google'
-const verifyType = ref<'phone' | 'email' | 'google'>('phone')
+const verifyType = ref<'phone' | 'email' | 'google'>(isShowPhoneVerification.value ? 'phone' : isShowEmailVerification.value ? 'email' : 'google')
 
 watch(() => verifyType.value, () => {
   formData.value.captchaCode = ''
@@ -305,6 +320,7 @@ const handleBack = () => {
         <label class="form-label">选择验证方式</label>
         <div class="verify-type-selector">
           <van-button
+            v-if="isShowPhoneVerification"
             :type="verifyType === 'phone' ? 'primary' : 'default'"
             round
             size="small"
@@ -313,6 +329,7 @@ const handleBack = () => {
             手机验证
           </van-button>
           <van-button
+            v-if="isShowEmailVerification"
             :type="verifyType === 'email' ? 'primary' : 'default'"
             round
             size="small"
@@ -321,6 +338,7 @@ const handleBack = () => {
             邮箱验证
           </van-button>
           <van-button
+            v-if="isShowGoogleVerification"
             :type="verifyType === 'google' ? 'primary' : 'default'"
             round
             size="small"
