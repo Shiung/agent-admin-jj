@@ -684,6 +684,7 @@ const handleSubmit = async () => {
             type="number"
             :placeholder="'请输入1~' + depositLimitInfo.maxWithdrawMultiple"
             :rules="multipleRules"
+            :maxlength="12"
             autocomplete="new-password"
           />
           <div v-if="false" class="field-hint">
