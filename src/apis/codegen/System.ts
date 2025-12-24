@@ -404,4 +404,16 @@ export class System<SecurityDataType = unknown> {
       format: "json",
       ...params,
     });
-}
+
+  /** 驗證token合法性 */
+  checkToken = (
+    params: RequestParams = {},
+  ) =>
+    this.http.request<any, any>({
+      path: '/system/user/checkToken',
+      method: "GET",
+      secure: true,
+      format: "json",
+      ...params,
+    });
+} 

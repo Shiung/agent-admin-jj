@@ -1,5 +1,6 @@
 import { ref, watch, computed } from 'vue'
 import { defineStore } from 'pinia'
+import { useRouter } from 'vue-router'
 import API from '@/apis'
 import { setHeaderToken } from '@/apis/api-client'
 import { useGlobalStore } from '@/stores/global'
@@ -9,7 +10,7 @@ import { type AccountInfoData, type SubAgentItem, type AgentCreditLimitPermissio
 export const useUserStore = defineStore('user', () => {
   const globalStore = useGlobalStore()
   const gameStore = useGameStore()
-
+  const router = useRouter()
   const token = ref<string | null>(localStorage.getItem('userToken') || null)
   const userInfo = ref<Record<string, any> | null>(null)
   const accountInfo = ref<AccountInfoData | null>(null)
@@ -114,6 +115,7 @@ export const useUserStore = defineStore('user', () => {
     subAgentList.value = []
     subAgentListLoaded.value = false
     agentCreditLimitPermission.value = null
+    router.replace({ name: 'login' })
   }
 
   // 获取佣金余额
