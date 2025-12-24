@@ -187,18 +187,19 @@ const handleSubmit = async () => {
       // 处理错误代码
       let errorMessage = response.data.Msg || '转账失败'
 
-      if (response.data.Code === 10002) {
-        errorMessage = '代理不存在'
-      } else if (response.data.Code === 10196) {
-        errorMessage = response.data.Msg || '代理不在此团队下，请重新输入'
+      if (response.data.Code === 10196 || response.data.Code === 10002) {
+        errorMessage = '代理不存在，请再次确认'
       } else if (response.data.Code === 10155) {
         errorMessage = '此代理已停用'
       } else if (response.data.Code === 10217) {
         errorMessage = '转账金额错误'
       } else if (response.data.Code === 21003) {
         errorMessage = '转账金额已超过当日限额'
+      } else if (response.data.Code === 10103) {
+        errorMessage = '私人密码错误，请再次确认'
+      } else if (response.data.Code === 10131) {
+        errorMessage = '钱包余额不足，请再次确认'
       }
-
       showToast({
         message: errorMessage,
         position: 'bottom'
