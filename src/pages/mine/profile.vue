@@ -18,6 +18,9 @@ const commissionRate = ref<number>(0)
 const loading = ref<boolean>(true)
 const isReady = computed(() => loading.value || !personalCenterInfo.value)
 
+// 雲平台 > 團隊管理 > 團隊列表-主线代理账号
+const teamInfoUsername = ref<string>('')
+
 const formatDate = (timestamp: number | string | null | undefined, format = 'YYYY-MM-DD'): string => {
   if (!timestamp) return '-'
   const timestampMs = typeof timestamp === 'string' ? Number(timestamp) : timestamp
@@ -70,6 +73,30 @@ const parentAgentTitle = computed(() => {
   return '上级代理'
 })
 
+// 取得團隊列表-主線代理（單層團隊代理-副線）
+const fetchTeamInfo = async () => {
+  if (userStore.isSingleAgent && userStore.hasTeam) {
+    try {
+      const res = await API.netcashteam.getNetcashteamInfo()
+      if (res.data.Code === 200) {
+        teamInfoUsername.value = res.data.Data.Username
+      }
+    } catch (error) {
+      console.error('获取团队信息失败:', error)
+    }
+  }
+}
+
+// 上級代理 or 主線代理
+const formatAgentUsername = computed(() => {
+  // 单层团队代理-副线
+  if (userStore.isSingleAgent && userStore.hasTeam && !userStore.isMainLine) {
+    return teamInfoUsername.value || '-'
+  }
+  // 多层代理-非一级：使用上级代理账号
+  return personalCenterInfo.value?.ParentUsername || '-'
+})
+
 // 雲平台/代理列表 > 驗證設置 > 是否顯示手機號綁定
 const isShowPhoneBind = computed(() => {
   return globalStore.systemConfig.PhoneBind
@@ -119,6 +146,7 @@ const initPage = async () => {
     await Promise.all([
       userStore.fetchAccountInfo(),
       fetchCompareCommission(),
+      fetchTeamInfo()
     ])
   } finally {
     loading.value = false
@@ -251,7 +279,7 @@ onMounted(() => {
       <van-cell v-if="isShowParentAgent" :title="parentAgentTitle">
         <template #label>
           <van-skeleton :loading="isReady" :row="1">
-            {{ personalCenterInfo?.ParentUsername || '-' }}
+            {{ formatAgentUsername }}
           </van-skeleton>
         </template>
       </van-cell>
